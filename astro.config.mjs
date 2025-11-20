@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   site: 'https://your-domain.com',
-  output: 'hybrid',
+  output: 'server',
   adapter: cloudflare({
     mode: 'directory',
     functionPerRoute: false,
