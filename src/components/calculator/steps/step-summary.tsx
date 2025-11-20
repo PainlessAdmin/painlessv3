@@ -49,7 +49,7 @@ export const StepSummary: React.FC<StepSummaryProps> = ({ onPrevious, onSubmit }
         throw new Error('Please enter a valid email address');
       }
 
-      await onSubmit();
+      onSubmit();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit quote');
     } finally {

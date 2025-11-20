@@ -38,12 +38,10 @@ export function getStaticPaths() {
 
   <script>
     // This will be hydrated by React
-    import { Step01Example } from '@/components/calculator/steps/step-01-example';
-    import { StepSummary } from '@/components/calculator/steps/step-summary';
-
     // Note: In a real app, you'd dynamically import the correct step component
     // For now, this is a placeholder that will be enhanced
 
-    console.log('Calculator step loaded:', document.querySelector('#calculator-app')?.dataset.step);
+    const appElement = document.querySelector('#calculator-app') as HTMLElement;
+    console.log('Calculator step loaded:', appElement?.dataset.step);
   </script>
 </LayoutCalculator>
