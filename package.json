@@ -12,7 +12,8 @@
     "format": "biome format --write .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "astro": "^4.15.0",
@@ -35,6 +36,7 @@
     "@biomejs/biome": "^1.9.0",
     "typescript": "^5.4.0",
     "wrangler": "^3.78.0",
-    "vitest": "^1.0.0"
+    "vitest": "^2.0.0",
+    "@vitest/ui": "^2.0.0"
   }
 }
