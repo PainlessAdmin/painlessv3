@@ -23,8 +23,17 @@ export async function bootApp(env?: any): Promise<void> {
   logger.info('Boot', 'Starting application boot...');
 
   try {
-    // TODO: Initialize features based on flags
-    // This will be expanded in the next prompt
+    // Initialize security (always enabled)
+    const { initSecurity } = await import('./features/security');
+    await initSecurity();
+
+    // Initialize enrichment if enabled
+    if (CONFIG.features.ipEnrichment) {
+      const { initEnrichment } = await import('./features/enrichment');
+      await initEnrichment();
+    }
+
+    // TODO: More features will be initialized here
 
     _booted = true;
     logger.info('Boot', '✓ Application boot complete');

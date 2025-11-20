@@ -45,3 +45,67 @@ export function hashSensitiveData(data: string): string {
   const hash = sha256(new TextEncoder().encode(data));
   return bytesToHex(hash);
 }
+
+/**
+ * Verify HMAC signature
+ * Used for webhook authentication
+ */
+export async function verifyHMAC(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    
+    // Import secret as key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    // Convert hex signature to bytes
+    const signatureBytes = hexToBytes(signature);
+    const payloadBytes = encoder.encode(payload);
+
+    // Verify signature
+    return await crypto.subtle.verify('HMAC', key, signatureBytes, payloadBytes);
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Generate HMAC signature
+ * Used for signing outgoing webhooks
+ */
+export async function generateHMAC(payload: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  
+  // Import secret as key
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  // Generate signature
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return bytesToHex(new Uint8Array(signature));
+}
+
+/**
+ * Helper: hex string to bytes
+ */
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
