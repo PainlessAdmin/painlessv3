@@ -114,6 +114,81 @@ Or with errors:
 
 ---
 
+### POST /api/save-quote
+
+Save a quote to database and send confirmation email.
+
+**Request:**
+```json
+{
+  "data": {
+    "projectType": "web",
+    "quantity": 5
+  },
+  "totalPrice": 50000,
+  "currency": "HUF",
+  "breakdown": {
+    "base": 30000,
+    "quantity": 20000
+  },
+  "language": "en",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+36301234567",
+  "utm_source": "google",
+  "utm_campaign": "summer_sale",
+  "gclid": "abc123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "quoteId": 123,
+  "message": "Quote saved successfully"
+}
+```
+
+**Features:**
+- Fingerprint-based duplicate prevention
+- IP anonymization (GDPR)
+- Device detection
+- UTM parameter tracking
+- Email confirmation sent automatically
+- Admin notification sent
+
+**Rate Limit:** 10 requests per minute per IP
+
+---
+
+### GET /api/quotes/:id
+
+Retrieve a quote by ID.
+
+**Response:**
+```json
+{
+  "success": true,
+  "quote": {
+    "id": 123,
+    "totalPrice": 50000,
+    "currency": "HUF",
+    "breakdown": {
+      "base": 30000,
+      "quantity": 20000
+    },
+    "language": "en",
+    "status": "new",
+    "createdAt": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+**Note:** Sensitive data (email, phone, IP) is not returned
+
+---
+
 ## Error Responses
 
 All errors include an `errorId` for tracking:

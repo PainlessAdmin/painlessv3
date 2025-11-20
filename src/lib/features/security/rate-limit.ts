@@ -60,7 +60,7 @@ export async function checkRateLimit(context: APIContext): Promise<boolean> {
 
     const count = Number.parseInt(current, 10);
 
-    if (isNaN(count)) {
+    if (Number.isNaN(count)) {
       logger.warn('RateLimit', 'Invalid counter, resetting', { key });
       await kvPut(kv, key, '1', {
         expirationTtl: Math.floor(CONFIG.security.rateLimitWindowMs / 1000),

@@ -13,7 +13,7 @@ export default defineConfig({
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
     ssr: {
-      noExternal: ['nanostores', '@libsql/client'],
+      noExternal: ['nanostores', '@libsql/client', 'resend'],
     },
     define: {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),

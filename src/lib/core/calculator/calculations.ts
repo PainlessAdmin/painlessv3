@@ -58,9 +58,9 @@ export function calculateTotal(data: CalculatorData): CalculatorResult {
     }
 
     const breakdown: Record<string, number> = {};
-    items.forEach((item) => {
+    for (const item of items) {
       breakdown[item.id] = item.amount;
-    });
+    }
 
     const result: CalculatorResult = {
       totalPrice: Math.round(total),
