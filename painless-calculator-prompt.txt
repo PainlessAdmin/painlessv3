@@ -1,0 +1,4502 @@
+# ULTIMATE CALCULATOR BOILERPLATE - CLOUDFLARE EDGE NATIVE
+## Enterprise-Grade | AI-Friendly | Feature Flag System | 100% Production-Ready
+
+Create a complete, enterprise-grade, Cloudflare Edge-native calculator boilerplate with advanced features, security, monitoring, and scalability built-in from day one.
+
+---
+
+## 🎯 PROJECT FUNDAMENTALS
+
+**Name:** `calculator-boilerplate`
+**Architecture:** Feature Plugin System with Central Orchestrator
+**Philosophy:** "Everything included, feature flags control activation"
+**AI Development:** Optimized for AI-assisted coding (Cursor, Claude, ChatGPT)
+
+### Core Stack:
+- **Framework:** Astro 4+ (SSR + Static)
+- **Adapter:** @astrojs/cloudflare (Edge-native)
+- **Runtime:** Cloudflare Workers (100% Edge-compatible)
+- **Language:** TypeScript 5+ (strict mode)
+- **UI:** React 18+ (Islands architecture)
+- **Styling:** Tailwind CSS 3+
+- **Database:** Turso (libSQL over HTTP - Edge-safe)
+- **ORM:** Drizzle ORM (SQLite dialect)
+- **Auth:** BetterAuth (Edge-first)
+- **Email:** Resend (Edge-compatible)
+- **Monitoring:** Toucan (Cloudflare Sentry client)
+- **Linter/Formatter:** Biome (Rust-based, replaces ESLint + Prettier)
+- **Testing:** Vitest
+- **Package Manager:** npm
+- **Node Version:** 18+
+
+---
+
+## 📦 COMPLETE DEPENDENCIES
+```json
+{
+  "name": "calculator-boilerplate",
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "wrangler pages dev ./dist",
+    "deploy": "npm run build && wrangler pages deploy ./dist",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:cleanup": "tsx scripts/cleanup-old-quotes.ts",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "health-check": "tsx scripts/health-check.ts"
+  },
+  "dependencies": {
+    "astro": "^4.15.0",
+    "@astrojs/cloudflare": "^11.0.0",
+    "@astrojs/react": "^3.6.0",
+    "@astrojs/tailwind": "^5.1.0",
+    "@astrojs/sitemap": "^3.1.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tailwindcss": "^3.4.0",
+    "nanostores": "^0.10.0",
+    "@nanostores/react": "^0.7.0",
+    "@nanostores/i18n": "^0.10.0",
+    "zod": "^3.23.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.5.0",
+    "@libsql/client": "^0.6.0",
+    "drizzle-orm": "^0.33.0",
+    "better-auth": "^0.7.0",
+    "resend": "^4.0.0",
+    "toucan-js": "^3.4.0",
+    "@unpic/astro": "^0.0.46",
+    "@noble/hashes": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@cloudflare/workers-types": "^4.20240925.0",
+    "@biomejs/biome": "^1.9.0",
+    "drizzle-kit": "^0.24.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.78.0",
+    "vitest": "^2.0.0",
+    "@vitest/ui": "^2.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "tsx": "^4.7.0"
+  }
+}
+```
+
+---
+
+## 📁 COMPLETE PROJECT STRUCTURE
+```
+calculator-boilerplate/
+├── src/
+│   ├── lib/
+│   │   ├── config.ts                          # MASTER CONFIG (feature flags)
+│   │   ├── boot.ts                            # ORCHESTRATOR (plugin loader)
+│   │   │
+│   │   ├── core/                              # CORE (feature-independent)
+│   │   │   ├── calculator/
+│   │   │   │   ├── config.ts                 # Step configuration
+│   │   │   │   ├── types.ts                  # TypeScript types
+│   │   │   │   ├── calculations.ts           # Calculation logic
+│   │   │   │   └── store.ts                  # Nanostores state
+│   │   │   │
+│   │   │   ├── db/
+│   │   │   │   ├── client.ts                 # Turso client factory
+│   │   │   │   ├── schema.ts                 # Drizzle schema
+│   │   │   │   └── queries.ts                # Database queries
+│   │   │   │
+│   │   │   ├── email/
+│   │   │   │   ├── sender.ts                 # Resend wrapper with timeout
+│   │   │   │   ├── types.ts
+│   │   │   │   └── templates/
+│   │   │   │       ├── quote-confirmation.html
+│   │   │   │       ├── quote-notification.html
+│   │   │   │       └── magic-link.html
+│   │   │   │
+│   │   │   ├── api/
+│   │   │   │   ├── base-client.ts            # Base API client
+│   │   │   │   └── google-maps.ts            # Google Maps wrapper
+│   │   │   │
+│   │   │   └── validations/
+│   │   │       └── schemas.ts                # Zod schemas
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── index.ts                      # Utility functions (cn, formatPrice)
+│   │   │   ├── logger.ts                     # 🆕 Central logger with levels
+│   │   │   ├── kv.ts                         # 🆕 Safe KV wrapper
+│   │   │   ├── fingerprint.ts                # 🆕 Hash generation
+│   │   │   ├── error.ts                      # 🆕 Error ID generator
+│   │   │   └── cors.ts                       # 🆕 CORS helper
+│   │   │
+│   │   └── features/                          # FEATURES (plugin-based)
+│   │       ├── auth/
+│   │       │   ├── index.ts                  # Auth exports with fallback
+│   │       │   ├── config.ts                 # BetterAuth setup
+│   │       │   ├── magic-link.ts             # 🆕 Email magic link fallback
+│   │       │   └── middleware.ts             # Auth middleware
+│   │       │
+│   │       ├── analytics/
+│   │       │   ├── index.ts                  # Analytics with event queue
+│   │       │   ├── gtm.ts                    # GTM integration
+│   │       │   ├── ga4.ts                    # GA4 integration
+│   │       │   └── events.ts                 # Event definitions
+│   │       │
+│   │       ├── crm-sync/
+│   │       │   ├── index.ts                  # CRM exports
+│   │       │   ├── webhook.ts                # Webhook client with HMAC
+│   │       │   ├── queue.ts                  # 🆕 Write queue (KV-based)
+│   │       │   └── types.ts
+│   │       │
+│   │       ├── multi-language/
+│   │       │   ├── index.ts                  # i18n exports
+│   │       │   ├── config.ts
+│   │       │   ├── helpers.ts
+│   │       │   └── translations/
+│   │       │       ├── en.json
+│   │       │       ├── es.json
+│   │       │       └── fr.json
+│   │       │
+│   │       ├── idle-popup/
+│   │       │   ├── index.ts
+│   │       │   └── IdlePopup.tsx             # React component with tab detection
+│   │       │
+│   │       ├── testimonials/
+│   │       │   ├── index.ts
+│   │       │   ├── data.ts                   # Testimonial data
+│   │       │   ├── types.ts
+│   │       │   └── TestimonialWidget.astro
+│   │       │
+│   │       ├── security/
+│   │       │   ├── index.ts
+│   │       │   ├── rate-limit.ts             # Rate limiting with hash
+│   │       │   ├── turnstile.ts              # Cloudflare Turnstile
+│   │       │   ├── honeypot.ts               # Honeypot spam protection
+│   │       │   └── payload-limit.ts          # 🆕 Payload size validator
+│   │       │
+│   │       ├── monitoring/
+│   │       │   ├── index.ts
+│   │       │   ├── toucan.ts                 # Toucan (Cloudflare Sentry)
+│   │       │   ├── logger.ts                 # Structured logging
+│   │       │   └── slow-response.ts          # 🆕 Slow response monitor
+│   │       │
+│   │       └── enrichment/
+│   │           ├── index.ts
+│   │           ├── gclid.ts                  # Google Ads Click ID
+│   │           ├── utm.ts                    # UTM parameters
+│   │           ├── ip-geo.ts                 # CF-IPCountry header
+│   │           ├── device.ts                 # Device detection
+│   │           └── anonymize.ts              # 🆕 IP anonymization (GDPR)
+│   │
+│   ├── pages/
+│   │   ├── index.astro
+│   │   ├── [lang]/                           # Multi-language support
+│   │   │   ├── index.astro
+│   │   │   └── calculator/
+│   │   │       └── [step].astro
+│   │   │
+│   │   ├── admin/                            # Admin dashboard
+│   │   │   ├── index.astro
+│   │   │   └── quotes.astro
+│   │   │
+│   │   └── api/
+│   │       ├── health.ts                     # 🆕 Health check endpoint
+│   │       ├── calculate.ts                  # Calculation endpoint
+│   │       ├── validate.ts                   # Validation endpoint
+│   │       ├── save-quote.ts                 # Quote save with fingerprint
+│   │       ├── send-email.ts                 # Email endpoint
+│   │       ├── webhook.ts                    # CRM webhook with HMAC verify
+│   │       ├── webhook-inbound.ts            # 🆕 Webhook receiver with signature
+│   │       └── external/
+│   │           ├── google-maps.ts            # Google Maps proxy
+│   │           └── exchange-rate.ts          # Currency exchange (example)
+│   │
+│   ├── components/
+│   │   ├── ui/                               # shadcn/ui style components
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── alert.tsx
+│   │   │   └── dialog.tsx
+│   │   │
+│   │   ├── calculator/
+│   │   │   ├── layout-calculator.astro
+│   │   │   ├── progress-bar.astro
+│   │   │   ├── step-container.tsx
+│   │   │   ├── language-switcher.tsx
+│   │   │   └── steps/
+│   │   │       ├── step-01-example.tsx
+│   │   │       ├── step-02-example.tsx
+│   │   │       └── step-summary.tsx
+│   │   │
+│   │   ├── admin/
+│   │   │   ├── dashboard-stats.tsx
+│   │   │   ├── quote-list.tsx
+│   │   │   └── export-csv.tsx
+│   │   │
+│   │   └── seo/
+│   │       ├── head-seo.astro
+│   │       ├── json-ld.astro
+│   │       └── breadcrumbs.astro
+│   │
+│   ├── middleware/
+│   │   ├── index.ts                          # Global middleware with dynamic URL
+│   │   ├── auth.ts                           # Auth middleware
+│   │   ├── i18n.ts                           # Language detection
+│   │   └── analytics.ts                      # Analytics tracking
+│   │
+│   ├── styles/
+│   │   └── global.css
+│   │
+│   └── env.d.ts
+│
+├── public/
+│   ├── images/
+│   │   ├── steps/                            # Step-specific images
+│   │   │   ├── step-01/
+│   │   │   ├── step-02/
+│   │   │   └── step-03/
+│   │   ├── testimonials/
+│   │   └── seo/
+│   ├── robots.txt
+│   ├── manifest.json
+│   └── favicon.ico
+│
+├── db/
+│   └── migrations/                           # Drizzle migrations
+│
+├── scripts/                                  # 🆕 Maintenance scripts
+│   ├── cleanup-old-quotes.ts                # 🆕 Data retention (180 days)
+│   ├── health-check.ts                      # 🆕 Startup health check
+│   ├── process-crm-queue.ts                 # 🆕 CRM queue processor (cron)
+│   └── migrate-schema-version.ts            # 🆕 Schema migration helper
+│
+├── docs/
+│   ├── README.md
+│   ├── ARCHITECTURE.md
+│   ├── API.md
+│   ├── DEPLOYMENT.md
+│   ├── FEATURES.md
+│   ├── AUTH.md
+│   ├── I18N.md
+│   ├── SEO.md
+│   ├── TESTING.md
+│   ├── EDGE-COMPATIBILITY.md
+│   ├── SECURITY.md                          # 🆕 Security best practices
+│   ├── DATA-RETENTION.md                    # 🆕 GDPR compliance
+│   └── TROUBLESHOOTING.md                   # 🆕 Common issues
+│
+├── test/
+│   ├── unit/
+│   │   ├── calculations.test.ts
+│   │   ├── validations.test.ts
+│   │   ├── utils.test.ts
+│   │   ├── fingerprint.test.ts             # 🆕
+│   │   └── logger.test.ts                   # 🆕
+│   ├── integration/
+│   │   ├── api-calculate.test.ts
+│   │   ├── api-save-quote.test.ts
+│   │   ├── feature-integration.test.ts
+│   │   ├── health-check.test.ts            # 🆕
+│   │   └── webhook-signature.test.ts       # 🆕
+│   └── setup.ts
+│
+├── .dev.vars
+├── .env.example
+├── .cursorrules
+├── biome.json
+├── astro.config.mjs
+├── drizzle.config.ts
+├── tailwind.config.mjs
+├── tsconfig.json
+├── vitest.config.ts
+├── wrangler.toml
+├── package.json
+└── README.md
+```
+
+---
+
+## ⚙️ CRITICAL CONFIG FILES
+
+### 1. `src/lib/config.ts` - MASTER CONFIGURATION
+```typescript
+/**
+ * MASTER CONFIGURATION
+ * 
+ * Feature flags - Everything can be toggled here
+ * Core NEVER changes, only this file!
+ * 
+ * IMPORTANT: This file runs at BUILD-TIME (Astro config)
+ * For runtime env vars, use getRuntimeConfig() in API routes
+ */
+
+// Build-time environment check
+const isProduction = import.meta.env.MODE === 'production';
+const isDevelopment = import.meta.env.MODE === 'development';
+
+export const CONFIG = {
+  // Site info (runtime-derived)
+  site: {
+    name: 'Calculator Boilerplate',
+    // URL is derived at runtime from request.url
+    url: undefined as string | undefined,
+    defaultLocale: 'en' as const,
+  },
+
+  // Calculator settings
+  calculator: {
+    currency: 'HUF',
+    phoneNumber: '+36-XX-XXX-XXXX',
+    idleTimeSeconds: 20,
+    emailFrom: 'noreply@your-domain.com',
+    emailSupport: 'support@your-domain.com',
+    schemaVersion: 1, // 🆕 Schema versioning
+  },
+
+  // FEATURE FLAGS - Everything is controllable
+  features: {
+    // Auth system
+    auth: false,
+    authMagicLinkFallback: true, // 🆕 Email magic link if OAuth fails
+
+    // Multi-language support
+    multiLanguage: false,
+
+    // Analytics tracking
+    analytics: false,
+
+    // CRM webhook sync
+    crmSync: false,
+    crmQueue: true, // 🆕 Use queue instead of direct sync
+
+    // Idle popup
+    idlePopup: false,
+
+    // Security features (FORCED in production)
+    rateLimiting: true, // Always true
+    botProtection: false,
+    payloadLimit: true, // 🆕 1MB max payload
+    ipLogging: isDevelopment, // 🆕 GDPR: only dev mode
+    ipAnonymization: isProduction, // 🆕 Anonymize IPs in production
+
+    // UI features
+    testimonials: true,
+
+    // Marketing tracking
+    gclid: true,
+    utmTracking: true,
+
+    // Monitoring
+    sentry: false,
+    slowResponseMonitor: isDevelopment, // 🆕 Track slow APIs
+
+    // Enrichment
+    ipEnrichment: true,
+    deviceDetection: true,
+
+    // Images
+    cloudflareImages: false,
+
+    // Maintenance
+    dataRetention: true, // 🆕 180-day cleanup
+    healthCheck: true, // 🆕 Startup checks
+    webhookSignature: true, // 🆕 HMAC validation
+  },
+
+  // Auth config
+  auth: {
+    providers: {
+      google: {
+        enabled: true,
+      },
+      magicLink: {
+        enabled: true, // 🆕 Fallback auth method
+        tokenExpiry: 900, // 15 minutes
+      },
+    },
+  },
+
+  // Languages
+  languages: {
+    default: 'en' as const,
+    available: ['en', 'es', 'fr'] as const,
+  },
+
+  // Security
+  security: {
+    rateLimitRequests: 10, // per minute
+    rateLimitWindowMs: 60000, // 1 minute
+    maxPayloadSize: 1048576, // 🆕 1MB
+    allowedOrigins: [ // 🆕 CORS whitelist
+      'https://your-domain.com',
+      isDevelopment ? 'http://localhost:4321' : null,
+    ].filter(Boolean) as string[],
+  },
+
+  // Data retention (GDPR)
+  dataRetention: {
+    quotesMaxAgeDays: 180, // 🆕 6 months
+    sessionsMaxAgeDays: 30,
+    logsMaxAgeDays: 90,
+  },
+
+  // Monitoring
+  monitoring: {
+    slowResponseThresholdMs: 2000, // 🆕 2 seconds
+    errorAlertThreshold: 20, // 🆕 20 errors in 10 min
+  },
+
+  // Debug
+  debug: isDevelopment,
+} as const;
+
+/**
+ * Get runtime config with environment variables
+ * Use this in API routes to access runtime env vars
+ * 
+ * CRITICAL: Always use this function, never import.meta.env in API routes
+ */
+export function getRuntimeConfig(env: any) {
+  return {
+    ...CONFIG,
+    site: {
+      ...CONFIG.site,
+      // URL will be set dynamically in middleware
+    },
+    analytics: {
+      gtmId: env.GTM_ID || '',
+      ga4Id: env.GA4_ID || '',
+    },
+    crm: {
+      webhookUrl: env.CRM_WEBHOOK_URL || '',
+      apiKey: env.CRM_API_KEY || '',
+      webhookSecret: env.CRM_WEBHOOK_SECRET || '', // 🆕 HMAC secret
+      retryAttempts: 3,
+      timeoutMs: 5000,
+    },
+    monitoring: {
+      sentryDsn: env.SENTRY_DSN || '',
+      environment: env.ENVIRONMENT || 'development',
+      sampleRate: isProduction ? 0.1 : 1.0,
+    },
+    externalApis: {
+      googleMaps: {
+        enabled: !!env.GOOGLE_MAPS_API_KEY,
+        apiKey: env.GOOGLE_MAPS_API_KEY || '',
+        timeoutMs: 5000,
+      },
+    },
+    auth: {
+      ...CONFIG.auth,
+      providers: {
+        google: {
+          enabled: CONFIG.auth.providers.google.enabled,
+          clientId: env.GOOGLE_CLIENT_ID,
+          clientSecret: env.GOOGLE_CLIENT_SECRET,
+        },
+        magicLink: {
+          enabled: CONFIG.auth.providers.magicLink.enabled,
+          tokenExpiry: CONFIG.auth.providers.magicLink.tokenExpiry,
+        },
+      },
+    },
+    email: {
+      resendApiKey: env.RESEND_API_KEY || '',
+      from: CONFIG.calculator.emailFrom,
+      timeoutMs: 5000, // 🆕 Email timeout
+    },
+  };
+}
+
+// Type exports
+export type Locale = (typeof CONFIG.languages.available)[number];
+export type Feature = keyof typeof CONFIG.features;
+export type RuntimeConfig = ReturnType<typeof getRuntimeConfig>;
+```
+
+---
+
+### 2. `src/lib/utils/logger.ts` - 🆕 CENTRAL LOGGER
+```typescript
+/**
+ * CENTRAL LOGGER
+ * 
+ * Structured logging with levels
+ * Production: only errors logged
+ * Development: all logs visible
+ */
+
+import { CONFIG } from '@/lib/config';
+
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogEntry {
+  level: LogLevel;
+  module: string;
+  message: string;
+  data?: Record<string, unknown>;
+  timestamp: string;
+  errorId?: string;
+}
+
+/**
+ * Log message with level
+ */
+export function log(
+  level: LogLevel,
+  module: string,
+  message: string,
+  data?: Record<string, unknown>
+): void {
+  // In production, only log errors and warns
+  if (!CONFIG.debug && level !== 'error' && level !== 'warn') {
+    return;
+  }
+
+  const entry: LogEntry = {
+    level,
+    module,
+    message,
+    data,
+    timestamp: new Date().toISOString(),
+  };
+
+  const prefix = `[${level.toUpperCase()}][${module}]`;
+
+  switch (level) {
+    case 'error':
+      console.error(prefix, message, data || '');
+      break;
+    case 'warn':
+      console.warn(prefix, message, data || '');
+      break;
+    case 'info':
+      console.info(prefix, message, data || '');
+      break;
+    case 'debug':
+      console.debug(prefix, message, data || '');
+      break;
+  }
+}
+
+/**
+ * Convenience methods
+ */
+export const logger = {
+  debug: (module: string, message: string, data?: Record<string, unknown>) =>
+    log('debug', module, message, data),
+
+  info: (module: string, message: string, data?: Record<string, unknown>) =>
+    log('info', module, message, data),
+
+  warn: (module: string, message: string, data?: Record<string, unknown>) =>
+    log('warn', module, message, data),
+
+  error: (module: string, message: string, data?: Record<string, unknown>) =>
+    log('error', module, message, data),
+};
+```
+
+---
+
+### 3. `src/lib/utils/kv.ts` - 🆕 SAFE KV WRAPPER
+```typescript
+/**
+ * SAFE KV WRAPPER
+ * 
+ * Handles missing KV namespaces gracefully
+ * Returns null instead of throwing
+ */
+
+import { logger } from './logger';
+
+export type KVNamespace = any; // Cloudflare KV type
+
+/**
+ * Get KV namespace safely
+ * Returns null if not available
+ */
+export function safeKV(env: any, namespace: string): KVNamespace | null {
+  if (!env || !env[namespace]) {
+    logger.warn('KV', `Namespace "${namespace}" not available`);
+    return null;
+  }
+
+  return env[namespace];
+}
+
+/**
+ * Get value from KV with fallback
+ */
+export async function kvGet<T = string>(
+  kv: KVNamespace | null,
+  key: string,
+  fallback?: T
+): Promise<T | null> {
+  if (!kv) return fallback ?? null;
+
+  try {
+    const value = await kv.get(key);
+    return value !== null ? (value as T) : (fallback ?? null);
+  } catch (error) {
+    logger.error('KV', `Failed to get key "${key}"`, { error });
+    return fallback ?? null;
+  }
+}
+
+/**
+ * Set value in KV with error handling
+ */
+export async function kvPut(
+  kv: KVNamespace | null,
+  key: string,
+  value: string,
+  options?: { expirationTtl?: number }
+): Promise<boolean> {
+  if (!kv) return false;
+
+  try {
+    await kv.put(key, value, options);
+    return true;
+  } catch (error) {
+    logger.error('KV', `Failed to put key "${key}"`, { error });
+    return false;
+  }
+}
+
+/**
+ * Delete value from KV
+ */
+export async function kvDelete(
+  kv: KVNamespace | null,
+  key: string
+): Promise<boolean> {
+  if (!kv) return false;
+
+  try {
+    await kv.delete(key);
+    return true;
+  } catch (error) {
+    logger.error('KV', `Failed to delete key "${key}"`, { error });
+    return false;
+  }
+}
+```
+
+---
+
+### 4. `src/lib/utils/fingerprint.ts` - 🆕 HASH GENERATION
+```typescript
+/**
+ * FINGERPRINT GENERATION
+ * 
+ * Generate unique hashes for duplicate prevention
+ * Uses @noble/hashes (Edge-compatible)
+ */
+
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex } from '@noble/hashes/utils';
+
+/**
+ * Generate SHA-256 hash from data
+ */
+export function generateFingerprint(data: unknown): string {
+  const json = JSON.stringify(data, Object.keys(data).sort());
+  const hash = sha256(new TextEncoder().encode(json));
+  return bytesToHex(hash);
+}
+
+/**
+ * Generate rate limit key hash
+ * Combines IP + UserAgent for better granularity
+ */
+export function generateRateLimitKey(ip: string, userAgent?: string): string {
+  const combined = `${ip}:${userAgent || 'unknown'}`;
+  const hash = sha256(new TextEncoder().encode(combined));
+  return bytesToHex(hash).substring(0, 16); // First 16 chars
+}
+
+/**
+ * Verify HMAC signature
+ */
+export async function verifyHMAC(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    const signatureBytes = hexToBytes(signature);
+    const payloadBytes = encoder.encode(payload);
+
+    return await crypto.subtle.verify('HMAC', key, signatureBytes, payloadBytes);
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Generate HMAC signature
+ */
+export async function generateHMAC(payload: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return bytesToHex(new Uint8Array(signature));
+}
+
+// Helper: hex string to bytes
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+```
+
+---
+
+### 5. `src/lib/utils/error.ts` - 🆕 ERROR ID GENERATOR
+```typescript
+/**
+ * ERROR ID GENERATOR
+ * 
+ * Generate unique error IDs for tracking
+ * User reports error ID, you find it in logs
+ */
+
+/**
+ * Generate unique error ID
+ */
+export function generateErrorId(): string {
+  return crypto.randomUUID().substring(0, 8);
+}
+
+/**
+ * Format error for logging
+ */
+export function formatError(error: unknown, errorId: string): Record<string, unknown> {
+  if (error instanceof Error) {
+    return {
+      errorId,
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    errorId,
+    error: String(error),
+  };
+}
+
+/**
+ * Create error response with ID
+ */
+export function createErrorResponse(
+  message: string,
+  errorId: string,
+  status: number = 500
+): Response {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: message,
+      errorId,
+    }),
+    {
+      status,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Error-ID': errorId,
+      },
+    }
+  );
+}
+```
+
+---
+
+### 6. `src/lib/utils/cors.ts` - 🆕 CORS HELPER
+```typescript
+/**
+ * CORS HELPER
+ * 
+ * Generate CORS headers based on config
+ * Never use wildcard (*) in production
+ */
+
+import { CONFIG } from '@/lib/config';
+
+/**
+ * Get CORS headers for response
+ */
+export function getCORSHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigins = CONFIG.security.allowedOrigins;
+
+  // Check if origin is allowed
+  const isAllowed = origin && allowedOrigins.includes(origin);
+
+  if (isAllowed) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+      'Access-Control-Allow-Credentials': 'true',
+    };
+  }
+
+  // Development fallback
+  if (CONFIG.debug) {
+    return {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+  }
+
+  // No CORS headers if origin not allowed
+  return {};
+}
+
+/**
+ * Handle CORS preflight
+ */
+export function handleCORSPreflight(request: Request): Response {
+  const origin = request.headers.get('Origin');
+  const headers = getCORSHeaders(origin);
+
+  return new Response(null, {
+    status: 204,
+    headers,
+  });
+}
+```
+
+---
+
+### 7. `src/lib/core/db/schema.ts` - UPDATED WITH NEW FIELDS
+```typescript
+import { sql } from 'drizzle-orm';
+import { integer, sqliteTable, text, real, index } from 'drizzle-orm/sqlite-core';
+
+/**
+ * Users table
+ */
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  name: text('name'),
+  emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
+  image: text('image'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Sessions table
+ */
+export const sessions = sqliteTable('sessions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Magic link tokens table (🆕)
+ */
+export const magicLinkTokens = sqliteTable('magic_link_tokens', {
+  id: text('id').primaryKey(),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  used: integer('used', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/**
+ * Calculator quotes table
+ */
+export const quotes = sqliteTable(
+  'quotes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+
+    // User relation (optional)
+    userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+
+    // Version control (🆕)
+    schemaVersion: integer('schema_version').notNull().default(1),
+
+    // Fingerprint for duplicate prevention (🆕)
+    fingerprint: text('fingerprint').notNull().unique(),
+
+    // Calculator data (JSON)
+    calculatorData: text('calculator_data', { mode: 'json' })
+      .$type<Record<string, unknown>>()
+      .notNull(),
+
+    // Result
+    totalPrice: real('total_price').notNull(),
+    currency: text('currency').notNull().default('HUF'),
+    breakdown: text('breakdown', { mode: 'json' }).$type<Record<string, number>>(),
+
+    // Contact info
+    name: text('name'),
+    email: text('email'),
+    phone: text('phone'),
+
+    // Language
+    language: text('language').notNull().default('en'),
+
+    // Enrichment data
+    ipAddress: text('ip_address'), // 🆕 Nullable (GDPR)
+    ipAddressHash: text('ip_address_hash'), // 🆕 Hashed IP (GDPR-safe)
+    country: text('country'),
+    city: text('city'),
+    device: text('device'),
+    userAgent: text('user_agent'),
+
+    // Marketing tracking
+    utmSource: text('utm_source'),
+    utmMedium: text('utm_medium'),
+    utmCampaign: text('utm_campaign'),
+    utmTerm: text('utm_term'),
+    utmContent: text('utm_content'),
+    gclid: text('gclid'),
+
+    // Status
+    status: text('status').notNull().default('new'),
+
+    // CRM sync
+    crmSynced: integer('crm_synced', { mode: 'boolean' }).notNull().default(false),
+    crmId: text('crm_id'),
+    crmSyncedAt: integer('crm_synced_at', { mode: 'timestamp' }),
+    crmSyncAttempts: integer('crm_sync_attempts').notNull().default(0), // 🆕
+
+    // Timestamps
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+
+    // 🆕 Soft delete for GDPR
+    deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+  },
+  (table) => ({
+    // Indexes for performance
+    fingerprintIdx: index('fingerprint_idx').on(table.fingerprint),
+    createdAtIdx: index('created_at_idx').on(table.createdAt),
+    statusIdx: index('status_idx').on(table.status),
+    crmSyncedIdx: index('crm_synced_idx').on(table.crmSynced),
+  })
+);
+
+/**
+ * CRM sync queue table (🆕)
+ */
+export const crmQueue = sqliteTable('crm_queue', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  quoteId: integer('quote_id')
+    .notNull()
+    .references(() => quotes.id, { onDelete: 'cascade' }),
+  attempts: integer('attempts').notNull().default(0),
+  maxAttempts: integer('max_attempts').notNull().default(3),
+  nextRetryAt: integer('next_retry_at', { mode: 'timestamp' }),
+  lastError: text('last_error'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'processing' | 'completed' | 'failed'
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  processedAt: integer('processed_at', { mode: 'timestamp' }),
+});
+
+/**
+ * Testimonials table
+ */
+export const testimonials = sqliteTable('testimonials', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+
+  name: text('name').notNull(),
+  company: text('company'),
+  role: text('role'),
+  content: text('content').notNull(),
+  rating: integer('rating').notNull(),
+  image: text('image'),
+
+  // Assignment
+  pages: text('pages', { mode: 'json' }).$type<string[]>(),
+
+  // Display settings
+  featured: integer('featured', { mode: 'boolean' }).notNull().default(false),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  order: integer('order').notNull().default(0),
+
+  // Language
+  language: text('language').notNull().default('en'),
+
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Type exports
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+export type MagicLinkToken = typeof magicLinkTokens.$inferSelect;
+export type NewMagicLinkToken = typeof magicLinkTokens.$inferInsert;
+export type Quote = typeof quotes.$inferSelect;
+export type NewQuote = typeof quotes.$inferInsert;
+export type CRMQueueItem = typeof crmQueue.$inferSelect;
+export type NewCRMQueueItem = typeof crmQueue.$inferInsert;
+export type Testimonial = typeof testimonials.$inferSelect;
+export type NewTestimonial = typeof testimonials.$inferInsert;
+```
+
+---
+
+### 8. `src/lib/core/email/sender.ts` - WITH TIMEOUT
+```typescript
+/**
+ * EMAIL SENDER
+ * 
+ * Resend wrapper with timeout and error handling
+ */
+
+import { Resend } from 'resend';
+import { logger } from '@/lib/utils/logger';
+import type { RuntimeConfig } from '@/lib/config';
+
+interface EmailOptions {
+  to: string | string[];
+  subject: string;
+  html: string;
+  from?: string;
+  replyTo?: string;
+}
+
+/**
+ * Send email with timeout
+ * 
+ * CRITICAL: Uses AbortSignal.timeout() for Edge compatibility
+ */
+export async function sendEmail(
+  options: EmailOptions,
+  config: RuntimeConfig['email']
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (!config.resendApiKey) {
+    logger.error('Email', 'Resend API key not configured');
+    return { success: false, error: 'Email service not configured' };
+  }
+
+  const resend = new Resend(config.resendApiKey);
+
+  try {
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
+
+    const result = await resend.emails.send({
+      from: options.from || config.from,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      reply_to: options.replyTo,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (result.error) {
+      logger.error('Email', 'Failed to send', { error: result.error });
+      return { success: false, error: result.error.message };
+    }
+
+    logger.info('Email', 'Sent successfully', { id: result.data?.id });
+
+    return {
+      success: true,
+      messageId: result.data?.id,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      logger.error('Email', 'Timeout exceeded', { timeout: config.timeoutMs });
+      return { success: false, error: 'Email timeout' };
+    }
+
+    logger.error('Email', 'Send failed', { error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+```
+
+---
+
+### 9. `src/lib/features/security/payload-limit.ts` - 🆕 NEW FILE
+```typescript
+/**
+ * PAYLOAD SIZE LIMIT
+ * 
+ * Prevents large payloads from consuming memory
+ * 1MB default limit
+ */
+
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+import type { APIContext } from 'astro';
+
+/**
+ * Check payload size
+ * Returns true if within limit
+ */
+export async function checkPayloadSize(context: APIContext): Promise<boolean> {
+  if (!CONFIG.features.payloadLimit) {
+    return true; // Feature disabled
+  }
+
+  const contentLength = context.request.headers.get('Content-Length');
+
+  if (!contentLength) {
+    // No Content-Length header, can't check
+    logger.warn('Security', 'Missing Content-Length header');
+    return true; // Allow by default
+  }
+
+  const size = parseInt(contentLength, 10);
+
+  if (isNaN(size)) {
+    logger.warn('Security', 'Invalid Content-Length header');
+    return true;
+  }
+
+  if (size > CONFIG.security.maxPayloadSize) {
+    logger.warn('Security', 'Payload too large', {
+      size,
+      limit: CONFIG.security.maxPayloadSize,
+    });
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Create payload too large response
+ */
+export function createPayloadTooLargeResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      error: 'Payload too large',
+      maxSize: CONFIG.security.maxPayloadSize,
+    }),
+    {
+      status: 413,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+}
+```
+
+---
+
+### 10. `src/lib/features/security/rate-limit.ts` - UPDATED WITH HASH
+```typescript
+/**
+ * RATE LIMITING
+ * 
+ * Uses Cloudflare KV
+ * Hash-based key (IP + UserAgent) for better granularity
+ */
+
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+import { safeKV, kvGet, kvPut } from '@/lib/utils/kv';
+import { generateRateLimitKey } from '@/lib/utils/fingerprint';
+import type { APIContext } from 'astro';
+
+/**
+ * Check rate limit
+ */
+export async function checkRateLimit(context: APIContext): Promise<boolean> {
+  if (!CONFIG.features.rateLimiting) {
+    return true; // Feature disabled
+  }
+
+  const { locals, request } = context;
+  const runtime = locals.runtime as any;
+
+  const kv = safeKV(runtime.env, 'RATE_LIMITER');
+  if (!kv) {
+    logger.warn('RateLimit', 'KV not configured, allowing request');
+    return true;
+  }
+
+  // Get IP address
+  const ip =
+    request.headers.get('CF-Connecting-IP') ||
+    request.headers.get('X-Forwarded-For')?.split(',')[0] ||
+    'unknown';
+
+  if (ip === 'unknown') {
+    logger.warn('RateLimit', 'Could not determine IP');
+    return true;
+  }
+
+  // Get UserAgent for better granularity
+  const userAgent = request.headers.get('User-Agent') || undefined;
+
+  // Generate hash-based key
+  const keyHash = generateRateLimitKey(ip, userAgent);
+  const key = `rate_limit:${CONFIG.monitoring.environment || 'dev'}:${keyHash}`;
+
+  try {
+    const current = await kvGet<string>(kv, key);
+
+    if (!current) {
+      // First request
+      await kvPut(kv, key, '1', {
+        expirationTtl: Math.floor(CONFIG.security.rateLimitWindowMs / 1000),
+      });
+      return true;
+    }
+
+    const count = parseInt(current, 10);
+
+    if (isNaN(count)) {
+      logger.warn('RateLimit', 'Invalid counter, resetting', { key });
+      await kvPut(kv, key, '1', {
+        expirationTtl: Math.floor(CONFIG.security.rateLimitWindowMs / 1000),
+      });
+      return true;
+    }
+
+    if (count >= CONFIG.security.rateLimitRequests) {
+      logger.warn('RateLimit', 'Limit exceeded', {
+        ip,
+        count,
+        limit: CONFIG.security.rateLimitRequests,
+      });
+      return false;
+    }
+
+    // Increment
+    await kvPut(kv, key, String(count + 1), {
+      expirationTtl: Math.floor(CONFIG.security.rateLimitWindowMs / 1000),
+    });
+
+    return true;
+  } catch (error) {
+    logger.error('RateLimit', 'Check failed', { error });
+    // Fail open (allow request)
+    return true;
+  }
+}
+
+/**
+ * Get remaining requests
+ */
+export async function getRemainingRequests(context: APIContext): Promise<number> {
+  const { locals, request } = context;
+  const runtime = locals.runtime as any;
+
+  const kv = safeKV(runtime.env, 'RATE_LIMITER');
+  if (!kv) return CONFIG.security.rateLimitRequests;
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const userAgent = request.headers.get('User-Agent') || undefined;
+  const keyHash = generateRateLimitKey(ip, userAgent);
+  const key = `rate_limit:${CONFIG.monitoring.environment || 'dev'}:${keyHash}`;
+
+  try {
+    const current = await kvGet<string>(kv, key);
+    if (!current) return CONFIG.security.rateLimitRequests;
+
+    const count = parseInt(current, 10);
+    return Math.max(0, CONFIG.security.rateLimitRequests - count);
+  } catch {
+    return CONFIG.security.rateLimitRequests;
+  }
+}
+```
+
+---
+
+### 11. `src/lib/features/analytics/index.ts` - WITH EVENT QUEUE
+```typescript
+/**
+ * ANALYTICS FEATURE
+ * 
+ * Google Analytics + GTM tracking
+ * Event queue for pre-initialization tracking
+ */
+
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+
+// Module cache
+let _gtm: any = null;
+let _ga4: any = null;
+let _initialized = false;
+let _failed = false; // 🆕 Prevent retry after failure
+
+// 🆕 Event queue for pre-init events
+let _eventQueue: Array<{ name: string; params: Record<string, any> }> = [];
+
+/**
+ * Initialize analytics
+ */
+export async function initAnalytics(env?: any): Promise<void> {
+  if (!CONFIG.features.analytics || _initialized || _failed) return;
+
+  // Client-side only
+  if (typeof window === 'undefined') {
+    logger.debug('Analytics', 'Skipping server-side initialization');
+    return;
+  }
+
+  logger.info('Analytics', 'Initializing...');
+
+  try {
+    // Dynamic imports
+    const [gtmModule, ga4Module] = await Promise.all([
+      import('./gtm'),
+      import('./ga4'),
+    ]);
+
+    _gtm = gtmModule;
+    _ga4 = ga4Module;
+
+    // Get runtime config
+    const runtimeConfig = env
+      ? (await import('@/lib/config')).getRuntimeConfig(env)
+      : null;
+
+    if (runtimeConfig?.analytics.gtmId) {
+      await _gtm.initGTM(runtimeConfig.analytics.gtmId);
+    }
+
+    if (runtimeConfig?.analytics.ga4Id) {
+      await _ga4.initGA4(runtimeConfig.analytics.ga4Id);
+    }
+
+    _initialized = true;
+
+    // 🆕 Flush queued events
+    if (_eventQueue.length > 0) {
+      logger.info('Analytics', `Flushing ${_eventQueue.length} queued events`);
+      _eventQueue.forEach((event) => {
+        _gtm?.trackEvent(event.name, event.params);
+        _ga4?.trackEvent(event.name, event.params);
+      });
+      _eventQueue = [];
+    }
+
+    logger.info('Analytics', '✓ Initialized');
+  } catch (error) {
+    _failed = true; // 🆕 Mark as failed
+    logger.error('Analytics', 'Initialization failed', { error });
+  }
+}
+
+/**
+ * Track event
+ * Queues event if not initialized yet
+ */
+export function trackEvent(eventName: string, params: Record<string, any> = {}): void {
+  if (!CONFIG.features.analytics) return;
+  if (typeof window === 'undefined') return;
+
+  // 🆕 Queue if not initialized
+  if (!_initialized && !_failed) {
+    logger.debug('Analytics', `Queuing event: ${eventName}`);
+    _eventQueue.push({ name: eventName, params });
+    return;
+  }
+
+  if (_failed) {
+    logger.debug('Analytics', 'Skipping event (init failed)');
+    return;
+  }
+
+  try {
+    _gtm?.trackEvent(eventName, params);
+    _ga4?.trackEvent(eventName, params);
+  } catch (error) {
+    logger.error('Analytics', 'Track event failed', { error, eventName });
+  }
+}
+
+/**
+ * Track page view
+ */
+export function trackPageView(path: string): void {
+  if (!CONFIG.features.analytics || !_initialized) return;
+  if (typeof window === 'undefined') return;
+
+  try {
+    _gtm?.trackPageView(path);
+    _ga4?.trackPageView(path);
+  } catch (error) {
+    logger.error('Analytics', 'Track page view failed', { error });
+  }
+}
+
+/**
+ * Calculator event helpers
+ */
+export function trackCalculatorStart(): void {
+  trackEvent('calculator_started', { timestamp: Date.now() });
+}
+
+export function trackStepCompleted(stepId: string, stepNumber: number): void {
+  trackEvent('calculator_step_completed', {
+    step_id: stepId,
+    step_number: stepNumber,
+  });
+}
+
+export function trackCalculatorCompleted(totalPrice: number, currency: string): void {
+  trackEvent('calculator_completed', {
+    value: totalPrice,
+    currency: currency,
+  });
+}
+
+export function trackCalculatorAbandoned(lastStep: string, completionPercent: number): void {
+  trackEvent('calculator_abandoned', {
+    last_step: lastStep,
+    completion_percent: completionPercent,
+  });
+}
+```
+
+---
+
+### 12. `src/lib/features/crm-sync/webhook.ts` - WITH HMAC & HTTP STATUS
+```typescript
+/**
+ * CRM WEBHOOK
+ * 
+ * Send data to CRM with HMAC signature
+ * Proper HTTP status-based retry logic
+ */
+
+import { logger } from '@/lib/utils/logger';
+import { generateHMAC } from '@/lib/utils/fingerprint';
+import type { Quote } from '@/lib/core/db/schema';
+import type { RuntimeConfig } from '@/lib/config';
+
+interface CRMSyncOptions {
+  webhookUrl: string;
+  apiKey: string;
+  webhookSecret: string;
+  retryAttempts: number;
+  timeoutMs: number;
+}
+
+export async function sendToCRM(
+  quote: Quote,
+  options: CRMSyncOptions
+): Promise<{
+  success: boolean;
+  crmId?: string;
+  error?: string;
+}> {
+  const { webhookUrl, apiKey, webhookSecret, retryAttempts, timeoutMs } = options;
+
+  if (!webhookUrl || !apiKey) {
+    throw new Error('CRM webhook not configured');
+  }
+
+  const payload = {
+    id: quote.id,
+    name: quote.name,
+    email: quote.email,
+    phone: quote.phone,
+    totalPrice: quote.totalPrice,
+    currency: quote.currency,
+    calculatorData: quote.calculatorData,
+    createdAt: quote.createdAt,
+  };
+
+  const payloadString = JSON.stringify(payload);
+
+  // 🆕 Generate HMAC signature
+  let signature: string | undefined;
+  if (webhookSecret) {
+    try {
+      signature = await generateHMAC(payloadString, webhookSecret);
+      logger.debug('CRM', 'Generated HMAC signature');
+    } catch (error) {
+      logger.error('CRM', 'Failed to generate HMAC', { error });
+    }
+  }
+
+  let lastError: Error | null = null;
+
+  // Retry logic
+  for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+    try {
+      logger.info('CRM', `Syncing quote ${quote.id} (attempt ${attempt}/${retryAttempts})`);
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      };
+
+      // Add HMAC signature header
+      if (signature) {
+        headers['X-Webhook-Signature'] = signature;
+      }
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers,
+        body: payloadString,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+
+      // 🆕 Proper HTTP status check
+      // 4xx: Client errors, don't retry
+      if (response.status >= 400 && response.status < 500) {
+        const errorBody = await response.text();
+        logger.error('CRM', `Client error ${response.status}, not retrying`, {
+          status: response.status,
+          body: errorBody,
+        });
+        return {
+          success: false,
+          error: `CRM returned ${response.status}: ${errorBody}`,
+        };
+      }
+
+      // 5xx: Server errors, retry
+      if (!response.ok) {
+        throw new Error(`CRM returned ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      logger.info('CRM', `Quote ${quote.id} synced successfully`, {
+        crmId: data.id || data.crmId,
+      });
+
+      return {
+        success: true,
+        crmId: data.id || data.crmId,
+      };
+    } catch (error) {
+      lastError = error as Error;
+      logger.warn('CRM', `Attempt ${attempt} failed`, { error });
+
+      if (attempt < retryAttempts) {
+        // Exponential backoff
+        const delay = 1000 * Math.pow(2, attempt - 1);
+        logger.debug('CRM', `Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  return {
+    success: false,
+    error: lastError?.message || 'All retry attempts failed',
+  };
+}
+```
+
+---
+
+### 13. `src/lib/features/crm-sync/queue.ts` - 🆕 NEW FILE (WRITE QUEUE)
+```typescript
+/**
+ * CRM SYNC QUEUE
+ * 
+ * Background processing queue for CRM sync
+ * Prevents blocking user requests
+ */
+
+import { logger } from '@/lib/utils/logger';
+import { safeKV, kvPut, kvGet } from '@/lib/utils/kv';
+import { CONFIG } from '@/lib/config';
+import type { Quote } from '@/lib/core/db/schema';
+
+/**
+ * Add quote to CRM sync queue
+ */
+export async function addToQueue(quoteId: number, env: any): Promise<boolean> {
+  if (!CONFIG.features.crmQueue) {
+    logger.debug('CRM', 'Queue disabled, skipping');
+    return false;
+  }
+
+  const kv = safeKV(env, 'CRM_QUEUE');
+  if (!kv) {
+    logger.warn('CRM', 'Queue KV not configured');
+    return false;
+  }
+
+  const key = `crm_queue:${quoteId}`;
+  const value = JSON.stringify({
+    quoteId,
+    attempts: 0,
+    addedAt: Date.now(),
+  });
+
+  const success = await kvPut(kv, key, value);
+
+  if (success) {
+    logger.info('CRM', `Quote ${quoteId} added to queue`);
+  } else {
+    logger.error('CRM', `Failed to add quote ${quoteId} to queue`);
+  }
+
+  return success;
+}
+
+/**
+ * Process CRM queue (called by cron)
+ * 
+ * This should be called by a Cloudflare Cron Trigger
+ * Example: every 5 minutes
+ */
+export async function processQueue(env: any, batchSize: number = 10): Promise<void> {
+  logger.info('CRM', 'Processing queue...');
+
+  const kv = safeKV(env, 'CRM_QUEUE');
+  if (!kv) {
+    logger.error('CRM', 'Queue KV not configured');
+    return;
+  }
+
+  // List queue items (Cloudflare KV list)
+  const list = await kv.list({ prefix: 'crm_queue:', limit: batchSize });
+
+  if (list.keys.length === 0) {
+    logger.info('CRM', 'Queue empty');
+    return;
+  }
+
+  logger.info('CRM', `Processing ${list.keys.length} items`);
+
+  for (const key of list.keys) {
+    try {
+      const value = await kvGet<string>(kv, key.name);
+      if (!value) continue;
+
+      const item = JSON.parse(value);
+
+      // Import sendToCRM dynamically
+      const { sendToCRM } = await import('./webhook');
+      const { getRuntimeConfig } = await import('@/lib/config');
+      const config = getRuntimeConfig(env);
+
+      // Fetch quote from DB
+      const { createDbClient } = await import('@/lib/core/db/client');
+      const { quotes } = await import('@/lib/core/db/schema');
+      const { eq } = await import('drizzle-orm');
+
+      const db = createDbClient({
+        TURSO_DATABASE_URL: env.TURSO_DATABASE_URL,
+        TURSO_AUTH_TOKEN: env.TURSO_AUTH_TOKEN,
+      });
+
+      const quote = await db.select().from(quotes).where(eq(quotes.id, item.quoteId)).get();
+
+      if (!quote) {
+        logger.warn('CRM', `Quote ${item.quoteId} not found, removing from queue`);
+        await kv.delete(key.name);
+        continue;
+      }
+
+      // Attempt sync
+      const result = await sendToCRM(quote, {
+        webhookUrl: config.crm.webhookUrl,
+        apiKey: config.crm.apiKey,
+        webhookSecret: config.crm.webhookSecret,
+        retryAttempts: 1, // Single attempt in queue processor
+        timeoutMs: config.crm.timeoutMs,
+      });
+
+      if (result.success) {
+        // Update DB
+        await db
+          .update(quotes)
+          .set({
+            crmSynced: true,
+            crmId: result.crmId,
+            crmSyncedAt: new Date(),
+          })
+          .where(eq(quotes.id, item.quoteId));
+
+        // Remove from queue
+        await kv.delete(key.name);
+        logger.info('CRM', `Quote ${item.quoteId} synced successfully`);
+      } else {
+        // Increment attempts
+        item.attempts += 1;
+
+        if (item.attempts >= 3) {
+          // Max attempts reached, remove from queue
+          logger.error('CRM', `Quote ${item.quoteId} failed after 3 attempts`);
+          await kv.delete(key.name);
+        } else {
+          // Update attempt count
+          await kvPut(kv, key.name, JSON.stringify(item));
+          logger.warn('CRM', `Quote ${item.quoteId} retry ${item.attempts}/3`);
+        }
+      }
+    } catch (error) {
+      logger.error('CRM', 'Queue processing error', { error, key: key.name });
+    }
+  }
+
+  logger.info('CRM', 'Queue processing complete');
+}
+```
+
+---
+
+### 14. `src/lib/features/monitoring/toucan.ts` - FIXED HEADERS
+```typescript
+/**
+ * TOUCAN (Cloudflare Sentry)
+ * 
+ * Error monitoring with proper header filtering
+ */
+
+import { Toucan } from 'toucan-js';
+import { CONFIG, getRuntimeConfig } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+
+let _sentry: Toucan | null = null;
+
+/**
+ * Initialize Sentry
+ */
+export function initSentry(request: Request, env: any, context: any): Toucan | null {
+  if (!CONFIG.features.sentry) {
+    return null;
+  }
+
+  if (_sentry) {
+    return _sentry;
+  }
+
+  try {
+    const runtimeConfig = getRuntimeConfig(env);
+
+    if (!runtimeConfig.monitoring.sentryDsn) {
+      logger.warn('Sentry', 'DSN not configured');
+      return null;
+    }
+
+    _sentry = new Toucan({
+      dsn: runtimeConfig.monitoring.sentryDsn,
+      context,
+      request,
+      environment: runtimeConfig.monitoring.environment,
+      sampleRate: runtimeConfig.monitoring.sampleRate,
+      beforeSend(event) {
+        // 🆕 Filter sensitive headers (lowercase)
+        if (event.request?.headers) {
+          const headers = event.request.headers as Record<string, string>;
+          delete headers.authorization;
+          delete headers.cookie;
+          delete headers['x-api-key'];
+          event.request.headers = headers;
+        }
+        return event;
+      },
+    });
+
+    logger.info('Sentry', '✓ Initialized');
+    return _sentry;
+  } catch (error) {
+    logger.error('Sentry', 'Initialization failed', { error });
+    return null;
+  }
+}
+
+/**
+ * Capture exception
+ */
+export function captureException(
+  error: Error,
+  context?: Record<string, any>,
+  errorId?: string
+): void {
+  if (!_sentry) {
+    logger.error('Sentry', 'Not initialized, logging error locally', { error, errorId });
+    return;
+  }
+
+  try {
+    _sentry.captureException(error, {
+      extra: {
+        ...context,
+        errorId, // 🆕 Include error ID
+      },
+    });
+  } catch (e) {
+    logger.error('Sentry', 'Failed to capture exception', { e });
+  }
+}
+
+/**
+ * Capture message
+ */
+export function captureMessage(
+  message: string,
+  level: 'info' | 'warning' | 'error' = 'info'
+): void {
+  if (!_sentry) {
+    logger.info('Sentry', `Not initialized, logging message: ${message}`);
+    return;
+  }
+
+  try {
+    _sentry.captureMessage(message, level);
+  } catch (e) {
+    logger.error('Sentry', 'Failed to capture message', { e });
+  }
+}
+
+/**
+ * Add breadcrumb
+ */
+export function addBreadcrumb(message: string, data?: Record<string, any>): void {
+  if (!_sentry) return;
+
+  try {
+    _sentry.addBreadcrumb({
+      message,
+      data,
+      timestamp: Date.now() / 1000,
+    });
+  } catch (e) {
+    logger.error('Sentry', 'Failed to add breadcrumb', { e });
+  }
+}
+```
+
+---
+
+### 15. `src/lib/features/enrichment/anonymize.ts` - 🆕 NEW FILE (GDPR)
+```typescript
+/**
+ * IP ANONYMIZATION
+ * 
+ * GDPR-compliant IP hashing
+ * Store hash instead of raw IP in production
+ */
+
+import { sha256 } from '@noble/hashes/sha256';
+import { bytesToHex } from '@noble/hashes/utils';
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+
+/**
+ * Anonymize IP address
+ * Returns hash in production, raw IP in development
+ */
+export function anonymizeIP(ip: string): { raw: string | null; hash: string } {
+  if (!CONFIG.features.ipAnonymization) {
+    // Development mode: store raw IP
+    return { raw: ip, hash: '' };
+  }
+
+  // Production mode: hash IP
+  const hash = sha256(new TextEncoder().encode(ip));
+  const hashHex = bytesToHex(hash);
+
+  logger.debug('Enrichment', 'IP anonymized', {
+    ipPrefix: ip.substring(0, 7), // Log first 7 chars for debug
+  });
+
+  return {
+    raw: CONFIG.features.ipLogging ? ip : null, // Only if explicitly enabled
+    hash: hashHex,
+  };
+}
+
+/**
+ * Get IP from request headers
+ */
+export function getIPFromRequest(request: Request): string {
+  return (
+    request.headers.get('CF-Connecting-IP') ||
+    request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+    'unknown'
+  );
+}
+```
+
+---
+
+### 16. `src/middleware/index.ts` - COMPLETE MIDDLEWARE
+```typescript
+/**
+ * GLOBAL MIDDLEWARE
+ * 
+ * Handles:
+ * - Boot application
+ * - Sentry initialization
+ * - Dynamic URL detection
+ * - Security headers
+ * - Global error handling
+ * - Unhandled rejection handlers
+ */
+
+import { defineMiddleware } from 'astro:middleware';
+import { bootApp } from '@/lib/boot';
+import { initSentry, captureException } from '@/lib/features/monitoring/toucan';
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+
+// Track if boot already ran
+let _booted = false;
+
+// 🆕 Global error handlers (client-side)
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    logger.error('Global', 'Unhandled promise rejection', {
+      reason: event.reason,
+    });
+    captureException(
+      event.reason instanceof Error ? event.reason : new Error(String(event.reason))
+    );
+  });
+
+  window.addEventListener('error', (event) => {
+    logger.error('Global', 'Unhandled error', {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+    });
+    captureException(event.error || new Error(event.message));
+  });
+}
+
+/**
+ * Global middleware
+ */
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { request, locals, url } = context;
+  const runtime = locals.runtime as any;
+
+  // 🆕 Set dynamic site URL
+  CONFIG.site.url = url.origin;
+
+  // Boot app once (first request)
+  if (!_booted && runtime?.env) {
+    try {
+      await bootApp(runtime.env);
+      _booted = true;
+    } catch (error) {
+      logger.error('Middleware', 'Boot failed', { error });
+    }
+  }
+
+  // Initialize Sentry for this request
+  const sentry = initSentry(request, runtime?.env, context);
+  if (sentry) {
+    locals.sentry = sentry;
+  }
+
+  let response: Response;
+
+  try {
+    // Continue to route handler
+    response = await next();
+  } catch (error) {
+    // 🆕 Catch unhandled errors
+    logger.error('Middleware', 'Unhandled route error', { error });
+
+    if (sentry && error instanceof Error) {
+      sentry.captureException(error);
+    }
+
+    response = new Response('Internal Server Error', {
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
+
+  // 🆕 Security headers
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  );
+
+  // 🆕 Cache control for API routes
+  if (url.pathname.startsWith('/api/')) {
+    response.headers.set('Cache-Control', 'private, no-store, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
+
+  return response;
+});
+```
+
+---
+
+### 17. `src/pages/api/health.ts` - 🆕 NEW FILE (HEALTH ENDPOINT)
+```typescript
+/**
+ * HEALTH CHECK ENDPOINT
+ * 
+ * Returns service status
+ * Used by monitoring tools, load balancers
+ */
+
+import type { APIRoute } from 'astro';
+import { CONFIG } from '@/lib/config';
+
+export const GET: APIRoute = async (context) => {
+  const runtime = context.locals.runtime as any;
+
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: runtime?.env?.ENVIRONMENT || 'unknown',
+    features: {
+      analytics: CONFIG.features.analytics,
+      auth: CONFIG.features.auth,
+      crmSync: CONFIG.features.crmSync,
+      monitoring: CONFIG.features.sentry,
+    },
+    checks: {
+      database: 'unknown', // Could add DB ping here
+      kv: !!runtime?.env?.RATE_LIMITER,
+    },
+  };
+
+  return new Response(JSON.stringify(health, null, 2), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store',
+    },
+  });
+};
+```
+
+---
+
+### 18. `src/pages/api/save-quote.ts` - COMPLETE WITH ALL FEATURES
+```typescript
+/**
+ * SAVE QUOTE ENDPOINT
+ * 
+ * Features:
+ * - Payload size limit
+ * - Fingerprint duplicate prevention
+ * - IP anonymization (GDPR)
+ * - Email with timeout
+ * - CRM queue (async)
+ * - Schema versioning
+ * - Error ID tracking
+ */
+
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
+import { getRuntimeConfig } from '@/lib/config';
+import { createDbClient } from '@/lib/core/db/client';
+import { quotes } from '@/lib/core/db/schema';
+import { checkRateLimit } from '@/lib/features/security/rate-limit';
+import { checkPayloadSize, createPayloadTooLargeResponse } from '@/lib/features/security/payload-limit';
+import { addToQueue } from '@/lib/features/crm-sync/queue';
+import { sendEmail } from '@/lib/core/email/sender';
+import { captureException } from '@/lib/features/monitoring/toucan';
+import { generateFingerprint } from '@/lib/utils/fingerprint';
+import { anonymizeIP, getIPFromRequest } from '@/lib/features/enrichment/anonymize';
+import { generateErrorId, createErrorResponse, formatError } from '@/lib/utils/error';
+import { getCORSHeaders } from '@/lib/utils/cors';
+import { logger } from '@/lib/utils/logger';
+import { CONFIG } from '@/lib/config';
+
+const saveQuoteSchema = z.object({
+  data: z.record(z.unknown()),
+  totalPrice: z.number().positive(),
+  breakdown: z.record(z.number()),
+  currency: z.string().default('HUF'),
+  name: z.string().optional(),
+  email: z
+    .string()
+    .email()
+    .transform((val) => val?.trim() || null)
+    .nullable()
+    .optional(), // 🆕 Transform empty string to null
+  phone: z.string().optional(),
+  language: z.enum(['en', 'es', 'fr']).default('en'),
+});
+
+/**
+ * POST /api/save-quote
+ */
+export const POST: APIRoute = async (context) => {
+  const runtime = context.locals.runtime as any;
+  const errorId = generateErrorId(); // 🆕 Generate error ID upfront
+
+  // 🆕 CORS headers
+  const origin = context.request.headers.get('Origin');
+  const corsHeaders = getCORSHeaders(origin);
+
+  // 🆕 Payload size check
+  const payloadOk = await checkPayloadSize(context);
+  if (!payloadOk) {
+    return createPayloadTooLargeResponse();
+  }
+
+  // Rate limiting
+  const allowed = await checkRateLimit(context);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: 'Rate limit exceeded', errorId }),
+      {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  }
+
+  try {
+    // Parse and validate
+    const body = await context.request.json();
+    const validated = saveQuoteSchema.parse(body);
+
+    // Get runtime config
+    const runtimeConfig = getRuntimeConfig(runtime.env);
+
+    // Create DB client
+    const db = createDbClient({
+      TURSO_DATABASE_URL: runtime.env.TURSO_DATABASE_URL,
+      TURSO_AUTH_TOKEN: runtime.env.TURSO_AUTH_TOKEN,
+    });
+
+    // 🆕 Generate fingerprint for duplicate prevention
+    const fingerprint = generateFingerprint({
+      data: validated.data,
+      totalPrice: validated.totalPrice,
+    });
+
+    // Check for duplicate
+    const { eq } = await import('drizzle-orm');
+    const existing = await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.fingerprint, fingerprint))
+      .get();
+
+    if (existing) {
+      logger.warn('API', 'Duplicate quote detected', {
+        fingerprint,
+        existingId: existing.id,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          quoteId: existing.id,
+          duplicate: true,
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    // 🆕 Get and anonymize IP (GDPR)
+    const rawIP = getIPFromRequest(context.request);
+    const { raw: ipAddress, hash: ipAddressHash } = anonymizeIP(rawIP);
+
+    // Get enrichment data
+    const country = context.request.headers.get('CF-IPCountry');
+    const userAgent = context.request.headers.get('User-Agent');
+
+    // Extract UTM params from URL
+    const url = new URL(context.request.url);
+    const utmSource = url.searchParams.get('utm_source') || undefined;
+    const utmMedium = url.searchParams.get('utm_medium') || undefined;
+    const utmCampaign = url.searchParams.get('utm_campaign') || undefined;
+    const gclid = url.searchParams.get('gclid') || undefined;
+
+    // Save to database
+    const quote = await db
+      .insert(quotes)
+      .values({
+        schemaVersion: CONFIG.calculator.schemaVersion, // 🆕 Version
+        fingerprint, // 🆕 Fingerprint
+        calculatorData: validated.data,
+        totalPrice: validated.totalPrice,
+        currency: validated.currency,
+        breakdown: validated.breakdown,
+        name: validated.name,
+        email: validated.email || null,
+        phone: validated.phone,
+        language: validated.language,
+        ipAddress, // 🆕 Null in production if ipLogging=false
+        ipAddressHash, // 🆕 Always present
+        country,
+        userAgent,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        gclid,
+      })
+      .returning()
+      .get();
+
+    logger.info('API', 'Quote saved', { quoteId: quote.id });
+
+    // 🆕 Send confirmation email (with timeout)
+    if (validated.email) {
+      try {
+        await sendEmail(
+          {
+            to: validated.email,
+            subject: 'Your Quote Confirmation',
+            html: `<h1>Thank you!</h1><p>Your quote: ${validated.totalPrice} ${validated.currency}</p>`,
+          },
+          runtimeConfig.email
+        );
+        logger.info('Email', 'Confirmation sent', { quoteId: quote.id });
+      } catch (emailError) {
+        logger.error('Email', 'Failed to send confirmation', { emailError });
+        // Don't fail the request
+      }
+    }
+
+    // 🆕 Add to CRM queue (async, don't block)
+    if (quote.id && CONFIG.features.crmQueue) {
+      addToQueue(quote.id, runtime.env).catch((error) => {
+        logger.error('CRM', 'Failed to add to queue', { error, quoteId: quote.id });
+        captureException(error as Error, { quoteId: quote.id }, errorId);
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        quoteId: quote.id,
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      }
+    );
+  } catch (error) {
+    // 🆕 Error handling with ID
+    if (error instanceof Error) {
+      captureException(error, {
+        endpoint: '/api/save-quote',
+        method: 'POST',
+      }, errorId);
+    }
+
+    logger.error('API', 'Save quote failed', formatError(error, errorId));
+
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({
+          error: 'Validation error',
+          details: error.errors,
+          errorId,
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+
+    return createErrorResponse('Failed to save quote', errorId);
+  }
+};
+
+// 🆕 OPTIONS handler for CORS preflight
+export const OPTIONS: APIRoute = async (context) => {
+  const origin = context.request.headers.get('Origin');
+  const corsHeaders = getCORSHeaders(origin);
+
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+};
+```
+
+---
+
+### 19. `src/components/calculator/idle-popup.tsx` - WITH TAB HIDDEN CHECK
+```typescript
+/**
+ * IDLE POPUP COMPONENT
+ * 
+ * Shows after inactivity
+ * 🆕 Respects document.hidden (tab inactive)
+ */
+
+import { useEffect, useState } from 'react';
+import { CONFIG } from '@/lib/config';
+import { Button } from '@/components/ui/button';
+
+interface IdlePopupProps {
+  phoneNumber: string;
+  idleTimeSeconds?: number;
+}
+
+export default function IdlePopup({
+  phoneNumber,
+  idleTimeSeconds = CONFIG.calculator.idleTimeSeconds,
+}: IdlePopupProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [lastActivity, setLastActivity] = useState(Date.now());
+
+  useEffect(() => {
+    // Client-side only
+    if (typeof window === 'undefined') return;
+
+    // Track user activity
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+      setIsOpen(false);
+    };
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+
+    events.forEach((event) => {
+      document.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    // Check for inactivity
+    const interval = setInterval(() => {
+      const inactiveTime = (Date.now() - lastActivity) / 1000;
+
+      // 🆕 Don't show if tab is hidden
+      if (document.hidden) {
+        return;
+      }
+
+      if (inactiveTime >= idleTimeSeconds && !isOpen) {
+        setIsOpen(true);
+      }
+    }, 1000);
+
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, updateActivity);
+      });
+      clearInterval(interval);
+    };
+  }, [lastActivity, idleTimeSeconds, isOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setLastActivity(Date.now());
+  };
+
+  const handleCallClick = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = `tel:${phoneNumber}`;
+    }
+    handleClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-slide-up">
+        <h2 className="text-2xl font-bold mb-4">Need Help?</h2>
+
+        <p className="text-gray-600 mb-6">
+          It looks like you've been inactive for a while. Do you need assistance with your
+          calculation?
+        </p>
+
+        <div className="space-y-3">
+          <Button onClick={handleCallClick} className="w-full" size="lg">
+            📞 Call us at {phoneNumber}
+          </Button>
+
+          <Button onClick={handleClose} variant="outline" className="w-full">
+            No, I'm fine
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### 20. `scripts/cleanup-old-quotes.ts` - 🆕 DATA RETENTION SCRIPT
+```typescript
+/**
+ * DATA RETENTION SCRIPT
+ * 
+ * Deletes quotes older than 180 days (GDPR compliance)
+ * Run as a cron job
+ */
+
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
+import { quotes } from '../src/lib/core/db/schema';
+import { lt, sql } from 'drizzle-orm';
+
+async function cleanup() {
+  console.log('[Cleanup] Starting data retention cleanup...');
+
+  const client = createClient({
+    url: process.env.TURSO_DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN!,
+  });
+
+  const db = drizzle(client);
+
+  // Calculate cutoff date (180 days ago)
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 180);
+  const cutoffTimestamp = Math.floor(cutoffDate.getTime() / 1000);
+
+  console.log(`[Cleanup] Deleting quotes older than ${cutoffDate.toISOString()}`);
+
+  // Soft delete (set deletedAt)
+  const result = await db
+    .update(quotes)
+    .set({ deletedAt: new Date() })
+    .where(lt(quotes.createdAt, new Date(cutoffTimestamp * 1000)));
+
+  console.log(`[Cleanup] ✓ Marked ${result.rowsAffected} quotes for deletion`);
+
+  // Hard delete after 30 more days
+  const hardDeleteCutoff = new Date();
+  hardDeleteCutoff.setDate(hardDeleteCutoff.getDate() - 210); // 180 + 30
+  const hardDeleteTimestamp = Math.floor(hardDeleteCutoff.getTime() / 1000);
+
+  const hardDeleteResult = await db
+    .delete(quotes)
+    .where(lt(quotes.deletedAt, new Date(hardDeleteTimestamp * 1000)));
+
+  console.log(`[Cleanup] ✓ Permanently deleted ${hardDeleteResult.rowsAffected} quotes`);
+
+  console.log('[Cleanup] Complete');
+  process.exit(0);
+}
+
+cleanup().catch((error) => {
+  console.error('[Cleanup] Failed:', error);
+  process.exit(1);
+});
+```
+
+---
+
+### 21. `scripts/process-crm-queue.ts` - 🆕 CRM QUEUE PROCESSOR (CRON)
+```typescript
+/**
+ * CRM QUEUE PROCESSOR
+ * 
+ * Process CRM sync queue
+ * Run as a Cloudflare Cron Trigger (every 5 minutes)
+ */
+
+import { processQueue } from '../src/lib/features/crm-sync/queue';
+
+export default {
+  async scheduled(event: ScheduledEvent, env: any, ctx: ExecutionContext) {
+    console.log('[Cron] Starting CRM queue processing...');
+
+    try {
+      await processQueue(env, 20); // Process 20 items per run
+      console.log('[Cron] ✓ Queue processing complete');
+    } catch (error) {
+      console.error('[Cron] Queue processing failed:', error);
+    }
+  },
+};
+```
+
+---
+
+### 22. `astro.config.mjs` - UPDATED (NO SOURCE MAPS)
+```javascript
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+import cloudflare from '@astrojs/cloudflare';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://your-domain.com',
+  output: 'hybrid',
+  adapter: cloudflare({
+    mode: 'directory',
+    functionPerRoute: false,
+    imageService: 'cloudflare',
+  }),
+  integrations: [
+    react(),
+    tailwind({ applyBaseStyles: false }),
+    sitemap({
+      i18n: {
+        defaultLocale: 'en',
+        locales: {
+          en: 'en-US',
+          es: 'es-ES',
+          fr: 'fr-FR',
+        },
+      },
+    }),
+  ],
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
+  vite: {
+    ssr: {
+      noExternal: ['nanostores', '@libsql/client', '@nanostores/i18n', 'better-auth'],
+    },
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    },
+    build: {
+      sourcemap: false, // 🆕 Disable source maps in production
+    },
+  },
+});
+```
+
+---
+
+### 23. `wrangler.toml` - COMPLETE WITH CRON
+```toml
+name = "calculator-boilerplate"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./dist"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "RATE_LIMITER"
+id = "your-rate-limiter-kv-id"
+preview_id = "your-preview-rate-limiter-kv-id"
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "your-sessions-kv-id"
+preview_id = "your-preview-sessions-kv-id"
+
+[[kv_namespaces]]
+binding = "CRM_QUEUE"
+id = "your-crm-queue-kv-id"
+preview_id = "your-preview-crm-queue-kv-id"
+
+# 🆕 Cron Triggers
+[triggers]
+crons = ["*/5 * * * *"] # Every 5 minutes
+
+# Environment Variables
+[vars]
+NODE_ENV = "production"
+SITE_URL = "https://your-domain.com"
+ENVIRONMENT = "production"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# TURSO_DATABASE_URL
+# TURSO_AUTH_TOKEN
+# RESEND_API_KEY
+# GOOGLE_MAPS_API_KEY
+# GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET
+# SENTRY_DSN
+# CRM_WEBHOOK_URL
+# CRM_API_KEY
+# CRM_WEBHOOK_SECRET
+# TURNSTILE_SITE_KEY
+# TURNSTILE_SECRET_KEY
+# GTM_ID
+# GA4_ID
+
+# Cloudflare Analytics
+[analytics_engine_datasets]
+binding = "ANALYTICS"
+
+# Build configuration
+[build]
+command = "npm run build"
+```
+
+---
+
+### 24. `.cursorrules` - COMPLETE AI-FRIENDLY RULES
+
+```markdown
+# CURSOR IDE RULES - ULTIMATE CALCULATOR BOILERPLATE
+
+## 🎯 CRITICAL ARCHITECTURE
+
+This is a **FEATURE PLUGIN SYSTEM** with **ENTERPRISE-GRADE** capabilities.
+
+- Core NEVER changes, only `src/lib/config.ts`
+- Every feature is controlled by feature flags
+- `src/lib/boot.ts` is the ORCHESTRATOR
+- 100% Cloudflare Edge-compatible
+- AI-optimized architecture
+
+---
+
+## ⚡ EDGE COMPATIBILITY RULES (MANDATORY)
+
+### ✅ MUST DO:
+
+1. **AbortSignal.timeout()** on EVERY fetch
+   ```typescript
+   fetch(url, { signal: AbortSignal.timeout(5000) })
+   ```
+
+2. **typeof window !== 'undefined'** guard for ALL window access
+   ```typescript
+   if (typeof window !== 'undefined') {
+     window.dataLayer.push(...);
+   }
+   ```
+
+3. **runtime.env** ONLY, NEVER process.env
+   ```typescript
+   const config = getRuntimeConfig(runtime.env);
+   ```
+
+4. **Dynamic imports** in async functions, NOT top-level
+   ```typescript
+   export async function init() {
+     const mod = await import('./module');
+   }
+   ```
+
+5. **Try-catch** around ALL async operations
+   ```typescript
+   try {
+     await riskyOperation();
+   } catch (error) {
+     logger.error('Module', 'Operation failed', { error });
+   }
+   ```
+
+6. **Logger** for ALL console output
+   ```typescript
+   import { logger } from '@/lib/utils/logger';
+   logger.info('Module', 'Message', { data });
+   ```
+
+7. **Error IDs** for ALL error responses
+   ```typescript
+   const errorId = generateErrorId();
+   return createErrorResponse('Error message', errorId);
+   ```
+
+8. **CORS headers** on ALL API responses
+   ```typescript
+   const corsHeaders = getCORSHeaders(origin);
+   return new Response(json, { headers: corsHeaders });
+   ```
+
+### ❌ FORBIDDEN:
+
+- Node.js APIs (fs, path, crypto → use Web Crypto)
+- process.env (use runtime.env via getRuntimeConfig)
+- Top-level await import
+- window without typeof guard
+- fetch without timeout
+- Native addons (Sharp → Cloudflare Images)
+- Wildcard CORS (*) in production
+- console.log (use logger)
+- Hardcoded URLs (use dynamic origin)
+- Raw IPs in production (use anonymization)
+
+---
+
+## 🏗️ FEATURE FLAG PATTERN
+
+Every feature MUST follow this pattern:
+
+```typescript
+// src/lib/features/[feature]/index.ts
+
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+
+let _impl: any = null;
+let _initialized = false;
+let _failed = false; // Prevent retry after failure
+
+export async function init(env?: any): Promise<void> {
+  if (!CONFIG.features.myFeature || _initialized || _failed) return;
+  
+  try {
+    _impl = await import('./implementation');
+    _initialized = true;
+    logger.info('Feature', 'Initialized');
+  } catch (error) {
+    _failed = true;
+    logger.error('Feature', 'Init failed', { error });
+  }
+}
+
+export function myFunction(...args: any[]) {
+  if (!CONFIG.features.myFeature || !_initialized) return;
+  
+  try {
+    return _impl.realFunction(...args);
+  } catch (error) {
+    logger.error('Feature', 'Function failed', { error });
+  }
+}
+```
+
+---
+
+## 🔒 SECURITY PATTERNS
+
+### API Route Template:
+
+```typescript
+import type { APIRoute } from 'astro';
+import { z } from 'zod';
+import { getRuntimeConfig } from '@/lib/config';
+import { checkRateLimit } from '@/lib/features/security/rate-limit';
+import { checkPayloadSize } from '@/lib/features/security/payload-limit';
+import { getCORSHeaders } from '@/lib/utils/cors';
+import { generateErrorId, createErrorResponse } from '@/lib/utils/error';
+import { logger } from '@/lib/utils/logger';
+
+const schema = z.object({ /* ... */ });
+
+export const POST: APIRoute = async (context) => {
+  const runtime = context.locals.runtime as any;
+  const errorId = generateErrorId();
+  const origin = context.request.headers.get('Origin');
+  const corsHeaders = getCORSHeaders(origin);
+  
+  // 1. Payload size check
+  if (!(await checkPayloadSize(context))) {
+    return createPayloadTooLargeResponse();
+  }
+  
+  // 2. Rate limit
+  if (!(await checkRateLimit(context))) {
+    return new Response(
+      JSON.stringify({ error: 'Rate limit', errorId }),
+      { status: 429, headers: { ...corsHeaders } }
+    );
+  }
+  
+  // 3. Get config
+  const config = getRuntimeConfig(runtime.env);
+  
+  // 4. Validate
+  try {
+    const body = await context.request.json();
+    const validated = schema.parse(body);
+    
+    // 5. Logic with timeout
+    const result = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+    });
+    
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  } catch (error) {
+    logger.error('API', 'Failed', formatError(error, errorId));
+    captureException(error, { endpoint: '/api/...' }, errorId);
+    return createErrorResponse('Failed', errorId);
+  }
+};
+
+// CORS preflight
+export const OPTIONS: APIRoute = async (context) => {
+  const origin = context.request.headers.get('Origin');
+  return new Response(null, {
+    status: 204,
+    headers: getCORSHeaders(origin),
+  });
+};
+```
+
+---
+
+## 📊 DATABASE PATTERNS
+
+### Query Template:
+
+```typescript
+import { createDbClient } from '@/lib/core/db/client';
+import { quotes } from '@/lib/core/db/schema';
+import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/utils/logger';
+
+export async function getQuote(id: number, env: any) {
+  try {
+    const db = createDbClient({
+      TURSO_DATABASE_URL: env.TURSO_DATABASE_URL,
+      TURSO_AUTH_TOKEN: env.TURSO_AUTH_TOKEN,
+    });
+    
+    const quote = await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, id))
+      .get();
+    
+    return quote;
+  } catch (error) {
+    logger.error('DB', 'Query failed', { error, id });
+    return null;
+  }
+}
+```
+
+### Insert with Fingerprint:
+
+```typescript
+import { generateFingerprint } from '@/lib/utils/fingerprint';
+import { anonymizeIP } from '@/lib/features/enrichment/anonymize';
+
+const fingerprint = generateFingerprint({ data, totalPrice });
+
+// Check duplicate
+const existing = await db
+  .select()
+  .from(quotes)
+  .where(eq(quotes.fingerprint, fingerprint))
+  .get();
+
+if (existing) {
+  return { duplicate: true, id: existing.id };
+}
+
+// Get and anonymize IP
+const rawIP = getIPFromRequest(request);
+const { raw: ipAddress, hash: ipAddressHash } = anonymizeIP(rawIP);
+
+// Insert
+const quote = await db
+  .insert(quotes)
+  .values({
+    schemaVersion: CONFIG.calculator.schemaVersion,
+    fingerprint,
+    ipAddress,
+    ipAddressHash,
+    // ... other fields
+  })
+  .returning()
+  .get();
+```
+
+---
+
+## 🎨 UI COMPONENT PATTERNS
+
+### React Component Template:
+
+```typescript
+import { useState, useEffect } from 'react';
+import { logger } from '@/lib/utils/logger';
+
+interface MyComponentProps {
+  title: string;
+  onAction: () => void;
+}
+
+export default function MyComponent({ title, onAction }: MyComponentProps) {
+  const [state, setState] = useState(false);
+  
+  useEffect(() => {
+    // Client-side only
+    if (typeof window === 'undefined') return;
+    
+    // Setup
+    const handler = () => setState(true);
+    window.addEventListener('event', handler);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('event', handler);
+    };
+  }, []);
+  
+  return (
+    <div>
+      <h1>{title}</h1>
+      <button onClick={onAction}>Action</button>
+    </div>
+  );
+}
+```
+
+---
+
+## 📝 LOGGING STANDARDS
+
+### Log Levels:
+
+- `debug`: Development-only detailed logs
+- `info`: Important events (init, success)
+- `warn`: Recoverable issues (missing config)
+- `error`: Failures requiring attention
+
+### Log Format:
+
+```typescript
+logger.info('Module', 'Action completed', {
+  id: 123,
+  duration: 45,
+});
+
+logger.error('Module', 'Action failed', {
+  error: error.message,
+  errorId,
+  context: { /* ... */ },
+});
+```
+
+---
+
+## 🔐 GDPR COMPLIANCE
+
+### IP Handling:
+
+```typescript
+import { anonymizeIP, getIPFromRequest } from '@/lib/features/enrichment/anonymize';
+
+const rawIP = getIPFromRequest(request);
+const { raw, hash } = anonymizeIP(rawIP);
+
+// Store in DB:
+// - raw: null in production (unless ipLogging=true)
+// - hash: always present (GDPR-safe identifier)
+```
+
+### Data Retention:
+
+- Quotes: 180 days (soft delete)
+- Hard delete: +30 days after soft delete
+- Run cleanup script via cron
+
+---
+
+## 🧪 TESTING REQUIREMENTS
+
+### Unit Tests:
+
+- Coverage target: 80%+
+- Test pure functions
+- Mock external APIs
+- Test error handling
+
+### Integration Tests:
+
+- API endpoints
+- Feature interactions
+- Database operations
+- Webhook signatures
+
+### Test Template:
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+
+describe('Feature', () => {
+  it('should work correctly', async () => {
+    const result = await myFunction();
+    expect(result).toBeDefined();
+  });
+  
+  it('should handle errors gracefully', async () => {
+    vi.mock('./dependency', () => ({
+      default: vi.fn().mockRejectedValue(new Error('fail')),
+    }));
+    
+    const result = await myFunction();
+    expect(result).toBeNull();
+  });
+});
+```
+
+---
+
+## 📚 FILE NAMING CONVENTIONS
+
+- **Pages**: `[name].astro` (lowercase)
+- **Components (React)**: `[Name].tsx` (PascalCase)
+- **Components (Astro)**: `[name].astro` (lowercase)
+- **Steps**: `step-[number]-[name].tsx`
+- **Features**: `/features/[feature-name]/index.ts`
+- **Utils**: `/utils/[name].ts` (lowercase)
+- **Images**: `/images/steps/step-[number]/[description].jpg`
+
+---
+
+## 📦 IMPORT ORDER (Biome Enforced)
+
+1. React/Astro imports
+2. External libraries
+3. @/ aliased imports (config, utils)
+4. @/ aliased imports (components, lib)
+5. Relative imports
+6. Styles (if any)
+
+Example:
+
+```typescript
+import { useState } from 'react';
+import { z } from 'zod';
+import { CONFIG } from '@/lib/config';
+import { logger } from '@/lib/utils/logger';
+import { Button } from '@/components/ui/button';
+import { helper } from './helper';
+```
+
+---
+
+## 🚀 DEPLOYMENT CHECKLIST
+
+Before deploying:
+
+1. ✅ `npm run lint`
+2. ✅ `npm run type-check`
+3. ✅ `npm run test`
+4. ✅ `npm run build`
+5. ✅ `npm run preview`
+6. ✅ Check bundle size (<1MB)
+7. ✅ Verify all env vars set
+8. ✅ Test health endpoint
+9. ✅ `npm run deploy`
+
+---
+
+## 🔧 MAINTENANCE SCRIPTS
+
+### Data Cleanup (Cron):
+
+```bash
+# Run daily
+tsx scripts/cleanup-old-quotes.ts
+```
+
+### CRM Queue Processing (Cron):
+
+```bash
+# Run every 5 minutes (Cloudflare Cron)
+```
+
+### Health Check (Startup):
+
+```bash
+tsx scripts/health-check.ts
+```
+
+---
+
+## 🐛 TROUBLESHOOTING
+
+### Common Issues:
+
+1. **"window is not defined"**
+   - Add `if (typeof window !== 'undefined')` guard
+
+2. **"fetch timeout"**
+   - Add `signal: AbortSignal.timeout(5000)`
+
+3. **"KV not found"**
+   - Use `safeKV()` wrapper, check `wrangler.toml`
+
+4. **"process.env undefined"**
+   - Use `getRuntimeConfig(runtime.env)` instead
+
+5. **"CORS error"**
+   - Add origin to `CONFIG.security.allowedOrigins`
+
+---
+
+## 📖 DOCUMENTATION
+
+Every feature MUST have:
+
+- JSDoc comments on exported functions
+- README.md in feature directory
+- Type definitions exported
+- Usage examples in docs/
+
+Example:
+
+```typescript
+/**
+ * Send email with timeout protection
+ * 
+ * @param options - Email options (to, subject, html)
+ * @param config - Runtime email config
+ * @returns Promise with success status and message ID
+ * 
+ * @example
+ * ```typescript
+ * await sendEmail(
+ *   { to: 'user@example.com', subject: 'Hi', html: '<p>Hello</p>' },
+ *   runtimeConfig.email
+ * );
+ * ```
+ */
+export async function sendEmail(
+  options: EmailOptions,
+  config: RuntimeConfig['email']
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  // ...
+}
+```
+
+---
+
+## 🎯 COMMIT MESSAGE FORMAT
+
+- `feat(scope): description` - New feature
+- `fix(scope): description` - Bug fix
+- `refactor(scope): description` - Code refactor
+- `docs(scope): description` - Documentation
+- `style(scope): description` - Formatting
+- `test(scope): description` - Tests
+- `chore(scope): description` - Maintenance
+
+Example: `feat(crm): add webhook signature verification`
+
+---
+
+## 🔥 CRITICAL REMINDERS
+
+1. **Core never changes** - only config.ts
+2. **Every export conditional** - no-op if disabled
+3. **100% Edge-compatible** - no Node.js APIs
+4. **Security forced** - production requirements
+5. **Type-safe** - strict TypeScript always
+6. **Test coverage** - 80%+ target
+7. **Documentation** - every feature documented
+8. **GDPR compliant** - IP anonymization
+9. **Error tracking** - error IDs always
+10. **Logger usage** - no console.log
+
+---
+
+## 🌟 FEATURE ADDITION WORKFLOW
+
+Adding a new feature:
+
+1. Add feature flag to `config.ts`
+2. Create `/features/[feature-name]/` directory
+3. Implement `index.ts` with conditional exports
+4. Add to `boot.ts` orchestrator
+5. Write unit tests
+6. Write integration tests
+7. Document in `docs/FEATURES.md`
+8. Update README.md
+9. Create migration guide if needed
+
+---
+
+## 💡 AI DEVELOPMENT TIPS
+
+### When asking AI for help:
+
+1. **Reference the architecture**: "Following the feature plugin pattern..."
+2. **Specify Edge requirements**: "Must be Cloudflare Edge-compatible..."
+3. **Mention existing patterns**: "Using the same pattern as analytics feature..."
+4. **Request complete files**: "Generate the complete file with all imports..."
+5. **Ask for tests**: "Also generate unit tests for this feature..."
+
+### Good prompts:
+
+- ✅ "Create a new feature following the plugin pattern in /features/, with proper error handling and logging"
+- ✅ "Add rate limiting check to this API route following the security template"
+- ✅ "Refactor this to use the logger utility instead of console.log"
+
+### Bad prompts:
+
+- ❌ "Add a feature" (too vague)
+- ❌ "Fix this code" (no context)
+- ❌ "Make it work" (unclear requirements)
+
+---
+
+**This is a production-ready, enterprise-grade boilerplate.**
+**Every feature is tested, documented, and optimized for AI development.**
+**Follow these rules strictly for maintainable, scalable code.**
+```
+
+---
+
+### 25. `docs/SECURITY.md` - 🆕 SECURITY DOCUMENTATION
+
+```markdown
+# Security Best Practices
+
+## Overview
+
+This boilerplate implements multiple layers of security:
+
+1. **Rate Limiting** - Prevents abuse
+2. **Payload Limits** - Prevents memory exhaustion
+3. **Bot Protection** - Cloudflare Turnstile
+4. **CORS** - Domain whitelist
+5. **CSRF** - Token validation
+6. **Webhook Signatures** - HMAC verification
+7. **IP Anonymization** - GDPR compliance
+
+---
+
+## Rate Limiting
+
+**Implementation:** Cloudflare KV + IP hash
+
+**Configuration:**
+```typescript
+security: {
+  rateLimitRequests: 10, // per minute
+  rateLimitWindowMs: 60000, // 1 minute
+}
+```
+
+**How it works:**
+- Hash(IP + UserAgent) as key
+- Counter stored in KV
+- Automatic expiration
+
+**Bypass for testing:**
+```typescript
+features: {
+  rateLimiting: false, // Disable in dev
+}
+```
+
+---
+
+## Payload Size Limits
+
+**Max size:** 1MB (1,048,576 bytes)
+
+**Enforcement:**
+- Checks `Content-Length` header
+- Returns 413 if exceeded
+- Prevents memory attacks
+
+**Configuration:**
+```typescript
+security: {
+  maxPayloadSize: 1048576, // 1MB
+}
+```
+
+---
+
+## CORS Configuration
+
+**Production:** Domain whitelist only
+**Development:** Wildcard allowed
+
+**Configuration:**
+```typescript
+security: {
+  allowedOrigins: [
+    'https://your-domain.com',
+    'https://www.your-domain.com',
+  ],
+}
+```
+
+**Headers:**
+- `Access-Control-Allow-Origin`
+- `Access-Control-Allow-Methods`
+- `Access-Control-Allow-Headers`
+- `Access-Control-Allow-Credentials`
+
+---
+
+## Webhook Signature Verification
+
+**Algorithm:** HMAC-SHA256
+
+**Setup:**
+```bash
+wrangler secret put CRM_WEBHOOK_SECRET
+```
+
+**Verification:**
+```typescript
+const signature = await generateHMAC(payload, secret);
+// Send in header: X-Webhook-Signature
+```
+
+**Receiving webhooks:**
+```typescript
+const isValid = await verifyHMAC(payload, signature, secret);
+if (!isValid) return 401;
+```
+
+---
+
+## IP Anonymization (GDPR)
+
+**Production:** Store hash only
+**Development:** Store raw IP
+
+**Configuration:**
+```typescript
+features: {
+  ipLogging: false, // Disable raw IP storage
+  ipAnonymization: true, // Enable hashing
+}
+```
+
+**Storage:**
+```typescript
+{
+  ipAddress: null, // Not stored in production
+  ipAddressHash: "a1b2c3...", // SHA-256 hash
+}
+```
+
+---
+
+## Security Headers
+
+Applied to all responses:
+
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-XSS-Protection: 1; mode=block`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+
+API routes also get:
+- `Cache-Control: private, no-store, must-revalidate`
+- `Pragma: no-cache`
+- `Expires: 0`
+
+---
+
+## Error ID Tracking
+
+Every error gets a unique ID:
+
+```typescript
+const errorId = generateErrorId(); // "a1b2c3d4"
+```
+
+**Sent to user:**
+```json
+{
+  "error": "Internal server error",
+  "errorId": "a1b2c3d4"
+}
+```
+
+**Logged internally:**
+```
+[ERROR][API] Save failed { errorId: "a1b2c3d4", ... }
+```
+
+**User can report:** "I got error ID a1b2c3d4"
+**You can find:** Search logs for "a1b2c3d4"
+
+---
+
+## Secrets Management
+
+**Local development:**
+- File: `.dev.vars`
+- Not committed to git
+
+**Production:**
+- Cloudflare Dashboard: Settings → Environment Variables
+- Or CLI: `wrangler secret put SECRET_NAME`
+
+**Required secrets:**
+- `TURSO_DATABASE_URL`
+- `TURSO_AUTH_TOKEN`
+- `RESEND_API_KEY`
+- `CRM_WEBHOOK_SECRET`
+
+**Optional secrets:**
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `SENTRY_DSN`
+- `TURNSTILE_SECRET_KEY`
+
+---
+
+## Audit Checklist
+
+Before production:
+
+- [ ] Rate limiting enabled
+- [ ] CORS whitelist configured
+- [ ] Payload limits active
+- [ ] IP anonymization enabled
+- [ ] Webhook signatures verified
+- [ ] Source maps disabled
+- [ ] Security headers present
+- [ ] All secrets set
+- [ ] Error tracking enabled
+- [ ] Logs reviewed
+
+---
+
+## Security Incidents
+
+If you discover a vulnerability:
+
+1. **Do NOT** publish details publicly
+2. Email: security@your-domain.com
+3. Include:
+   - Description
+   - Steps to reproduce
+   - Potential impact
+4. We will respond within 48 hours
+
+---
+
+## Updates
+
+- Check dependencies monthly: `npm audit`
+- Update Cloudflare Workers runtime
+- Review security advisories
+- Test after updates
+```
+
+---
+
+### 26. `docs/DATA-RETENTION.md` - 🆕 GDPR COMPLIANCE GUIDE
+
+```markdown
+# Data Retention & GDPR Compliance
+
+## Overview
+
+This boilerplate implements GDPR-compliant data retention policies:
+
+- **Quotes:** 180 days retention
+- **Sessions:** 30 days retention
+- **Logs:** 90 days retention
+- **IP addresses:** Anonymized by default
+
+---
+
+## Data Collection
+
+### What we collect:
+
+**Required:**
+- Calculator input data
+- Quote results (price, breakdown)
+- Timestamp
+
+**Optional:**
+- Name (if provided)
+- Email (if provided)
+- Phone (if provided)
+- IP address hash (GDPR-safe)
+- Country (from Cloudflare)
+- Device type (from User-Agent)
+
+**Marketing:**
+- UTM parameters
+- GCLID (Google Ads)
+
+### What we DO NOT collect:
+
+- Raw IP addresses (production)
+- Exact location (city/street)
+- Personal browsing history
+- Credit card numbers
+- Social security numbers
+
+---
+
+## Data Storage
+
+### Database schema:
+
+```sql
+CREATE TABLE quotes (
+  id INTEGER PRIMARY KEY,
+  schema_version INTEGER, -- For migrations
+  fingerprint TEXT UNIQUE, -- Duplicate prevention
+  
+  -- User data
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  
+  -- Calculator data (JSON)
+  calculator_data TEXT,
+  total_price REAL,
+  breakdown TEXT,
+  
+  -- Anonymized tracking
+  ip_address TEXT, -- NULL in production
+  ip_address_hash TEXT, -- Always present
+  country TEXT,
+  user_agent TEXT,
+  
+  -- Marketing
+  utm_source TEXT,
+  gclid TEXT,
+  
+  -- Timestamps
+  created_at INTEGER,
+  deleted_at INTEGER -- Soft delete
+);
+```
+
+---
+
+## IP Anonymization
+
+### How it works:
+
+**Development:**
+```typescript
+{
+  ipAddress: "192.168.1.1", // Stored
+  ipAddressHash: "" // Not computed
+}
+```
+
+**Production:**
+```typescript
+{
+  ipAddress: null, // NOT stored
+  ipAddressHash: "sha256_hash..." // Stored
+}
+```
+
+### Configuration:
+
+```typescript
+features: {
+  ipLogging: false, // Don't store raw IPs
+  ipAnonymization: true, // Hash IPs
+}
+```
+
+### Use cases for hash:
+
+- Duplicate detection
+- Fraud prevention
+- Rate limiting (combined with User-Agent)
+
+**Cannot be used for:**
+- Geo-targeting (use country instead)
+- User tracking (non-reversible)
+
+---
+
+## Data Retention Policy
+
+### Automatic cleanup:
+
+**Script:** `scripts/cleanup-old-quotes.ts`
+
+**Schedule:** Daily (cron)
+
+**Process:**
+1. Soft delete quotes older than 180 days (set `deleted_at`)
+2. Hard delete quotes soft-deleted 30+ days ago
+3. Log actions taken
+
+### Manual cleanup:
+
+```bash
+npm run db:cleanup
+```
+
+### Configuration:
+
+```typescript
+dataRetention: {
+  quotesMaxAgeDays: 180, // 6 months
+  sessionsMaxAgeDays: 30,
+  logsMaxAgeDays: 90,
+}
+```
+
+---
+
+## User Rights (GDPR)
+
+### Right to Access
+
+**Endpoint:** `GET /api/gdpr/access?email={email}`
+
+**Returns:**
+- All quotes associated with email
+- Creation dates
+- Data collected
+
+### Right to Deletion
+
+**Endpoint:** `DELETE /api/gdpr/delete?email={email}`
+
+**Action:**
+- Immediate soft delete (set `deleted_at`)
+- Hard delete after 30 days
+- Confirmation email sent
+
+### Right to Portability
+
+**Endpoint:** `GET /api/gdpr/export?email={email}`
+
+**Returns:**
+- JSON file with all user data
+- Machine-readable format
+- Includes all quotes and metadata
+
+### Right to Rectification
+
+**Endpoint:** `PATCH /api/gdpr/update?email={email}`
+
+**Allows:**
+- Update name
+- Update phone
+- Update email
+- Cannot change calculator results (audit trail)
+
+---
+
+## Legal Basis
+
+### Consent:
+
+- Required for email storage
+- Required for marketing tracking (UTM, GCLID)
+- Checkbox on form: "I agree to data processing"
+
+### Legitimate Interest:
+
+- Quote calculation (core functionality)
+- Fraud prevention (IP hash)
+- Service improvement (analytics)
+
+---
+
+## Data Processors
+
+### Third parties:
+
+1. **Turso** (Database)
+   - Location: USA
+   - DPA: Yes
+   - GDPR compliant
+
+2. **Cloudflare** (Hosting)
+   - Location: Global
+   - DPA: Yes
+   - GDPR compliant
+
+3. **Resend** (Email)
+   - Location: USA
+   - DPA: Yes
+   - GDPR compliant
+
+4. **Google Analytics** (Optional)
+   - Location: USA
+   - DPA: Required
+   - Anonymize IP enabled
+
+---
+
+## Privacy Policy Requirements
+
+Your privacy policy must include:
+
+1. **Data Controller:** Your company name
+2. **Data Protection Officer:** Contact email
+3. **Data Collected:** List from above
+4. **Legal Basis:** Consent + Legitimate Interest
+5. **Data Processors:** List third parties
+6. **Retention Period:** 180 days
+7. **User Rights:** Access, deletion, portability
+8. **Contact:** How to exercise rights
+
+---
+
+## Compliance Checklist
+
+Before launch:
+
+- [ ] Privacy policy published
+- [ ] Cookie consent banner (if using cookies)
+- [ ] Terms of service
+- [ ] IP anonymization enabled
+- [ ] Data retention script scheduled
+- [ ] GDPR API endpoints implemented
+- [ ] DPAs signed with processors
+- [ ] Data breach procedure documented
+- [ ] User rights request process
+- [ ] Staff training completed
+
+---
+
+## Data Breach Procedure
+
+If a breach occurs:
+
+1. **Immediate:** Contain the breach (revoke keys, etc.)
+2. **72 hours:** Notify supervisory authority
+3. **ASAP:** Notify affected users (if high risk)
+4. **Document:** What happened, impact, measures taken
+5. **Prevent:** Implement fixes
+
+---
+
+## Contact
+
+**Data Protection Officer:** dpo@your-domain.com
+**Privacy inquiries:** privacy@your-domain.com
+**GDPR requests:** gdpr@your-domain.com
+
+---
+
+## Updates
+
+This policy is reviewed:
+- Annually
+- After significant feature changes
+- After regulatory updates
+- After security incidents
+```
+
+---
+
+### 27. `scripts/health-check.ts` - 🆕 STARTUP HEALTH CHECK
+
+```typescript
+/**
+ * STARTUP HEALTH CHECK
+ * 
+ * Verifies all external services are reachable
+ * Run before deployment or as part of CI/CD
+ */
+
+import { createClient } from '@libsql/client';
+
+interface HealthCheck {
+  name: string;
+  status: 'ok' | 'warn' | 'fail';
+  message?: string;
+  responseTime?: number;
+}
+
+async function checkTurso(): Promise<HealthCheck> {
+  const start = Date.now();
+
+  try {
+    const client = createClient({
+      url: process.env.TURSO_DATABASE_URL!,
+      authToken: process.env.TURSO_AUTH_TOKEN!,
+    });
+
+    await client.execute('SELECT 1');
+
+    return {
+      name: 'Turso Database',
+      status: 'ok',
+      responseTime: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      name: 'Turso Database',
+      status: 'fail',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+async function checkResend(): Promise<HealthCheck> {
+  const start = Date.now();
+
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      return {
+        name: 'Resend Email',
+        status: 'warn',
+        message: 'API key not configured',
+      };
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'HEAD',
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return {
+      name: 'Resend Email',
+      status: 'ok',
+      responseTime: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      name: 'Resend Email',
+      status: 'fail',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+async function checkGoogleMaps(): Promise<HealthCheck> {
+  if (!process.env.GOOGLE_MAPS_API_KEY) {
+    return {
+      name: 'Google Maps API',
+      status: 'warn',
+      message: 'API key not configured (optional)',
+    };
+  }
+
+  const start = Date.now();
+
+  try {
+    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+    url.searchParams.set('address', 'Test');
+    url.searchParams.set('key', process.env.GOOGLE_MAPS_API_KEY);
+
+    const response = await fetch(url.toString(), {
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return {
+      name: 'Google Maps API',
+      status: 'ok',
+      responseTime: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      name: 'Google Maps API',
+      status: 'fail',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+async function checkCRMWebhook(): Promise<HealthCheck> {
+  if (!process.env.CRM_WEBHOOK_URL) {
+    return {
+      name: 'CRM Webhook',
+      status: 'warn',
+      message: 'URL not configured (optional)',
+    };
+  }
+
+  const start = Date.now();
+
+  try {
+    const response = await fetch(process.env.CRM_WEBHOOK_URL, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+    });
+
+    return {
+      name: 'CRM Webhook',
+      status: 'ok',
+      responseTime: Date.now() - start,
+    };
+  } catch (error) {
+    return {
+      name: 'CRM Webhook',
+      status: 'fail',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+async function runHealthChecks() {
+  console.log('🏥 Running health checks...\n');
+
+  const checks = await Promise.all([
+    checkTurso(),
+    checkResend(),
+    checkGoogleMaps(),
+    checkCRMWebhook(),
+  ]);
+
+  let hasFailures = false;
+
+  for (const check of checks) {
+    const icon =
+      check.status === 'ok' ? '✅' : check.status === 'warn' ? '⚠️' : '❌';
+
+    console.log(`${icon} ${check.name}`);
+
+    if (check.message) {
+      console.log(`   ${check.message}`);
+    }
+
+    if (check.responseTime) {
+      console.log(`   Response time: ${check.responseTime}ms`);
+    }
+
+    if (check.status === 'fail') {
+      hasFailures = true;
+    }
+
+    console.log('');
+  }
+
+  if (hasFailures) {
+    console.error('❌ Health check failed');
+    process.exit(1);
+  } else {
+    console.log('✅ All health checks passed');
+    process.exit(0);
+  }
+}
+
+runHealthChecks().catch((error) => {
+  console.error('Health check error:', error);
+  process.exit(1);
+});
+```
+
+---
+
+### 28. `README.md` - COMPLETE PROJECT README
+
+```markdown
+# 🚀 Calculator Boilerplate - Ultimate Edition
+
+**Enterprise-grade, AI-friendly, Cloudflare Edge-native calculator boilerplate**
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue)](https://www.typescriptlang.org/)
+[![Astro](https://img.shields.io/badge/Astro-4.15-orange)](https://astro.build/)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+---
+
+## ✨ Features
+
+### 🎯 Core Features
+- ✅ **Multi-step calculator** with progress tracking
+- ✅ **Quote generation** with price breakdown
+- ✅ **Email notifications** with beautiful templates
+- ✅ **Admin dashboard** for quote management
+- ✅ **Responsive design** (mobile-first)
+
+### 🔐 Security (Enterprise-Grade)
+- ✅ **Rate limiting** (IP + UserAgent hash)
+- ✅ **Payload size limits** (1MB max)
+- ✅ **Bot protection** (Cloudflare Turnstile)
+- ✅ **CORS whitelist** (no wildcards in production)
+- ✅ **Webhook signatures** (HMAC-SHA256)
+- ✅ **IP anonymization** (GDPR compliant)
+- ✅ **Error ID tracking** (user support)
+
+### 🌍 Internationalization
+- ✅ **Multi-language** support (EN, ES, FR)
+- ✅ **Language detection** from URL/browser
+- ✅ **RTL support** ready
+- ✅ **Translation management**
+
+### 📊 Analytics & Monitoring
+- ✅ **Google Analytics** (GTM + GA4)
+- ✅ **Event tracking** (calculator flow)
+- ✅ **Error monitoring** (Sentry/Toucan)
+- ✅ **Slow response detection**
+- ✅ **Health check endpoint**
+
+### 🔗 Integrations
+- ✅ **CRM sync** (webhook with retry queue)
+- ✅ **Email service** (Resend with timeout)
+- ✅ **Google Maps** (distance calculation)
+- ✅ **OAuth** (Google login)
+- ✅ **Magic link** auth fallback
+
+### 📦 Data & Storage
+- ✅ **Turso database** (Edge-compatible SQLite)
+- ✅ **Drizzle ORM** (type-safe queries)
+- ✅ **Cloudflare KV** (caching, rate limiting)
+- ✅ **Schema versioning** (migrations)
+- ✅ **Data retention** (GDPR 180-day cleanup)
+- ✅ **Duplicate prevention** (fingerprinting)
+
+### 🎨 UI/UX
+- ✅ **shadcn/ui** components
+- ✅ **Tailwind CSS** styling
+- ✅ **React islands** (hydration)
+- ✅ **Idle popup** (lead recovery)
+- ✅ **Testimonials** widget
+- ✅ **Progress indicators**
+
+### 🤖 AI-Friendly Architecture
+- ✅ **Feature plugin system** (no core changes)
+- ✅ **Feature flags** (everything controllable)
+- ✅ **Central orchestrator** (boot.ts)
+- ✅ **Comprehensive docs** (.cursorrules)
+- ✅ **Type-safe** (strict TypeScript)
+
+---
+
+## 🏗️ Architecture
+
+### Feature Plugin System
+
+```
+src/lib/
+├── config.ts              ← MASTER CONFIG (feature flags)
+├── boot.ts                ← ORCHESTRATOR (loads features)
+├── core/                  ← Core logic (feature-independent)
+│   ├── calculator/
+│   ├── db/
+│   └── email/
+└── features/              ← Features (plugin-based)
+    ├── analytics/
+    ├── auth/
+    ├── crm-sync/
+    ├── security/
+    └── monitoring/
+```
+
+### Key Principles
+
+1. **Core never changes** - only `config.ts`
+2. **Everything is optional** - feature flags control activation
+3. **100% Edge-compatible** - no Node.js APIs
+4. **Type-safe** - strict TypeScript
+5. **Production-ready** - enterprise security
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Cloudflare account
+- Turso account (database)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/calculator-boilerplate.git
+cd calculator-boilerplate
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .dev.vars
+# Edit .dev.vars with your credentials
+
+# Generate database
+npm run db:generate
+npm run db:migrate
+
+# Start development server
+npm run dev
+```
+
+Visit: `http://localhost:4321`
+
+---
+
+## ⚙️ Configuration
+
+### Feature Flags
+
+Edit `src/lib/config.ts`:
+
+```typescript
+features: {
+  auth: false,                    // Enable authentication
+  multiLanguage: false,           // Enable i18n
+  analytics: false,               // Enable GA/GTM
+  crmSync: false,                 // Enable CRM webhook
+  idlePopup: false,               // Enable idle detection
+  rateLimiting: true,             // Rate limiting (forced in prod)
+  botProtection: false,           // Cloudflare Turnstile
+  testimonials: true,             // Show testimonials
+  gclid: true,                    // Track Google Ads
+  sentry: false,                  // Error monitoring
+  ipAnonymization: true,          // GDPR IP hashing
+}
+```
+
+### Environment Variables
+
+Required:
+- `TURSO_DATABASE_URL` - Database URL
+- `TURSO_AUTH_TOKEN` - Database auth token
+- `RESEND_API_KEY` - Email service
+
+Optional:
+- `GOOGLE_CLIENT_ID` - OAuth
+- `GOOGLE_CLIENT_SECRET` - OAuth
+- `CRM_WEBHOOK_URL` - CRM integration
+- `CRM_WEBHOOK_SECRET` - HMAC signature
+- `SENTRY_DSN` - Error tracking
+- `GTM_ID` - Google Tag Manager
+- `GA4_ID` - Google Analytics 4
+
+---
+
+## 📚 Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [API Reference](docs/API.md)
+- [Features Guide](docs/FEATURES.md)
+- [Authentication](docs/AUTH.md)
+- [Internationalization](docs/I18N.md)
+- [Security](docs/SECURITY.md)
+- [GDPR Compliance](docs/DATA-RETENTION.md)
+- [Edge Compatibility](docs/EDGE-COMPATIBILITY.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Testing](docs/TESTING.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run with UI
+npm run test:ui
+
+# Run with coverage
+npm run test:coverage
+
+# Type check
+npm run type-check
+
+# Lint
+npm run lint
+npm run lint:fix
+```
+
+---
+
+## 🚢 Deployment
+
+### Production Checklist
+
+```bash
+# 1. Health check
+npm run health-check
+
+# 2. Run tests
+npm run test
+
+# 3. Type check
+npm run type-check
+
+# 4. Build
+npm run build
+
+# 5. Preview locally
+npm run preview
+
+# 6. Deploy to Cloudflare
+npm run deploy
+```
+
+### Environment Setup
+
+```bash
+# Set secrets
+wrangler secret put TURSO_DATABASE_URL
+wrangler secret put TURSO_AUTH_TOKEN
+wrangler secret put RESEND_API_KEY
+wrangler secret put CRM_WEBHOOK_SECRET
+
+# Configure KV namespaces
+# Edit wrangler.toml with your KV IDs
+```
+
+### Cron Jobs
+
+Configure in Cloudflare Dashboard:
+
+1. **Data Cleanup**: Daily at 2 AM
+   - Trigger: `scripts/cleanup-old-quotes.ts`
+
+2. **CRM Queue**: Every 5 minutes
+   - Trigger: `scripts/process-crm-queue.ts`
+
+---
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+calculator-boilerplate/
+├── src/
+│   ├── components/        # React & Astro components
+│   ├── lib/               # Core library code
+│   │   ├── core/         # Feature-independent logic
+│   │   ├── features/     # Optional features (plugins)
+│   │   └── utils/        # Shared utilities
+│   ├── pages/            # Routes & API endpoints
+│   ├── middleware/       # Global middleware
+│   └── styles/           # Global styles
+├── public/               # Static assets
+├── docs/                 # Documentation
+├── scripts/              # Maintenance scripts
+├── test/                 # Test files
+└── db/                   # Database migrations
+```
+
+### Adding a New Feature
+
+1. Add feature flag to `src/lib/config.ts`
+2. Create `src/lib/features/[feature]/index.ts`
+3. Implement with conditional exports
+4. Add to `src/lib/boot.ts`
+5. Write tests
+6. Document in `docs/FEATURES.md`
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please read our [Contributing Guide](CONTRIBUTING.md).
+
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Run linter and tests
+6. Submit a pull request
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file
+
+---
+
+## 🙏 Acknowledgments
+
+- [Astro](https://astro.build/) - Web framework
+- [Cloudflare](https://www.cloudflare.com/) - Edge platform
+- [Turso](https://turso.tech/) - Edge database
+- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
+- [shadcn/ui](https://ui.shadcn.com/) - UI components
+- [Biome](https://biomejs.dev/) - Linter & formatter
+
+---
+
+## 📞 Support
+
+- **Email**: support@your-domain.com
+- **Issues**: [GitHub Issues](https://github.com/yourusername/calculator-boilerplate/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/calculator-boilerplate/discussions)
+
+---
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/calculator-boilerplate&type=Date)](https://star-history.com/#yourusername/calculator-boilerplate&Date)
+
+---
+
+**Built with ❤️ for the AI development era**
+```
+
+---
+
+## ✅ COMPLETE PROMPT CHECKLIST
+
+This prompt includes:
+
+### Phase 1 Features (Critical):
+- ✅ Email timeout wrapper
+- ✅ CORS domain-based configuration
+- ✅ IP logging GDPR flag + anonymization
+- ✅ Error ID tracking system
+- ✅ Payload size limits
+- ✅ Runtime URL detection
+- ✅ Rate limit hash-based keys
+- ✅ CRM retry HTTP status logic
+- ✅ Feature init cache with failure flag
+- ✅ Sentry header lowercase fix
+- ✅ Analytics pre-init event queue
+- ✅ Email validation transform
+- ✅ Central logger with levels
+- ✅ Duplicate prevention fingerprinting
+- ✅ Schema versioning
+- ✅ Idle popup tab hidden check
+- ✅ Safe KV wrapper utility
+- ✅ Consistent cache headers
+- ✅ Global unhandled error hooks
+- ✅ Health check endpoint
+- ✅ Source maps disabled
+
+### Phase 2 Features (Enterprise):
+- ✅ Webhook HMAC signature
+- ✅ CRM write queue + cron processor
+- ✅ Data retention 180-day cleanup
+- ✅ Magic link auth fallback
+- ✅ Startup health checks
+- ✅ Slow response monitoring
+- ✅ Complete security documentation
+- ✅ GDPR compliance guide
+- ✅ Maintenance scripts
+
+### AI Development Optimizations:
+- ✅ Comprehensive .cursorrules
+- ✅ Feature plugin architecture
+- ✅ Complete type safety
+- ✅ Extensive documentation
+- ✅ Clear file organization
+- ✅ Template patterns
+- ✅ Error handling standards
+- ✅ Testing guidelines
+
+---
+
+## 🎯 USAGE INSTRUCTIONS
+
+```bash
+# 1. Copy this ENTIRE prompt to Cursor AI
+
+# 2. Cursor will generate ALL files automatically
+
+# 3. Install dependencies
+npm install
+
+# 4. Setup environment
+cp .env.example .dev.vars
+# Edit .dev.vars with your credentials
+
+# 5. Setup database
+npm run db:generate
+npm run db:migrate
+
+# 6. Run health check
+npm run health-check
+
+# 7. Start development
+npm run dev
+
+# 8. Run tests
+npm run test
+
+# 9. Deploy
+npm run deploy
+```
+
+---
+
+## 🔥 THIS IS THE FINAL, COMPLETE, PRODUCTION-READY PROMPT
+
+**Includes:**
+- ✅ Phase 1 + Phase 2 features
+- ✅ 100% Cloudflare Edge-compatible
+- ✅ Enterprise-grade security
+- ✅ GDPR compliance
+- ✅ AI-optimized architecture
+- ✅ Complete documentation
+- ✅ Maintenance scripts
+- ✅ Health monitoring
+- ✅ Data retention
+- ✅ Error tracking
+- ✅ Webhook signatures
+- ✅ CRM queue system
+- ✅ Magic link auth
+- ✅ Comprehensive testing
+
+**Ready to generate a production-grade boilerplate that will run for years with minimal maintenance!**
+
+🚀 **GO BUILD SOMETHING AMAZING!**
+```
+
+---
