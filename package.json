@@ -20,6 +20,7 @@
     "@astrojs/react": "^3.6.0",
     "@astrojs/tailwind": "^5.1.0",
     "@nanostores/react": "^0.7.0",
+    "@noble/hashes": "^2.0.1",
     "astro": "^4.15.0",
     "clsx": "^2.1.0",
     "nanostores": "^0.10.0",
