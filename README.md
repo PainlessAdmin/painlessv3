@@ -84,6 +84,37 @@ Visit: `http://localhost:4321`
 
 ---
 
+## 📦 Deployment to Cloudflare Pages
+
+### Method 1: Wrangler CLI (Recommended)
+
+```bash
+# 1. Install Wrangler globally
+npm install -g wrangler
+
+# 2. Login to Cloudflare
+wrangler login
+
+# 3. Build project
+npm run build
+
+# 4. Deploy to Cloudflare Pages
+wrangler pages deploy ./dist --project-name=painlessv3
+
+# 5. Set environment variables (first time only)
+wrangler pages secret put TURSO_DATABASE_URL --project-name=painlessv3
+wrangler pages secret put TURSO_AUTH_TOKEN --project-name=painlessv3
+wrangler pages secret put RESEND_API_KEY --project-name=painlessv3
+```
+
+### Method 2: GitHub Actions (CI/CD)
+
+See `.github/workflows/deploy.yml` for automatic deployment on push to `main`.
+
+**Note:** Do NOT connect Git repository in Cloudflare Dashboard. We deploy via Wrangler CLI to avoid conflicts.
+
+---
+
 ## ⚙️ Configuration
 
 ### Feature Flags
