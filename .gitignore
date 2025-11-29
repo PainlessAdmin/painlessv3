@@ -35,3 +35,7 @@ wrangler.toml
 
 # TypeScript
 *.tsbuildinfo
+
+# Playwright
+playwright-report/
+test-results/
