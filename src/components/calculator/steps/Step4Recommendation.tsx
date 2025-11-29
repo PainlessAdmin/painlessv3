@@ -26,6 +26,7 @@ import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 import { cn } from '@/lib/utils';
 
 export function Step4Recommendation() {
@@ -86,19 +87,19 @@ export function Step4Recommendation() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="step-container space-y-6">
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Here's what we recommend
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           Based on your {propertyLabel} with {sliderLabel.toLowerCase()} belongings
         </p>
       </div>
 
       {/* Recommendation Card */}
-      <Card className="p-6 bg-gradient-to-b from-primary/5 to-transparent border-primary/20">
+      <div className="form-card p-6 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="text-center space-y-4">
           {/* Visual */}
           <div className="flex justify-center gap-8">
@@ -136,37 +137,27 @@ export function Step4Recommendation() {
             Estimated volume: ~{cubes.toLocaleString()} cubic feet
           </p>
         </div>
-      </Card>
+      </div>
 
       {/* Action Buttons */}
       {!showManualOverride ? (
-        <div className="space-y-3">
-          {/* Primary: Accept */}
-          <Button
-            onClick={handleAccept}
-            className="w-full"
-            size="lg"
-          >
-            Accept this recommendation
-          </Button>
-
-          {/* Secondary: Adjust belongings */}
-          <Button
-            onClick={handleAdjustBelongings}
-            variant="outline"
-            className="w-full"
-          >
-            I have fewer/more belongings than I thought
-          </Button>
+        <div className="space-y-4">
+          {/* Navigation with Accept */}
+          <StepNavigation
+            showBack={true}
+            onBack={handleAdjustBelongings}
+            onContinue={handleAccept}
+            continueLabel="Accept & Continue"
+          />
 
           {/* Tertiary: Manual override */}
-          <Button
+          <button
+            type="button"
             onClick={() => setShowManualOverride(true)}
-            variant="ghost"
-            className="w-full text-muted-foreground"
+            className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             I have a specific requirement
-          </Button>
+          </button>
         </div>
       ) : (
         /* Manual Override Panel */
@@ -222,7 +213,7 @@ function ManualOverridePanel({
   );
 
   return (
-    <Card className="p-6 space-y-6">
+    <div className="form-card p-6 space-y-6">
       <div>
         <h3 className="font-semibold text-foreground">
           What are your specific requirements?
@@ -305,22 +296,13 @@ function ManualOverridePanel({
       )}
 
       {/* Buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={onCancel}
-          variant="outline"
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={onSubmit}
-          className="flex-1"
-        >
-          Continue with my selection
-        </Button>
-      </div>
-    </Card>
+      <StepNavigation
+        showBack={true}
+        onBack={onCancel}
+        onContinue={onSubmit}
+        continueLabel="Continue with my selection"
+      />
+    </div>
   );
 }
 
@@ -338,11 +320,11 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div className="step-container space-y-6">
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Let's talk about your move
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           {reason === 'specialist_items'
             ? 'Specialist items require a custom quote'
@@ -351,7 +333,7 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
         </p>
       </div>
 
-      <Card className="p-6 text-center bg-primary/5 border-primary/20">
+      <div className="form-card p-6 text-center bg-primary/5">
         <div className="text-5xl mb-4">📞</div>
         <h3 className="text-xl font-semibold text-foreground">
           We'll call you within 2 hours
@@ -362,7 +344,7 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
         <p className="text-sm text-muted-foreground mt-4">
           Our team will discuss your specific requirements and provide an accurate, no-obligation quote.
         </p>
-      </Card>
+      </div>
 
       <Alert>
         <AlertDescription>
@@ -375,13 +357,13 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
         </AlertDescription>
       </Alert>
 
-      <Button
+      <button
+        type="button"
         onClick={handleRequestCallback}
-        className="w-full"
-        size="lg"
+        className="btn-primary w-full"
       >
         Request a Callback
-      </Button>
+      </button>
     </div>
   );
 }
@@ -392,7 +374,7 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
 
 function SocialProofCard() {
   return (
-    <Card className="p-4 bg-muted/30">
+    <div className="form-card p-4 bg-muted/30">
       <div className="flex gap-4">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -419,7 +401,7 @@ function SocialProofCard() {
           </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 

@@ -15,6 +15,7 @@ import {
   calculatorStore,
   setFurnitureOnly,
   goToStep,
+  prevStep,
   type FurnitureOnlyData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 import { cn } from '@/lib/utils';
 
 // Specialist items list
@@ -85,20 +87,24 @@ export function Step2FurnitureOnly() {
     goToStep(5);
   };
 
+  const handleBack = () => {
+    prevStep();
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="step-container space-y-8">
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Tell us about your items
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           This helps us send the right team
         </p>
       </div>
 
       {/* Question 1: Item Count */}
-      <Card className="p-6">
+      <div className="form-card p-6">
         <Label className="text-base font-medium">
           How many items need moving?
         </Label>
@@ -135,10 +141,10 @@ export function Step2FurnitureOnly() {
             </span>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Question 2: 2-Person Items (Size) */}
-      <Card className="p-6">
+      <div className="form-card p-6">
         <Label className="text-base font-medium">
           Do any items require 2 people due to SIZE?
         </Label>
@@ -160,10 +166,10 @@ export function Step2FurnitureOnly() {
             description="At least one item needs two people"
           />
         </div>
-      </Card>
+      </div>
 
       {/* Question 3: Heavy Items (>40kg) */}
-      <Card className="p-6">
+      <div className="form-card p-6">
         <Label className="text-base font-medium">
           Is any single item heavier than 40kg?
         </Label>
@@ -185,10 +191,10 @@ export function Step2FurnitureOnly() {
             description="At least one item is over 40kg"
           />
         </div>
-      </Card>
+      </div>
 
       {/* Question 4: Specialist Items */}
-      <Card className="p-6">
+      <div className="form-card p-6">
         <Label className="text-base font-medium">
           Any SPECIALIST items requiring special handling?
         </Label>
@@ -246,7 +252,7 @@ export function Step2FurnitureOnly() {
             <span className="text-sm font-medium">None of these</span>
           </label>
         </div>
-      </Card>
+      </div>
 
       {/* Warning if specialist items selected */}
       {hasSpecialistItems && (
@@ -260,7 +266,7 @@ export function Step2FurnitureOnly() {
       )}
 
       {/* Summary */}
-      <Card className="p-4 bg-muted/50">
+      <div className="form-card p-4 bg-muted/50">
         <div className="text-sm text-muted-foreground">
           <strong>Summary:</strong> {itemCount === 10 ? '10+' : itemCount} item{itemCount > 1 ? 's' : ''}
           {needs2Person && ' - Some need 2 people'}
@@ -273,16 +279,15 @@ export function Step2FurnitureOnly() {
             Estimated: {needs2Person || over40kg ? '2 movers' : '1 mover'}, 1 van
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        {hasSpecialistItems ? 'Request Callback' : 'Continue'}
-      </Button>
+      {/* Navigation Buttons */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+        onContinue={handleContinue}
+        continueLabel={hasSpecialistItems ? 'Request Callback' : 'Continue'}
+      />
     </div>
   );
 }

@@ -37,25 +37,6 @@ if (!stepConfig) {
 // Get step order for progress
 const stepOrder = stepConfig.order;
 
-// Map step IDs to components
-const stepComponents: Record<string, any> = {
-  'step-01': Step1ServiceType,
-  'step-02': Step2PropertySize,
-  'step-02b': Step2FurnitureOnly,
-  'step-03': Step3BelongingsSlider,
-  'step-04': Step4Recommendation,
-  'step-05': Step5DateSelection,
-  'step-06': Step6Complications,
-  'step-07': Step7PropertyChain,
-  'step-08': Step8FromAddress,
-  'step-09': Step9ToAddress,
-  'step-10': Step10Extras,
-  'step-11': Step11Contact,
-  'step-12': Step12Quote,
-};
-
-const StepComponent = stepComponents[step || ''];
-
 export function getStaticPaths() {
   return CALCULATOR_STEPS.map((step) => ({
     params: { step: step.id },
@@ -70,12 +51,18 @@ export function getStaticPaths() {
 >
   <!-- Calculator Step Component -->
   <div id="calculator-app" class="max-w-2xl mx-auto">
-    {StepComponent ? (
-      <StepComponent client:load />
-    ) : (
-      <div class="text-center py-12">
-        <p class="text-muted-foreground">Step component not found: {step}</p>
-      </div>
-    )}
+    {step === 'step-01' && <Step1ServiceType client:load />}
+    {step === 'step-02' && <Step2PropertySize client:load />}
+    {step === 'step-02b' && <Step2FurnitureOnly client:load />}
+    {step === 'step-03' && <Step3BelongingsSlider client:load />}
+    {step === 'step-04' && <Step4Recommendation client:load />}
+    {step === 'step-05' && <Step5DateSelection client:load />}
+    {step === 'step-06' && <Step6Complications client:load />}
+    {step === 'step-07' && <Step7PropertyChain client:load />}
+    {step === 'step-08' && <Step8FromAddress client:load />}
+    {step === 'step-09' && <Step9ToAddress client:load />}
+    {step === 'step-10' && <Step10Extras client:load />}
+    {step === 'step-11' && <Step11Contact client:load />}
+    {step === 'step-12' && <Step12Quote client:load />}
   </div>
 </LayoutCalculator>
