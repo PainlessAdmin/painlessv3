@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" fill="none">
+  <!-- House -->
+  <path d="M100 20L20 80V140H80V100H120V140H180V80L100 20Z" fill="hsl(222.2 47.4% 11.2%)" opacity="0.1"/>
+  <path d="M100 20L20 80V140H80V100H120V140H180V80L100 20Z" stroke="hsl(222.2 47.4% 11.2%)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Door -->
+  <rect x="85" y="100" width="30" height="40" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2"/>
+  <!-- Windows -->
+  <rect x="40" y="90" width="25" height="25" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2"/>
+  <rect x="135" y="90" width="25" height="25" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2"/>
+  <!-- Moving boxes -->
+  <rect x="150" y="120" width="35" height="30" fill="hsl(222.2 47.4% 11.2%)" opacity="0.3" rx="2"/>
+  <rect x="160" y="100" width="30" height="25" fill="hsl(222.2 47.4% 11.2%)" opacity="0.4" rx="2"/>
+</svg>

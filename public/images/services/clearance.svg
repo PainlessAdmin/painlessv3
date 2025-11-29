@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" fill="none">
+  <!-- Truck body -->
+  <rect x="20" y="70" width="120" height="70" fill="hsl(222.2 47.4% 11.2%)" opacity="0.1" rx="4"/>
+  <rect x="20" y="70" width="120" height="70" stroke="hsl(222.2 47.4% 11.2%)" stroke-width="4" rx="4" fill="none"/>
+  <!-- Truck cabin -->
+  <path d="M140 90H170C175 90 180 95 180 100V140H140V90Z" fill="hsl(222.2 47.4% 11.2%)" opacity="0.1"/>
+  <path d="M140 90H170C175 90 180 95 180 100V140H140V90Z" stroke="hsl(222.2 47.4% 11.2%)" stroke-width="4" fill="none"/>
+  <!-- Window -->
+  <rect x="150" y="100" width="20" height="15" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2" rx="2"/>
+  <!-- Wheels -->
+  <circle cx="55" cy="140" r="15" fill="hsl(222.2 47.4% 11.2%)" opacity="0.3"/>
+  <circle cx="55" cy="140" r="8" fill="white"/>
+  <circle cx="160" cy="140" r="15" fill="hsl(222.2 47.4% 11.2%)" opacity="0.3"/>
+  <circle cx="160" cy="140" r="8" fill="white"/>
+  <!-- Boxes in truck -->
+  <rect x="35" y="85" width="30" height="25" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2" rx="2"/>
+  <rect x="70" y="90" width="25" height="20" fill="hsl(222.2 47.4% 11.2%)" opacity="0.25" rx="2"/>
+  <rect x="100" y="85" width="25" height="25" fill="hsl(222.2 47.4% 11.2%)" opacity="0.2" rx="2"/>
+</svg>
