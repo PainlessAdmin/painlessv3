@@ -10,6 +10,8 @@
  * Consents:
  * - Marketing opt-in (optional)
  * - Terms & Privacy acceptance (required)
+ *
+ * Enhanced with white card container styling.
  */
 
 import { useState } from 'react';
@@ -18,6 +20,7 @@ import {
   calculatorStore,
   setContact,
   nextStep,
+  prevStep,
   type ContactData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
@@ -26,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
 // Validation patterns
 const PHONE_REGEX = /^(?:(?:\+44)|(?:0))(?:\d\s?){9,10}$/;
@@ -59,7 +63,6 @@ export function Step11Contact() {
 
   // Format phone number as user types
   const handlePhoneChange = (value: string) => {
-    // Remove non-digits except +
     const cleaned = value.replace(/[^\d+]/g, '');
     setPhone(cleaned);
   };
@@ -68,31 +71,26 @@ export function Step11Contact() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // First name
     if (!firstName.trim()) {
       newErrors.firstName = 'Please enter your first name';
     }
 
-    // Last name
     if (!lastName.trim()) {
       newErrors.lastName = 'Please enter your last name';
     }
 
-    // Phone
     if (!phone.trim()) {
       newErrors.phone = 'Please enter your phone number';
     } else if (!PHONE_REGEX.test(phone.replace(/\s/g, ''))) {
       newErrors.phone = 'Please enter a valid UK phone number';
     }
 
-    // Email
     if (!email.trim()) {
       newErrors.email = 'Please enter your email address';
     } else if (!EMAIL_REGEX.test(email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // GDPR/Terms
     if (!gdprConsent) {
       newErrors.gdpr = 'Please accept the terms and privacy policy';
     }
@@ -120,33 +118,36 @@ export function Step11Contact() {
 
     setContact(contactData);
 
-    // Small delay for UX
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     setIsSubmitting(false);
-    nextStep(); // Go to final quote
+    nextStep();
+  };
+
+  const handleBack = () => {
+    prevStep();
   };
 
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Almost there! Your details
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           We'll send your quote to this email
         </p>
       </div>
 
-      {/* Form */}
-      <Card className="p-6">
+      {/* Form Card */}
+      <Card className="p-6 md:p-8 bg-white shadow-lg max-w-lg mx-auto">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name Row */}
           <div className="grid gap-4 sm:grid-cols-2">
             {/* First Name */}
             <div className="space-y-2">
-              <Label htmlFor="firstName">
+              <Label htmlFor="firstName" className="text-sm font-medium">
                 First name <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -155,7 +156,7 @@ export function Step11Contact() {
                 placeholder="John"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className={cn(errors.firstName && 'border-destructive')}
+                className={cn('py-4 input-enhanced', errors.firstName && 'border-destructive')}
                 autoComplete="given-name"
               />
               {errors.firstName && (
@@ -165,7 +166,7 @@ export function Step11Contact() {
 
             {/* Last Name */}
             <div className="space-y-2">
-              <Label htmlFor="lastName">
+              <Label htmlFor="lastName" className="text-sm font-medium">
                 Last name <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -174,7 +175,7 @@ export function Step11Contact() {
                 placeholder="Smith"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className={cn(errors.lastName && 'border-destructive')}
+                className={cn('py-4 input-enhanced', errors.lastName && 'border-destructive')}
                 autoComplete="family-name"
               />
               {errors.lastName && (
@@ -185,11 +186,11 @@ export function Step11Contact() {
 
           {/* Phone */}
           <div className="space-y-2">
-            <Label htmlFor="phone">
+            <Label htmlFor="phone" className="text-sm font-medium">
               Phone number <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
                 📱
               </span>
               <Input
@@ -198,7 +199,7 @@ export function Step11Contact() {
                 placeholder="07700 900123"
                 value={phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                className={cn('pl-10', errors.phone && 'border-destructive')}
+                className={cn('pl-12 py-4 input-enhanced', errors.phone && 'border-destructive')}
                 autoComplete="tel"
               />
             </div>
@@ -212,11 +213,11 @@ export function Step11Contact() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">
+            <Label htmlFor="email" className="text-sm font-medium">
               Email address <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
                 ✉️
               </span>
               <Input
@@ -225,7 +226,7 @@ export function Step11Contact() {
                 placeholder="john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={cn('pl-10', errors.email && 'border-destructive')}
+                className={cn('pl-12 py-4 input-enhanced', errors.email && 'border-destructive')}
                 autoComplete="email"
               />
             </div>
@@ -243,7 +244,7 @@ export function Step11Contact() {
           {/* Consents */}
           <div className="space-y-4">
             {/* Marketing Consent (Optional) */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
               <Checkbox
                 id="marketing"
                 checked={marketingConsent}
@@ -265,7 +266,10 @@ export function Step11Contact() {
             </div>
 
             {/* Terms Acceptance (Required) */}
-            <div className="flex items-start gap-3">
+            <div className={cn(
+              'flex items-start gap-3 p-3 rounded-lg',
+              errors.gdpr ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+            )}>
               <Checkbox
                 id="gdpr"
                 checked={gdprConsent}
@@ -305,8 +309,7 @@ export function Step11Contact() {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full"
-            size="lg"
+            className="w-full btn-primary py-5 text-lg"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Processing...' : 'Get My Quote'}
@@ -320,6 +323,12 @@ export function Step11Contact() {
         <span className="flex items-center gap-1">📧 No spam, ever</span>
         <span className="flex items-center gap-1">✓ GDPR compliant</span>
       </div>
+
+      {/* Back Navigation (no continue button since form has submit) */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+      />
     </div>
   );
 }

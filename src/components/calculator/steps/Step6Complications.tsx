@@ -6,61 +6,70 @@
  * - Stairs: ×1.07
  * - Restricted access: ×1.07
  * - Plants: +1 van, +1 mover
+ *
+ * Enhanced with image cards and improved styling.
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setComplications,
   nextStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import type { Complication } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { OptionCardGrid } from '@/components/calculator/option-card';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
-// Complication options with details
+// Complication options with enhanced details
 const complicationOptions: Array<{
   id: Complication;
   label: string;
   description: string;
   icon: string;
   impact: string;
+  color: string;
 }> = [
   {
     id: 'largeFragile',
-    label: 'Large or fragile items',
-    description: 'Piano, artwork, antiques, glass furniture, or delicate items',
+    label: 'Fragile Items',
+    description: 'Piano, artwork, antiques',
     icon: '📦',
     impact: 'Extra care needed',
+    color: 'bg-purple-500',
   },
   {
     id: 'stairs',
-    label: 'Stairs without elevator',
-    description: 'Multiple floors with no lift access at either property',
+    label: 'Stairs',
+    description: 'No lift access',
     icon: '🪜',
-    impact: 'Additional time required',
+    impact: 'Additional time',
+    color: 'bg-blue-500',
   },
   {
     id: 'restrictedAccess',
-    label: 'Limited or restricted access',
-    description: 'Narrow streets, parking restrictions, or long carry distance',
+    label: 'Limited Access',
+    description: 'Narrow streets, parking issues',
     icon: '🚫',
-    impact: 'May need permits or extra planning',
+    impact: 'Extra planning',
+    color: 'bg-red-500',
   },
   {
     id: 'plants',
-    label: 'Large collection of plants (20+)',
-    description: 'Plants need special handling and separate transport',
+    label: 'Many Plants',
+    description: '20+ plants to transport',
     icon: '🌿',
-    impact: 'Additional van required',
+    impact: 'Extra van needed',
+    color: 'bg-green-500',
   },
 ];
 
 export function Step6Complications() {
   const state = useStore(calculatorStore);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [selected, setSelected] = useState<Complication[]>(
     state.complications || []
@@ -97,75 +106,139 @@ export function Step6Complications() {
     nextStep();
   };
 
+  const handleBack = () => {
+    prevStep();
+  };
+
   // Calculate impact preview
   const impactPreview = getImpactPreview(selected);
 
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
-          Do any of these apply to your move?
-        </h2>
+    <div ref={containerRef} className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
+          Do any of these apply?
+        </h1>
         <p className="text-muted-foreground mt-2">
           Select all that apply - this helps us prepare properly
         </p>
       </div>
 
-      {/* Complication Options */}
-      <div className="space-y-3">
-        {complicationOptions.map((option) => (
-          <ComplicationCard
-            key={option.id}
-            option={option}
-            isSelected={selected.includes(option.id)}
-            onToggle={() => handleToggle(option.id)}
-          />
-        ))}
+      {/* Complication Options as Image Cards */}
+      <OptionCardGrid columns={2}>
+        {complicationOptions.map((option) => {
+          const isSelected = selected.includes(option.id);
+          return (
+            <div key={option.id} className="option-card">
+              <input
+                type="checkbox"
+                name={option.id}
+                id={`complication-${option.id}`}
+                checked={isSelected}
+                onChange={() => handleToggle(option.id)}
+                className="sr-only"
+              />
+              <label
+                htmlFor={`complication-${option.id}`}
+                className={cn(
+                  'block cursor-pointer rounded-2xl transition-all duration-300',
+                  'hover:shadow-lg border-2 border-transparent h-full overflow-hidden relative',
+                  isSelected && 'shadow-xl border-primary'
+                )}
+                style={{
+                  background: isSelected
+                    ? 'linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.08) 100%)'
+                    : '#e1e8f1',
+                }}
+              >
+                {/* Icon area with colored background */}
+                <div className={cn(
+                  'w-full aspect-video flex items-center justify-center text-5xl',
+                  option.color
+                )}>
+                  <span className="drop-shadow-lg">{option.icon}</span>
+                </div>
 
-        {/* None of these */}
-        <Card
-          className={cn(
-            'p-4 cursor-pointer transition-all',
-            'hover:border-primary/50',
-            noneSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-          )}
-          onClick={handleNoneToggle}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleNoneToggle();
-            }
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <Checkbox
-              checked={noneSelected}
-              onCheckedChange={handleNoneToggle}
-              className="pointer-events-none"
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-xl">✅</span>
-              <span className="font-medium text-foreground">
-                None of these apply
-              </span>
+                {/* Content */}
+                <div className="p-4 text-center">
+                  <h3 className="font-semibold text-lg text-foreground">
+                    {option.label}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {option.description}
+                  </p>
+
+                  {/* Impact badge - always visible when selected */}
+                  {isSelected && (
+                    <div className="mt-2">
+                      <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                        {option.impact}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Checkmark */}
+                <div
+                  className={cn(
+                    'option-card-checkmark',
+                    isSelected && 'opacity-100 scale-100'
+                  )}
+                >
+                  ✓
+                </div>
+              </label>
             </div>
-          </div>
-        </Card>
-      </div>
+          );
+        })}
+      </OptionCardGrid>
+
+      {/* None of these - Special styled card */}
+      <Card
+        className={cn(
+          'p-6 cursor-pointer transition-all duration-300',
+          'hover:shadow-lg hover:border-emerald-400',
+          'flex items-center justify-center gap-4',
+          noneSelected && 'border-emerald-500 bg-emerald-50 shadow-lg ring-2 ring-emerald-500'
+        )}
+        onClick={handleNoneToggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleNoneToggle();
+          }
+        }}
+      >
+        <div className={cn(
+          'w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-colors',
+          noneSelected ? 'bg-emerald-500 text-white' : 'bg-gray-200'
+        )}>
+          {noneSelected ? '✓' : '✅'}
+        </div>
+        <div>
+          <span className="font-semibold text-lg text-foreground">
+            None of these apply
+          </span>
+          <p className="text-sm text-muted-foreground">
+            My move is straightforward
+          </p>
+        </div>
+      </Card>
 
       {/* Impact Preview */}
       {selected.length > 0 && (
-        <Card className="p-4 bg-muted/50">
-          <h3 className="font-medium text-foreground text-sm mb-2">
+        <Card className="p-4 bg-amber-50 border-amber-200">
+          <h3 className="font-semibold text-foreground text-sm mb-2 flex items-center gap-2">
+            <span>⚡</span>
             How this affects your quote:
           </h3>
-          <ul className="space-y-1 text-sm text-muted-foreground">
+          <ul className="space-y-1 text-sm text-amber-800">
             {impactPreview.map((impact, i) => (
               <li key={i} className="flex items-center gap-2">
-                <span className="text-primary">•</span>
+                <span className="text-amber-500">•</span>
                 {impact}
               </li>
             ))}
@@ -173,81 +246,14 @@ export function Step6Complications() {
         </Card>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        Continue
-      </Button>
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+        onContinue={handleContinue}
+        continueLabel="Continue"
+      />
     </div>
-  );
-}
-
-// ===================
-// SUB-COMPONENTS
-// ===================
-
-interface ComplicationCardProps {
-  option: {
-    id: Complication;
-    label: string;
-    description: string;
-    icon: string;
-    impact: string;
-  };
-  isSelected: boolean;
-  onToggle: () => void;
-}
-
-function ComplicationCard({ option, isSelected, onToggle }: ComplicationCardProps) {
-  return (
-    <Card
-      className={cn(
-        'p-4 cursor-pointer transition-all',
-        'hover:border-primary/50',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-      )}
-      onClick={onToggle}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}
-    >
-      <div className="flex items-start gap-4">
-        {/* Checkbox */}
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onToggle}
-          className="mt-1 pointer-events-none"
-        />
-
-        {/* Content */}
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{option.icon}</span>
-            <span className="font-medium text-foreground">{option.label}</span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {option.description}
-          </p>
-
-          {/* Impact badge */}
-          {isSelected && (
-            <div className="mt-2">
-              <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                {option.impact}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </Card>
   );
 }
 

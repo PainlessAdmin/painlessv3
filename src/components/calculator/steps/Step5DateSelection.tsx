@@ -7,55 +7,63 @@
  * 3. Unknown - don't know yet
  *
  * Shows date picker for fixed/flexible options.
+ * Enhanced styling with image cards and improved UX.
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setDate,
   nextStep,
+  prevStep,
   type DateFlexibility,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { OptionCardGrid } from '@/components/calculator/option-card';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
-// Date flexibility options
+// Date flexibility options with enhanced styling
 const flexibilityOptions: Array<{
   value: DateFlexibility;
   label: string;
   description: string;
   icon: string;
   showDatePicker: boolean;
+  color: string;
 }> = [
   {
     value: 'fixed',
-    label: 'I have a fixed date',
-    description: 'Completion day, notice period ending, etc.',
+    label: 'Fixed Date',
+    description: 'Completion day, notice period ending',
     icon: '📅',
     showDatePicker: true,
+    color: 'bg-blue-500',
   },
   {
     value: 'flexible',
-    label: "I have a date in mind, but I'm flexible",
-    description: 'Flexible dates often mean better prices!',
+    label: 'Flexible',
+    description: 'Save with flexible dates',
     icon: '🗓️',
     showDatePicker: true,
+    color: 'bg-emerald-500',
   },
   {
     value: 'unknown',
-    label: "I don't know the date yet",
-    description: "We'll provide a quote you can use when ready",
+    label: 'Not Sure Yet',
+    description: "We'll quote based on current rates",
     icon: '❓',
     showDatePicker: false,
+    color: 'bg-amber-500',
   },
 ];
 
 export function Step5DateSelection() {
   const state = useStore(calculatorStore);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [flexibility, setFlexibility] = useState<DateFlexibility | null>(
     state.dateFlexibility
@@ -63,7 +71,9 @@ export function Step5DateSelection() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     state.selectedDate ? new Date(state.selectedDate) : undefined
   );
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(
+    state.dateFlexibility === 'fixed' || state.dateFlexibility === 'flexible'
+  );
 
   // Get minimum date (tomorrow)
   const minDate = new Date();
@@ -78,9 +88,18 @@ export function Step5DateSelection() {
     setFlexibility(option);
 
     if (option === 'unknown') {
-      // No date needed, can continue
+      // No date needed, auto-advance
       setShowCalendar(false);
       setSelectedDate(undefined);
+
+      // Visual feedback animation
+      containerRef.current?.classList.add('auto-next-animate');
+
+      setTimeout(() => {
+        containerRef.current?.classList.remove('auto-next-animate');
+        setDate(option, undefined);
+        nextStep();
+      }, 200);
     } else {
       // Show calendar for fixed/flexible
       setShowCalendar(true);
@@ -103,6 +122,10 @@ export function Step5DateSelection() {
     nextStep();
   };
 
+  const handleBack = () => {
+    prevStep();
+  };
+
   // Can continue?
   const canContinue = flexibility === 'unknown' ||
     (flexibility && selectedDate);
@@ -117,79 +140,92 @@ export function Step5DateSelection() {
       })
     : null;
 
+  // Check if weekend
+  const isWeekend = selectedDate && (selectedDate.getDay() === 0 || selectedDate.getDay() === 6);
+
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div ref={containerRef} className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           When do you need to move?
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           This helps us check availability and give you an accurate quote
         </p>
       </div>
 
-      {/* Flexibility Options */}
-      <div className="space-y-3">
+      {/* Flexibility Options as Cards */}
+      <OptionCardGrid columns={3}>
         {flexibilityOptions.map((option) => (
-          <Card
-            key={option.value}
-            className={cn(
-              'p-4 cursor-pointer transition-all',
-              'hover:border-primary/50',
-              flexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
-            )}
-            onClick={() => handleFlexibilitySelect(option.value)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleFlexibilitySelect(option.value);
-              }
-            }}
-          >
-            <div className="flex items-start gap-4">
-              {/* Radio indicator */}
+          <div key={option.value} className="option-card">
+            <input
+              type="radio"
+              name="dateFlexibility"
+              id={`date-${option.value}`}
+              value={option.value}
+              checked={flexibility === option.value}
+              onChange={() => handleFlexibilitySelect(option.value)}
+              className="sr-only"
+            />
+            <label
+              htmlFor={`date-${option.value}`}
+              className={cn(
+                'block cursor-pointer rounded-2xl transition-all duration-300 p-6',
+                'hover:shadow-lg border-2 border-transparent h-full',
+                'flex flex-col items-center justify-center text-center gap-3',
+                flexibility === option.value && 'shadow-xl border-primary bg-primary/5'
+              )}
+              style={{
+                background: flexibility === option.value
+                  ? 'linear-gradient(135deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.08) 100%)'
+                  : '#e1e8f1',
+              }}
+            >
+              {/* Icon with colored background */}
               <div className={cn(
-                'mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2',
-                flexibility === option.value
-                  ? 'border-primary bg-primary'
-                  : 'border-muted-foreground'
+                'w-16 h-16 rounded-full flex items-center justify-center text-3xl text-white',
+                option.color
               )}>
-                {flexibility === option.value && (
-                  <span className="text-primary-foreground text-xs">✓</span>
-                )}
+                {option.icon}
               </div>
 
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{option.icon}</span>
-                  <span className="font-medium text-foreground">{option.label}</span>
+              {/* Label */}
+              <h3 className="font-semibold text-lg text-foreground">
+                {option.label}
+              </h3>
+
+              {/* Description */}
+              <p className="text-sm text-muted-foreground">
+                {option.description}
+              </p>
+
+              {/* Selected Indicator */}
+              {flexibility === option.value && (
+                <div className="flex justify-center">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                    ✓
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {option.description}
-                </p>
+              )}
 
-                {/* Flexible date tip */}
-                {option.value === 'flexible' && flexibility === 'flexible' && (
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                    Flexible dates often mean better prices!
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
+              {/* Flexible savings badge */}
+              {option.value === 'flexible' && (
+                <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                  Often saves money
+                </span>
+              )}
+            </label>
+          </div>
         ))}
-      </div>
+      </OptionCardGrid>
 
       {/* Calendar */}
       {showCalendar && (
-        <Card className="p-4">
+        <Card className="p-6 bg-white shadow-lg">
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="font-medium text-foreground">
+              <h3 className="font-semibold text-lg text-foreground">
                 {flexibility === 'fixed' ? 'Select your moving date' : 'Select your preferred date'}
               </h3>
               {flexibility === 'flexible' && (
@@ -207,24 +243,24 @@ export function Step5DateSelection() {
                 onSelect={handleDateSelect}
                 disabled={(date) => date < minDate || date > maxDate}
                 initialFocus
-                className="rounded-md border"
+                className="rounded-xl border-2 shadow-sm"
               />
             </div>
 
             {/* Selected date display */}
             {selectedDate && (
               <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
-                  <span>📅</span>
-                  <span className="font-medium">{formattedDate}</span>
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-primary/10 text-primary rounded-full">
+                  <span className="text-2xl">📅</span>
+                  <span className="font-semibold text-lg">{formattedDate}</span>
                 </div>
               </div>
             )}
 
             {/* Weekend note */}
-            {selectedDate && (selectedDate.getDay() === 0 || selectedDate.getDay() === 6) && (
-              <Alert>
-                <AlertDescription className="text-sm">
+            {isWeekend && (
+              <Alert className="border-amber-400 bg-amber-50">
+                <AlertDescription className="text-amber-800">
                   <strong>Weekend move:</strong> Saturdays are our busiest days - book early to secure your slot!
                 </AlertDescription>
               </Alert>
@@ -235,23 +271,22 @@ export function Step5DateSelection() {
 
       {/* Unknown date info */}
       {flexibility === 'unknown' && (
-        <Alert>
-          <AlertDescription>
+        <Alert className="border-blue-300 bg-blue-50">
+          <AlertDescription className="text-blue-800">
             <strong>No problem!</strong> We'll provide a quote based on current rates.
             Prices are valid for 30 days and may vary depending on your final date.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!canContinue}
-      >
-        Continue
-      </Button>
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+        onContinue={handleContinue}
+        continueDisabled={!canContinue}
+        continueLabel="Continue"
+      />
     </div>
   );
 }

@@ -7,10 +7,7 @@
  * - Move summary
  * - Booking options (Book now / Request callback)
  *
- * Actions:
- * - Submit quote to backend
- * - Send confirmation email
- * - Track conversion
+ * Enhanced with split layout and refined styling.
  */
 
 import { useState, useEffect } from 'react';
@@ -111,47 +108,52 @@ export function Step12Quote() {
   // If no quote calculated
   if (!quote) {
     return (
-      <div className="text-center py-12">
-        <Spinner className="h-8 w-8 mx-auto" />
-        <p className="mt-4 text-muted-foreground">Calculating your quote...</p>
+      <div className="step-container text-center py-12">
+        <Spinner className="h-10 w-10 mx-auto" />
+        <p className="mt-4 text-lg text-muted-foreground">Calculating your quote...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="step-container space-y-6">
       {/* Success Header */}
       <div className="text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <h2 className="text-2xl font-semibold text-foreground">
+        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+          <span className="text-4xl">🎉</span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary">
           Your quote is ready!
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           Hi {state.contact?.firstName}, here's your instant quote
         </p>
       </div>
 
-      {/* Main Price Card */}
-      <Card className="p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/30">
+      {/* Main Price Card - Enhanced */}
+      <Card className="p-6 md:p-8 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border-primary/30 shadow-xl">
         <div className="text-center">
-          {/* Price */}
+          {/* Price Label */}
           <div className="mb-2">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm font-medium text-primary/70 uppercase tracking-wider">
               Your estimated price
             </span>
           </div>
-          <div className="text-5xl font-bold text-primary mb-2">
+
+          {/* Big Price Display */}
+          <div className="text-6xl md:text-7xl font-bold text-primary mb-3">
             £{quote.totalPrice.toLocaleString()}
           </div>
+
           <div className="text-sm text-muted-foreground">
             Including VAT • Valid for 30 days
           </div>
 
-          {/* Date */}
+          {/* Date Badge */}
           {state.selectedDate && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-background rounded-full border">
-              <span>📅</span>
-              <span className="font-medium">
+            <div className="mt-5 inline-flex items-center gap-2 px-5 py-3 bg-white rounded-full shadow-sm border">
+              <span className="text-xl">📅</span>
+              <span className="font-semibold">
                 {new Date(state.selectedDate).toLocaleDateString('en-GB', {
                   weekday: 'long',
                   day: 'numeric',
@@ -160,7 +162,7 @@ export function Step12Quote() {
                 })}
               </span>
               {state.dateFlexibility === 'flexible' && (
-                <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
                   Flexible
                 </span>
               )}
@@ -169,81 +171,106 @@ export function Step12Quote() {
         </div>
       </Card>
 
-      {/* Move Summary */}
-      <Card className="p-4">
-        <h3 className="font-semibold text-foreground mb-3">Your move</h3>
-        <div className="space-y-3">
-          {/* Route */}
-          <div className="flex items-start gap-3">
-            <div className="flex flex-col items-center">
-              <div className="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-medium">
-                A
-              </div>
-              <div className="w-0.5 h-8 bg-border"></div>
-              <div className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-medium">
-                B
-              </div>
+      {/* Action Buttons - Prominent */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button onClick={handleBookNow} className="btn-primary py-5 text-lg w-full">
+          Book this date
+        </Button>
+        <Button
+          onClick={handleRequestCallback}
+          variant="outline"
+          className="py-5 text-lg w-full"
+        >
+          📞 Request callback
+        </Button>
+      </div>
+
+      {/* Email Confirmation */}
+      {submissionStatus === 'success' && (
+        <Alert className="border-emerald-500 bg-emerald-50">
+          <AlertDescription className="text-emerald-800 text-center">
+            ✉️ We've sent a copy of this quote to <strong>{state.contact?.email}</strong>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error Alert */}
+      {submissionStatus === 'error' && errorMessage && (
+        <Alert variant="destructive">
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Move Summary Card */}
+      <Card className="p-5 bg-white shadow-lg">
+        <h3 className="font-semibold text-foreground mb-4 text-lg">Your move details</h3>
+
+        {/* Route */}
+        <div className="flex items-start gap-4 mb-5">
+          <div className="flex flex-col items-center">
+            <div className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-semibold">
+              A
             </div>
-            <div className="flex-1 space-y-2">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {state.fromAddress?.formatted}
-                </p>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {state.distances?.customerDistance} miles •{' '}
-                {formatDuration(state.distances?.customerDriveMinutes || 0)}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {state.toAddress?.formatted}
-                </p>
-              </div>
+            <div className="w-0.5 h-10 bg-gray-200"></div>
+            <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold">
+              B
             </div>
           </div>
+          <div className="flex-1 space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {state.fromAddress?.formatted}
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground bg-gray-100 inline-block px-3 py-1 rounded-full">
+              {state.distances?.customerDistance} miles • {formatDuration(state.distances?.customerDriveMinutes || 0)}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {state.toAddress?.formatted}
+              </p>
+            </div>
+          </div>
+        </div>
 
-          {/* Resources */}
-          <div className="flex gap-4 pt-3 border-t">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🚚</span>
-              <span className="text-sm">
-                <strong>{quote.vans}</strong> van{quote.vans > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">👷</span>
-              <span className="text-sm">
-                <strong>{quote.men}</strong> mover{quote.men > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⏱️</span>
-              <span className="text-sm">
-                <strong>{quote.serviceDuration}</strong>
-              </span>
-            </div>
+        {/* Resources */}
+        <div className="flex gap-4 pt-4 border-t">
+          <div className="flex-1 text-center p-3 bg-gray-50 rounded-xl">
+            <span className="text-2xl">🚚</span>
+            <div className="font-bold text-lg text-foreground">{quote.vans}</div>
+            <div className="text-xs text-muted-foreground">van{quote.vans > 1 ? 's' : ''}</div>
+          </div>
+          <div className="flex-1 text-center p-3 bg-gray-50 rounded-xl">
+            <span className="text-2xl">👷</span>
+            <div className="font-bold text-lg text-foreground">{quote.men}</div>
+            <div className="text-xs text-muted-foreground">mover{quote.men > 1 ? 's' : ''}</div>
+          </div>
+          <div className="flex-1 text-center p-3 bg-gray-50 rounded-xl">
+            <span className="text-2xl">⏱️</span>
+            <div className="font-bold text-lg text-foreground">{quote.serviceDuration}</div>
+            <div className="text-xs text-muted-foreground">duration</div>
           </div>
         </div>
       </Card>
 
       {/* Price Breakdown (Collapsible) */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white shadow-lg">
         <button
           type="button"
-          className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+          className="w-full p-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
           onClick={() => setShowBreakdown(!showBreakdown)}
         >
-          <span className="font-semibold text-foreground">Price breakdown</span>
-          <span
-            className={cn('transition-transform', showBreakdown && 'rotate-180')}
-          >
+          <span className="font-semibold text-foreground">View price breakdown</span>
+          <span className={cn(
+            'transition-transform duration-200 text-primary',
+            showBreakdown && 'rotate-180'
+          )}>
             ▼
           </span>
         </button>
 
         {showBreakdown && (
-          <div className="p-4 pt-0 space-y-2 text-sm">
-            {/* Base costs */}
+          <div className="p-5 pt-0 space-y-3 text-sm border-t">
             <BreakdownLine
               label={`${quote.vans} van${quote.vans > 1 ? 's' : ''} × ${quote.serviceDuration}`}
               value={quote.breakdown.vansCost}
@@ -253,7 +280,6 @@ export function Step12Quote() {
               value={quote.breakdown.moversCost}
             />
 
-            {/* Mileage */}
             {quote.breakdown.mileageCost > 0 && (
               <BreakdownLine
                 label={`Mileage (${getTotalMiles(state.distances)} miles total)`}
@@ -261,7 +287,6 @@ export function Step12Quote() {
               />
             )}
 
-            {/* Accommodation */}
             {quote.breakdown.accommodationCost > 0 && (
               <BreakdownLine
                 label="Crew accommodation (overnight)"
@@ -269,16 +294,14 @@ export function Step12Quote() {
               />
             )}
 
-            {/* Complications */}
             {quote.breakdown.complicationMultiplier > 1 && (
               <BreakdownLine
-                label={`Complications adjustment (+${Math.round((quote.breakdown.complicationMultiplier - 1) * 100)}%)`}
+                label={`Complications (+${Math.round((quote.breakdown.complicationMultiplier - 1) * 100)}%)`}
                 value={null}
                 note="Applied to base cost"
               />
             )}
 
-            {/* Extras */}
             {quote.breakdown.extrasCost > 0 && (
               <>
                 <hr className="my-2 border-border" />
@@ -289,17 +312,13 @@ export function Step12Quote() {
               </>
             )}
 
-            {/* Subtotal */}
             <hr className="my-2 border-border" />
             <BreakdownLine label="Subtotal" value={quote.breakdown.subtotal} bold />
-
-            {/* Margin (as service fee) */}
             <BreakdownLine
               label="Service & insurance"
               value={quote.breakdown.margin}
             />
 
-            {/* Total */}
             <hr className="my-2 border-border" />
             <BreakdownLine label="Total" value={quote.totalPrice} bold large />
           </div>
@@ -308,91 +327,48 @@ export function Step12Quote() {
 
       {/* Extras Summary (if any) */}
       {hasExtras(state.extras) && (
-        <Card className="p-4">
+        <Card className="p-5 bg-white shadow-lg">
           <h3 className="font-semibold text-foreground mb-3">Included extras</h3>
-          <div className="space-y-2 text-sm">
+          <div className="grid gap-2 text-sm">
             {state.extras.packing && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
                 <span>📦</span>
-                <span>
-                  Professional packing (
-                  {CALCULATOR_CONFIG.packing[state.extras.packing].label})
-                </span>
+                <span>Professional packing ({CALCULATOR_CONFIG.packing[state.extras.packing].label})</span>
               </div>
             )}
             {state.extras.cleaningRooms && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
                 <span>🧹</span>
-                <span>
-                  End of tenancy cleaning ({state.extras.cleaningRooms} rooms)
-                </span>
+                <span>End of tenancy cleaning ({state.extras.cleaningRooms} rooms)</span>
               </div>
             )}
             {state.extras.storage && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
                 <span>🏠</span>
-                <span>
-                  Storage ({CALCULATOR_CONFIG.storage[state.extras.storage].label}
-                  )
-                </span>
+                <span>Storage ({CALCULATOR_CONFIG.storage[state.extras.storage].label})</span>
               </div>
             )}
             {state.extras.assembly && state.extras.assembly.length > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
                 <span>🔧</span>
-                <span>
-                  Assembly/disassembly ({state.extras.assembly.length} item
-                  {state.extras.assembly.length > 1 ? 's' : ''})
-                </span>
+                <span>Assembly ({state.extras.assembly.length} item{state.extras.assembly.length > 1 ? 's' : ''})</span>
               </div>
             )}
           </div>
         </Card>
       )}
 
-      {/* Error Alert */}
-      {submissionStatus === 'error' && errorMessage && (
-        <Alert variant="destructive">
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Email Confirmation */}
-      {submissionStatus === 'success' && (
-        <Alert className="border-emerald-500 bg-emerald-50">
-          <AlertDescription className="text-emerald-800">
-            ✉️ We've sent a copy of this quote to{' '}
-            <strong>{state.contact?.email}</strong>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Action Buttons */}
-      <div className="space-y-3">
-        <Button onClick={handleBookNow} className="w-full" size="lg">
-          Book this date
-        </Button>
-
-        <Button
-          onClick={handleRequestCallback}
-          variant="outline"
-          className="w-full"
-        >
-          📞 Request a callback to discuss
-        </Button>
-      </div>
-
       {/* Trust Signals */}
       <div className="text-center space-y-4">
         <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-          <span>✓ No booking fee</span>
-          <span>✓ Free cancellation (48h+)</span>
-          <span>✓ Fully insured</span>
+          <span className="flex items-center gap-1">✓ No booking fee</span>
+          <span className="flex items-center gap-1">✓ Free cancellation (48h+)</span>
+          <span className="flex items-center gap-1">✓ Fully insured</span>
         </div>
 
         {/* Reviews */}
         <div className="flex items-center justify-center gap-2">
-          <span className="text-amber-500">★★★★★</span>
+          <span className="text-amber-500 text-lg">★★★★★</span>
           <span className="text-sm text-muted-foreground">
             4.9/5 from 230+ reviews
           </span>
@@ -401,7 +377,7 @@ export function Step12Quote() {
 
       {/* Fine Print */}
       <p className="text-xs text-center text-muted-foreground">
-        Quote reference: {state.sessionId?.slice(0, 8).toUpperCase()}
+        Quote reference: <strong>{state.sessionId?.slice(0, 8).toUpperCase()}</strong>
         <br />
         Valid until {getValidUntilDate()}. Price may vary if move details change.
       </p>
@@ -470,7 +446,7 @@ function CallbackRequiredView({ state, reason }: CallbackRequiredViewProps) {
         setSubmitted(true);
       } catch (error) {
         console.error('Callback submission error:', error);
-        setSubmitted(true); // Still show success to user
+        setSubmitted(true);
       }
     };
 
@@ -478,43 +454,45 @@ function CallbackRequiredView({ state, reason }: CallbackRequiredViewProps) {
   }, [reason]);
 
   return (
-    <div className="space-y-6">
+    <div className="step-container space-y-6">
       <div className="text-center">
-        <div className="text-5xl mb-4">📞</div>
-        <h2 className="text-2xl font-semibold text-foreground">
+        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+          <span className="text-4xl">📞</span>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary">
           We'll call you soon!
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           Thanks {state.contact?.firstName}, we've received your request
         </p>
       </div>
 
-      <Card className="p-6 text-center">
-        <h3 className="text-lg font-semibold text-foreground mb-4">
+      <Card className="p-6 bg-white shadow-lg text-center">
+        <h3 className="text-lg font-semibold text-foreground mb-5">
           What happens next?
         </h3>
-        <div className="space-y-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-medium">
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white font-semibold flex-shrink-0">
               1
             </div>
-            <p className="text-left">
+            <p className="text-sm text-muted-foreground">
               Our team will review your move requirements
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-medium">
+          <div className="flex items-center gap-4 text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white font-semibold flex-shrink-0">
               2
             </div>
-            <p className="text-left">
+            <p className="text-sm text-muted-foreground">
               We'll call you within 2 hours (during business hours)
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-medium">
+          <div className="flex items-center gap-4 text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white font-semibold flex-shrink-0">
               3
             </div>
-            <p className="text-left">
+            <p className="text-sm text-muted-foreground">
               You'll receive a personalized quote by email
             </p>
           </div>
@@ -523,18 +501,18 @@ function CallbackRequiredView({ state, reason }: CallbackRequiredViewProps) {
 
       {submitted && (
         <Alert className="border-emerald-500 bg-emerald-50">
-          <AlertDescription className="text-emerald-800">
+          <AlertDescription className="text-emerald-800 text-center">
             ✉️ Confirmation sent to <strong>{state.contact?.email}</strong>
           </AlertDescription>
         </Alert>
       )}
 
-      <Card className="p-4 bg-muted/30">
-        <h3 className="font-medium text-foreground text-sm mb-2">
+      <Card className="p-5 bg-gray-50 shadow-sm">
+        <h3 className="font-semibold text-foreground text-sm mb-3">
           Your contact details
         </h3>
-        <div className="text-sm space-y-1">
-          <p>
+        <div className="text-sm space-y-1 text-muted-foreground">
+          <p className="font-medium text-foreground">
             {state.contact?.firstName} {state.contact?.lastName}
           </p>
           <p>{state.contact?.phone}</p>
@@ -543,7 +521,7 @@ function CallbackRequiredView({ state, reason }: CallbackRequiredViewProps) {
       </Card>
 
       <p className="text-xs text-center text-muted-foreground">
-        Reference: {state.sessionId?.slice(0, 8).toUpperCase()}
+        Reference: <strong>{state.sessionId?.slice(0, 8).toUpperCase()}</strong>
         <br />
         Business hours: Mon-Sat 8am-6pm
       </p>

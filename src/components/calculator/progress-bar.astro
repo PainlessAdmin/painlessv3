@@ -1,64 +1,63 @@
 ---
 /**
- * PROGRESS BAR
- * 
- * Visual progress indicator for calculator steps
+ * PROGRESS BAR (Astro)
+ *
+ * Clickable numbered circles for step navigation.
+ * Enhanced with new design patterns - horizontal scrollable on mobile.
  */
-
-import { CALCULATOR_STEPS } from '@/lib/core/calculator/config';
 
 interface Props {
   currentStep: number;
+  totalSteps?: number;
   className?: string;
 }
 
-const { currentStep, className = '' } = Astro.props;
-
-const totalSteps = CALCULATOR_STEPS.length;
-const progress = Math.round((currentStep / totalSteps) * 100);
+const { currentStep, totalSteps = 12, className = '' } = Astro.props;
 ---
 
-<div class={`w-full ${className}`}>
-  <!-- Progress bar -->
-  <div class="relative h-2 bg-secondary rounded-full overflow-hidden">
-    <div
-      class="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-out"
-      style={`width: ${progress}%`}
-    />
-  </div>
+<div class={`mb-8 md:mb-12 overflow-x-auto py-2 ${className}`}>
+  <div class="flex items-center justify-start md:justify-center gap-2 min-w-max px-4">
+    {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
+      const isCompleted = step < currentStep;
+      const isActive = step === currentStep;
+      const isFuture = step > currentStep;
 
-  <!-- Step indicators -->
-  <div class="flex justify-between mt-4">
-    {
-      CALCULATOR_STEPS.map((step) => (
-        <div class="flex flex-col items-center">
-          <div
-            class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              step.order < currentStep
-                ? 'bg-primary text-primary-foreground'
-                : step.order === currentStep
-                  ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                  : 'bg-secondary text-muted-foreground'
-            }`}
-          >
-            {step.order}
-          </div>
-          <span
-            class={`text-xs mt-2 hidden sm:block ${
-              step.order === currentStep
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground'
-            }`}
-          >
-            {step.title.en}
-          </span>
+      return (
+        <div class="flex items-center">
+          {/* Step Circle */}
+          {isCompleted ? (
+            <a
+              href={`/calculator/step-${step.toString().padStart(2, '0')}`}
+              class="progress-circle progress-circle-completed"
+              aria-label={`Go back to step ${step}`}
+            >
+              <span class="text-xs">✓</span>
+            </a>
+          ) : (
+            <div
+              class:list={[
+                'progress-circle',
+                isActive && 'progress-circle-active',
+                isFuture && 'bg-gray-200 text-gray-400',
+              ]}
+              aria-label={isActive ? `Current step: ${step}` : `Step ${step}`}
+              aria-current={isActive ? 'step' : undefined}
+            >
+              {step}
+            </div>
+          )}
+
+          {/* Connector Line */}
+          {step < totalSteps && (
+            <div
+              class:list={[
+                'w-4 md:w-6 h-0.5 transition-all duration-300',
+                isCompleted ? 'bg-emerald-500' : 'bg-gray-200',
+              ]}
+            />
+          )}
         </div>
-      ))
-    }
-  </div>
-
-  <!-- Progress text -->
-  <div class="text-center mt-4 text-sm text-muted-foreground">
-    Step {currentStep} of {totalSteps} ({progress}%)
+      );
+    })}
   </div>
 </div>

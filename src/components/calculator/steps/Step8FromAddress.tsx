@@ -3,6 +3,7 @@
  *
  * Google Places autocomplete for origin address.
  * Also offers "Use my current location" option.
+ * Enhanced with white card container styling.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -11,6 +12,7 @@ import {
   calculatorStore,
   setFromAddress,
   nextStep,
+  prevStep,
   type AddressData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
@@ -19,6 +21,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
 // Declare google maps types
 declare global {
@@ -210,6 +214,10 @@ export function Step8FromAddress() {
     nextStep();
   };
 
+  const handleBack = () => {
+    prevStep();
+  };
+
   // Handle manual postcode entry
   const handleManualSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -238,152 +246,171 @@ export function Step8FromAddress() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Where are you moving from?
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           Enter your current address
         </p>
       </div>
 
-      {/* Address Input */}
+      {/* Address Input - White Card Container */}
       {!useManualEntry ? (
-        <Card className="p-6 space-y-4">
-          {/* Autocomplete Input */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Start typing your address</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                📍
-              </span>
-              <Input
-                ref={inputRef}
-                id="address"
-                type="text"
-                placeholder="e.g., 42 Queen's Road, Bristol"
-                value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value);
-                  if (address) setAddress(null); // Clear if editing
-                }}
-                className="pl-10"
-                autoComplete="off"
-              />
-            </div>
-            {!googleLoaded && (
-              <p className="text-xs text-muted-foreground">
-                Loading address search...
-              </p>
-            )}
-          </div>
-
-          {/* Selected Address Display */}
-          {address && (
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <span className="text-emerald-600">✓</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-emerald-800">
-                  {address.formatted}
-                </p>
-                {address.postcode && (
-                  <p className="text-xs text-emerald-600">
-                    Postcode: {address.postcode}
-                  </p>
-                )}
+        <Card className="p-6 md:p-8 bg-white shadow-lg max-w-lg mx-auto">
+          <div className="space-y-5">
+            {/* Autocomplete Input */}
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-sm font-medium">
+                Start typing your address
+              </Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
+                  📍
+                </span>
+                <Input
+                  ref={inputRef}
+                  id="address"
+                  type="text"
+                  placeholder="e.g., 42 Queen's Road, Bristol"
+                  value={inputValue}
+                  onChange={(e) => {
+                    setInputValue(e.target.value);
+                    if (address) setAddress(null); // Clear if editing
+                  }}
+                  className="pl-12 py-6 text-base input-enhanced"
+                  autoComplete="off"
+                />
               </div>
+              {!googleLoaded && (
+                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Spinner className="h-3 w-3" />
+                  Loading address search...
+                </p>
+              )}
             </div>
-          )}
 
-          {/* Current Location Button */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleUseCurrentLocation}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                Getting location...
-              </>
-            ) : (
-              <>
-                📍 Use my current location
-              </>
+            {/* Selected Address Display */}
+            {address && (
+              <div className="flex items-center gap-3 p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-emerald-800">
+                    {address.formatted}
+                  </p>
+                  {address.postcode && (
+                    <p className="text-sm text-emerald-600">
+                      Postcode: {address.postcode}
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
-          </Button>
 
-          {/* Manual Entry Link */}
-          <div className="text-center">
-            <button
+            {/* Current Location Button */}
+            <Button
               type="button"
-              className="text-sm text-muted-foreground hover:text-foreground underline"
-              onClick={handleManualEntryToggle}
+              variant="outline"
+              className="w-full py-4 text-base"
+              onClick={handleUseCurrentLocation}
+              disabled={isLoading}
             >
-              Can't find your address? Enter manually
-            </button>
+              {isLoading ? (
+                <>
+                  <Spinner className="mr-2 h-4 w-4" />
+                  Getting location...
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">📍</span>
+                  Use my current location
+                </>
+              )}
+            </Button>
+
+            {/* Manual Entry Link */}
+            <div className="text-center">
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
+                onClick={handleManualEntryToggle}
+              >
+                Can't find your address? Enter manually
+              </button>
+            </div>
           </div>
         </Card>
       ) : (
         /* Manual Entry Form */
-        <Card className="p-6">
+        <Card className="p-6 md:p-8 bg-white shadow-lg max-w-lg mx-auto">
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="line1">Address Line 1 *</Label>
+              <Label htmlFor="line1" className="text-sm font-medium">
+                Address Line 1 <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="line1"
                 name="line1"
                 placeholder="House number and street"
                 required
+                className="py-4 input-enhanced"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="line2">Address Line 2</Label>
+              <Label htmlFor="line2" className="text-sm font-medium">
+                Address Line 2
+              </Label>
               <Input
                 id="line2"
                 name="line2"
                 placeholder="Apartment, unit, etc. (optional)"
+                className="py-4 input-enhanced"
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="city">City/Town *</Label>
+                <Label htmlFor="city" className="text-sm font-medium">
+                  City/Town <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="city"
                   name="city"
                   placeholder="Bristol"
                   required
+                  className="py-4 input-enhanced"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="postcode">Postcode *</Label>
+                <Label htmlFor="postcode" className="text-sm font-medium">
+                  Postcode <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="postcode"
                   name="postcode"
                   placeholder="BS8 1RE"
                   required
-                  className="uppercase"
+                  className="py-4 uppercase input-enhanced"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="flex-1 py-4"
                 onClick={handleManualEntryToggle}
               >
-                Back to search
+                ← Back to search
               </Button>
-              <Button type="submit" className="flex-1">
+              <Button type="submit" className="flex-1 py-4">
                 Use this address
               </Button>
             </div>
@@ -393,20 +420,19 @@ export function Step8FromAddress() {
 
       {/* Error Message */}
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="max-w-lg mx-auto">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!address}
-      >
-        Continue
-      </Button>
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+        onContinue={handleContinue}
+        continueDisabled={!address}
+        continueLabel="Continue"
+      />
     </div>
   );
 }

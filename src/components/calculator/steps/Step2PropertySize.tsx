@@ -2,11 +2,12 @@
  * STEP 2: PROPERTY SIZE SELECTION
  *
  * Branches:
- * - Home: 9 property size options
- * - Office: 3 office size options
+ * - Home: 9 property size options (image cards with auto-advance)
+ * - Office: 3 office size options (image cards with auto-advance)
  * - Furniture: Redirects to Step2FurnitureOnly
  */
 
+import { useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -14,10 +15,11 @@ import {
   setOfficeSize,
   nextStep,
   goToStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import type { PropertySize, OfficeSize } from '@/lib/calculator-config';
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { OptionCard, OptionCardGrid } from '@/components/calculator/option-card';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
 // ===================
 // MAIN COMPONENT
@@ -44,72 +46,93 @@ const propertyOptions: Array<{
   label: string;
   icon: string;
   description?: string;
+  placeholderClass: string;
 }> = [
-  { value: 'furniture', label: 'Furniture Only', icon: '🪑', description: 'Just a few items' },
-  { value: 'studio', label: 'Studio', icon: '🏠' },
-  { value: '1bed', label: '1 Bedroom', icon: '🏠' },
-  { value: '2bed', label: '2 Bedrooms', icon: '🏠' },
-  { value: '3bed-small', label: '3 Bed (Small)', icon: '🏡', description: 'Typical 3-bed' },
-  { value: '3bed-large', label: '3 Bed (Large)', icon: '🏡', description: 'Spacious 3-bed' },
-  { value: '4bed', label: '4 Bedrooms', icon: '🏡' },
-  { value: '5bed', label: '5 Bedrooms', icon: '🏘️' },
-  { value: '5bed-plus', label: '5+ Bedrooms', icon: '🏰', description: 'Large estate' },
+  { value: 'furniture', label: 'Furniture Only', icon: '🪑', description: 'Just a few items', placeholderClass: 'img-placeholder-extra' },
+  { value: 'studio', label: 'Studio', icon: '🏠', placeholderClass: 'img-placeholder-property' },
+  { value: '1bed', label: '1 Bedroom', icon: '🛏️', placeholderClass: 'img-placeholder-property' },
+  { value: '2bed', label: '2 Bedrooms', icon: '🏠', placeholderClass: 'img-placeholder-property' },
+  { value: '3bed-small', label: '3 Bed (Small)', icon: '🏡', description: 'Typical 3-bed', placeholderClass: 'img-placeholder-property' },
+  { value: '3bed-large', label: '3 Bed (Large)', icon: '🏡', description: 'Spacious 3-bed', placeholderClass: 'img-placeholder-property' },
+  { value: '4bed', label: '4 Bedrooms', icon: '🏡', placeholderClass: 'img-placeholder-property' },
+  { value: '5bed', label: '5 Bedrooms', icon: '🏘️', placeholderClass: 'img-placeholder-property' },
+  { value: '5bed-plus', label: '5+ Bedrooms', icon: '🏰', description: 'Large estate', placeholderClass: 'img-placeholder-property' },
 ];
 
 function HomePropertySelection() {
   const state = useStore(calculatorStore);
   const selectedSize = state.propertySize;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (size: PropertySize) => {
     setPropertySize(size);
 
-    // Furniture Only → special flow (Step 2B)
-    if (size === 'furniture') {
-      // We'll handle this with a sub-step or separate component
-      // For now, go to step 2.5 (furniture flow)
-      nextStep(); // Goes to Step2FurnitureOnly
-      return;
-    }
+    // Visual feedback animation
+    containerRef.current?.classList.add('auto-next-animate');
 
-    // Studio → skip belongings slider (fixed 250 cubes)
-    if (size === 'studio') {
-      nextStep(); // Skip to Step 4 (recommendation)
-      goToStep(4);
-      return;
-    }
+    // Auto-advance after short delay
+    setTimeout(() => {
+      containerRef.current?.classList.remove('auto-next-animate');
 
-    // All others → belongings slider (Step 3)
-    nextStep();
+      // Furniture Only → special flow (Step 2B)
+      if (size === 'furniture') {
+        nextStep(); // Goes to Step2FurnitureOnly
+        return;
+      }
+
+      // Studio → skip belongings slider (fixed 250 cubes)
+      if (size === 'studio') {
+        goToStep(4);
+        return;
+      }
+
+      // All others → belongings slider (Step 3)
+      nextStep();
+    }, 200);
+  };
+
+  const handleBack = () => {
+    prevStep();
   };
 
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div ref={containerRef} className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           What size is your current home?
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           This helps us estimate what you'll need
         </p>
       </div>
 
-      {/* Property Cards - Grid */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+      {/* Property Cards Grid */}
+      <OptionCardGrid columns={3}>
         {propertyOptions.map((option) => (
-          <PropertyCard
+          <OptionCard
             key={option.value}
-            option={option}
+            id={option.value}
+            name="propertySize"
+            label={option.label}
             isSelected={selectedSize === option.value}
             onSelect={() => handleSelect(option.value)}
+            icon={option.icon}
+            placeholderClass={option.placeholderClass}
           />
         ))}
-      </div>
+      </OptionCardGrid>
 
       {/* Help text */}
       <p className="text-center text-sm text-muted-foreground">
         Not sure? Pick the closest match - you can adjust later.
       </p>
+
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+      />
     </div>
   );
 }
@@ -123,168 +146,93 @@ const officeOptions: Array<{
   label: string;
   description: string;
   icon: string;
+  placeholderClass: string;
 }> = [
   {
     value: 'small',
     label: 'Small Office',
     description: '1-5 desks, minimal equipment',
     icon: '🏢',
+    placeholderClass: 'img-placeholder-office',
   },
   {
     value: 'medium',
     label: 'Medium Office',
     description: '6-15 desks, standard equipment',
     icon: '🏢',
+    placeholderClass: 'img-placeholder-office',
   },
   {
     value: 'large',
     label: 'Large Office',
     description: '16+ desks, server room, heavy equipment',
     icon: '🏢',
+    placeholderClass: 'img-placeholder-office',
   },
 ];
 
 function OfficeSelection() {
   const state = useStore(calculatorStore);
   const selectedSize = state.officeSize;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (size: OfficeSize) => {
     setOfficeSize(size);
-    // Office skips belongings slider → go to Step 5 (Date)
-    goToStep(5);
+
+    // Visual feedback animation
+    containerRef.current?.classList.add('auto-next-animate');
+
+    // Auto-advance after short delay
+    setTimeout(() => {
+      containerRef.current?.classList.remove('auto-next-animate');
+      // Office skips belongings slider → go to Step 5 (Date)
+      goToStep(5);
+    }, 200);
+  };
+
+  const handleBack = () => {
+    prevStep();
   };
 
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div ref={containerRef} className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           What size is your office?
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           We'll tailor our service to your business needs
         </p>
       </div>
 
-      {/* Office Cards - Stack on mobile, row on desktop */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Office Cards Grid */}
+      <OptionCardGrid columns={3}>
         {officeOptions.map((option) => (
-          <Card
+          <OptionCard
             key={option.value}
-            className={cn(
-              'relative cursor-pointer p-6 transition-all duration-200',
-              'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              selectedSize === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
-            )}
-            onClick={() => handleSelect(option.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSelect(option.value);
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-pressed={selectedSize === option.value}
-          >
-            {/* Selected indicator */}
-            {selectedSize === option.value && (
-              <div className="absolute top-3 right-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
-                  ✓
-                </span>
-              </div>
-            )}
-
-            {/* Icon */}
-            <div className="text-3xl mb-3">{option.icon}</div>
-
-            {/* Label */}
-            <h3 className="font-semibold text-foreground">
-              {option.label}
-            </h3>
-
-            {/* Description */}
-            <p className="text-sm text-muted-foreground mt-1">
-              {option.description}
-            </p>
-          </Card>
+            id={option.value}
+            name="officeSize"
+            label={option.label}
+            isSelected={selectedSize === option.value}
+            onSelect={() => handleSelect(option.value)}
+            icon={option.icon}
+            placeholderClass={option.placeholderClass}
+          />
         ))}
-      </div>
+      </OptionCardGrid>
 
       {/* Note */}
       <p className="text-center text-sm text-muted-foreground">
         Need a larger office move? We'll call you to discuss details.
       </p>
+
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+      />
     </div>
-  );
-}
-
-// ===================
-// PROPERTY CARD COMPONENT
-// ===================
-
-interface PropertyCardProps {
-  option: {
-    value: PropertySize;
-    label: string;
-    icon: string;
-    description?: string;
-  };
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-function PropertyCard({ option, isSelected, onSelect }: PropertyCardProps) {
-  return (
-    <Card
-      className={cn(
-        'relative cursor-pointer p-4 transition-all duration-200',
-        'hover:border-primary hover:-translate-y-1 hover:shadow-md',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary',
-        // Furniture Only gets slightly different styling
-        option.value === 'furniture' && 'border-dashed'
-      )}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-pressed={isSelected}
-    >
-      {/* Selected indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-            ✓
-          </span>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="text-center">
-        {/* Icon */}
-        <div className="text-2xl mb-2">{option.icon}</div>
-
-        {/* Label */}
-        <h3 className="font-medium text-sm text-foreground">
-          {option.label}
-        </h3>
-
-        {/* Description (if any) */}
-        {option.description && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {option.description}
-          </p>
-        )}
-      </div>
-    </Card>
   );
 }
 

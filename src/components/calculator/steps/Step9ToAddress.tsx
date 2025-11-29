@@ -6,6 +6,7 @@
  * - Calculate distance and drive time
  * - Display route on map
  * - Show both addresses
+ * Enhanced with white card container styling.
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,6 +16,7 @@ import {
   setToAddress,
   setDistances,
   nextStep,
+  prevStep,
   type AddressData,
   type DistanceData,
 } from '@/lib/calculator-store';
@@ -25,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
+import { StepNavigation } from '@/components/calculator/progress-bar-react';
 
 // Depot location (Bristol BS10 5PN)
 const DEPOT_LOCATION = {
@@ -295,137 +298,158 @@ export function Step9ToAddress() {
     nextStep();
   };
 
+  const handleBack = () => {
+    prevStep();
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+    <div className="step-container space-y-6">
+      {/* Header */}
+      <div className="step-header text-center">
+        <h1 className="text-2xl md:text-3xl font-semibold text-primary leading-tight">
           Where are you moving to?
-        </h2>
+        </h1>
         <p className="text-muted-foreground mt-2">
           Enter your new address
         </p>
       </div>
 
       {/* From Address Summary */}
-      <Card className="p-4 bg-muted/30">
+      <Card className="p-4 bg-emerald-50 border-emerald-200 max-w-lg mx-auto">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-sm font-medium">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white font-semibold">
             A
           </div>
           <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Moving from</p>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-xs text-emerald-600 font-medium">Moving from</p>
+            <p className="text-sm font-semibold text-emerald-800">
               {state.fromAddress?.formatted || 'Not set'}
             </p>
           </div>
-          <span className="text-xl">🏠</span>
+          <span className="text-2xl">🏠</span>
         </div>
       </Card>
 
       {/* To Address Input */}
       {!useManualEntry ? (
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-medium">
+        <Card className="p-6 md:p-8 bg-white shadow-lg max-w-lg mx-auto">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
               B
             </div>
-            <span className="font-medium text-foreground">Destination</span>
+            <span className="font-semibold text-foreground">Destination</span>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="to-address">Start typing your new address</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                📍
-              </span>
-              <Input
-                ref={inputRef}
-                id="to-address"
-                type="text"
-                placeholder="e.g., 10 Downing Street, London"
-                value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value);
-                  if (address) {
-                    setAddress(null);
-                    setDistanceInfo(null);
-                  }
-                }}
-                className="pl-10"
-                autoComplete="off"
-              />
-            </div>
-            {!googleLoaded && (
-              <p className="text-xs text-muted-foreground">Loading address search...</p>
-            )}
-          </div>
-
-          {/* Selected Address Display */}
-          {address && (
-            <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <span className="text-emerald-600">✓</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-emerald-800">
-                  {address.formatted}
-                </p>
-                {address.postcode && (
-                  <p className="text-xs text-emerald-600">
-                    Postcode: {address.postcode}
-                  </p>
-                )}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="to-address" className="text-sm font-medium">
+                Start typing your new address
+              </Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
+                  📍
+                </span>
+                <Input
+                  ref={inputRef}
+                  id="to-address"
+                  type="text"
+                  placeholder="e.g., 10 Downing Street, London"
+                  value={inputValue}
+                  onChange={(e) => {
+                    setInputValue(e.target.value);
+                    if (address) {
+                      setAddress(null);
+                      setDistanceInfo(null);
+                    }
+                  }}
+                  className="pl-12 py-6 text-base input-enhanced"
+                  autoComplete="off"
+                />
               </div>
+              {!googleLoaded && (
+                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Spinner className="h-3 w-3" />
+                  Loading address search...
+                </p>
+              )}
             </div>
-          )}
 
-          {/* Manual Entry Link */}
-          <div className="text-center">
-            <button
-              type="button"
-              className="text-sm text-muted-foreground hover:text-foreground underline"
-              onClick={() => setUseManualEntry(true)}
-            >
-              Can't find your address? Enter manually
-            </button>
+            {/* Selected Address Display */}
+            {address && (
+              <div className="flex items-center gap-3 p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl">
+                <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-emerald-800">
+                    {address.formatted}
+                  </p>
+                  {address.postcode && (
+                    <p className="text-sm text-emerald-600">
+                      Postcode: {address.postcode}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Manual Entry Link */}
+            <div className="text-center">
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:text-primary underline transition-colors"
+                onClick={() => setUseManualEntry(true)}
+              >
+                Can't find your address? Enter manually
+              </button>
+            </div>
           </div>
         </Card>
       ) : (
         /* Manual Entry Form */
-        <Card className="p-6">
+        <Card className="p-6 md:p-8 bg-white shadow-lg max-w-lg mx-auto">
           <form onSubmit={handleManualSubmit} className="space-y-4">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm font-medium">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
                 B
               </div>
-              <span className="font-medium text-foreground">Enter destination manually</span>
+              <span className="font-semibold text-foreground">Enter destination manually</span>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="line1">Address Line 1 *</Label>
-              <Input id="line1" name="line1" placeholder="House number and street" required />
+              <Label htmlFor="line1" className="text-sm font-medium">
+                Address Line 1 <span className="text-destructive">*</span>
+              </Label>
+              <Input id="line1" name="line1" placeholder="House number and street" required className="py-4 input-enhanced" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="line2">Address Line 2</Label>
-              <Input id="line2" name="line2" placeholder="Apartment, unit, etc. (optional)" />
+              <Label htmlFor="line2" className="text-sm font-medium">
+                Address Line 2
+              </Label>
+              <Input id="line2" name="line2" placeholder="Apartment, unit, etc. (optional)" className="py-4 input-enhanced" />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="city">City/Town *</Label>
-                <Input id="city" name="city" placeholder="London" required />
+                <Label htmlFor="city" className="text-sm font-medium">
+                  City/Town <span className="text-destructive">*</span>
+                </Label>
+                <Input id="city" name="city" placeholder="London" required className="py-4 input-enhanced" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="postcode">Postcode *</Label>
-                <Input id="postcode" name="postcode" placeholder="SW1A 2AA" required className="uppercase" />
+                <Label htmlFor="postcode" className="text-sm font-medium">
+                  Postcode <span className="text-destructive">*</span>
+                </Label>
+                <Input id="postcode" name="postcode" placeholder="SW1A 2AA" required className="py-4 uppercase input-enhanced" />
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => setUseManualEntry(false)}>
-                Back to search
+            <div className="flex gap-3 pt-2">
+              <Button type="button" variant="outline" className="flex-1 py-4" onClick={() => setUseManualEntry(false)}>
+                ← Back to search
               </Button>
-              <Button type="submit" className="flex-1" disabled={isLoading}>
+              <Button type="submit" className="flex-1 py-4" disabled={isLoading}>
                 {isLoading ? <><Spinner className="mr-2 h-4 w-4" /> Verifying...</> : 'Use this address'}
               </Button>
             </div>
@@ -435,9 +459,9 @@ export function Step9ToAddress() {
 
       {/* Route Map & Distance Info */}
       {address && state.fromAddress && (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden max-w-lg mx-auto shadow-lg">
           {/* Map */}
-          <div ref={mapRef} className="w-full h-[250px] bg-muted">
+          <div ref={mapRef} className="w-full h-[200px] md:h-[250px] bg-muted">
             {isCalculatingRoute && (
               <div className="flex items-center justify-center h-full">
                 <Spinner className="h-8 w-8" />
@@ -448,10 +472,10 @@ export function Step9ToAddress() {
 
           {/* Distance Info */}
           {distanceInfo && (
-            <div className="p-4 bg-muted/30">
+            <div className="p-5 bg-gradient-to-b from-primary/10 to-transparent">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-3xl font-bold text-primary">
                     {Math.round(distanceInfo.customerDistance)} mi
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -459,7 +483,7 @@ export function Step9ToAddress() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-3xl font-bold text-primary">
                     {formatDuration(distanceInfo.customerDriveMinutes)}
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -470,7 +494,7 @@ export function Step9ToAddress() {
 
               {/* Long distance warning */}
               {distanceInfo.customerDistance > 100 && (
-                <Alert className="mt-4 border-amber-500 bg-amber-50">
+                <Alert className="mt-4 border-amber-400 bg-amber-50">
                   <AlertDescription className="text-amber-800 text-sm">
                     <strong>Long distance move</strong> - This may require an overnight stay for our team.
                     This is included in your quote.
@@ -484,34 +508,34 @@ export function Step9ToAddress() {
 
       {/* Journey Summary */}
       {address && state.fromAddress && distanceInfo && (
-        <Card className="p-4">
-          <h3 className="font-medium text-foreground text-sm mb-3">Your journey</h3>
+        <Card className="p-5 max-w-lg mx-auto bg-white shadow-lg">
+          <h3 className="font-semibold text-foreground text-sm mb-4">Your journey</h3>
           <div className="space-y-3">
             {/* From */}
             <div className="flex items-start gap-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-xs font-medium">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 text-sm font-semibold">
                 A
               </div>
               <div className="flex-1">
-                <p className="text-sm text-foreground">{state.fromAddress.formatted}</p>
+                <p className="text-sm font-medium text-foreground">{state.fromAddress.formatted}</p>
               </div>
             </div>
 
             {/* Connector */}
-            <div className="flex items-center gap-3 pl-3">
-              <div className="w-0.5 h-6 bg-muted-foreground/30 ml-2.5"></div>
-              <div className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 pl-4">
+              <div className="w-0.5 h-8 bg-primary/30 ml-3"></div>
+              <div className="text-xs text-muted-foreground bg-gray-100 px-3 py-1 rounded-full">
                 {Math.round(distanceInfo.customerDistance)} miles • {formatDuration(distanceInfo.customerDriveMinutes)}
               </div>
             </div>
 
             {/* To */}
             <div className="flex items-start gap-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-medium">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
                 B
               </div>
               <div className="flex-1">
-                <p className="text-sm text-foreground">{address.formatted}</p>
+                <p className="text-sm font-medium text-foreground">{address.formatted}</p>
               </div>
             </div>
           </div>
@@ -520,20 +544,19 @@ export function Step9ToAddress() {
 
       {/* Error Message */}
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="max-w-lg mx-auto">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!address || isCalculatingRoute}
-      >
-        Continue
-      </Button>
+      {/* Navigation */}
+      <StepNavigation
+        showBack={true}
+        onBack={handleBack}
+        onContinue={handleContinue}
+        continueDisabled={!address || isCalculatingRoute}
+        continueLabel="Continue"
+      />
     </div>
   );
 }
