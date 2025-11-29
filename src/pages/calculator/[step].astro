@@ -1,12 +1,28 @@
 ---
 /**
  * CALCULATOR STEP PAGE
- * 
- * Dynamic routing for calculator steps
+ *
+ * Dynamic routing for calculator steps.
+ * Renders the appropriate step component based on URL.
  */
 
 import LayoutCalculator from '@/components/calculator/layout-calculator.astro';
 import { getStepById, CALCULATOR_STEPS } from '@/lib/core/calculator/config';
+
+// Import all step components (default exports)
+import Step1ServiceType from '@/components/calculator/steps/Step1ServiceType';
+import Step2PropertySize from '@/components/calculator/steps/Step2PropertySize';
+import Step2FurnitureOnly from '@/components/calculator/steps/Step2FurnitureOnly';
+import Step3BelongingsSlider from '@/components/calculator/steps/Step3BelongingsSlider';
+import Step4Recommendation from '@/components/calculator/steps/Step4Recommendation';
+import Step5DateSelection from '@/components/calculator/steps/Step5DateSelection';
+import Step6Complications from '@/components/calculator/steps/Step6Complications';
+import Step7PropertyChain from '@/components/calculator/steps/Step7PropertyChain';
+import Step8FromAddress from '@/components/calculator/steps/Step8FromAddress';
+import Step9ToAddress from '@/components/calculator/steps/Step9ToAddress';
+import Step10Extras from '@/components/calculator/steps/Step10Extras';
+import Step11Contact from '@/components/calculator/steps/Step11Contact';
+import Step12Quote from '@/components/calculator/steps/Step12Quote';
 
 // Get step from URL
 const { step } = Astro.params;
@@ -21,6 +37,25 @@ if (!stepConfig) {
 // Get step order for progress
 const stepOrder = stepConfig.order;
 
+// Map step IDs to components
+const stepComponents: Record<string, any> = {
+  'step-01': Step1ServiceType,
+  'step-02': Step2PropertySize,
+  'step-02b': Step2FurnitureOnly,
+  'step-03': Step3BelongingsSlider,
+  'step-04': Step4Recommendation,
+  'step-05': Step5DateSelection,
+  'step-06': Step6Complications,
+  'step-07': Step7PropertyChain,
+  'step-08': Step8FromAddress,
+  'step-09': Step9ToAddress,
+  'step-10': Step10Extras,
+  'step-11': Step11Contact,
+  'step-12': Step12Quote,
+};
+
+const StepComponent = stepComponents[step || ''];
+
 export function getStaticPaths() {
   return CALCULATOR_STEPS.map((step) => ({
     params: { step: step.id },
@@ -33,15 +68,14 @@ export function getStaticPaths() {
   description={stepConfig.description?.en}
   currentStep={stepOrder}
 >
-  <!-- Calculator App Mount Point -->
-  <div id="calculator-app" data-step={step}></div>
-
-  <script>
-    // This will be hydrated by React
-    // Note: In a real app, you'd dynamically import the correct step component
-    // For now, this is a placeholder that will be enhanced
-
-    const appElement = document.querySelector('#calculator-app') as HTMLElement;
-    console.log('Calculator step loaded:', appElement?.dataset.step);
-  </script>
+  <!-- Calculator Step Component -->
+  <div id="calculator-app" class="max-w-2xl mx-auto">
+    {StepComponent ? (
+      <StepComponent client:load />
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-muted-foreground">Step component not found: {step}</p>
+      </div>
+    )}
+  </div>
 </LayoutCalculator>
