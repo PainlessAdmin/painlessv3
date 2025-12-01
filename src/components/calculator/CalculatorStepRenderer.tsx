@@ -47,10 +47,10 @@ export const CalculatorStepRenderer: React.FC<CalculatorStepRendererProps> = ({ 
     // Initialize store on mount
     initializeStore();
 
-    // Sync URL step with store
+    // Sync URL step with store (without navigation to avoid loop)
     const stepNumber = parseInt(stepId.replace('step-', ''), 10);
     if (!isNaN(stepNumber) && stepNumber >= 1 && stepNumber <= 12) {
-      goToStep(stepNumber);
+      goToStep(stepNumber, false);
     }
   }, [stepId]);
 

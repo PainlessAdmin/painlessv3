@@ -392,13 +392,25 @@ export function clearState() {
 }
 
 /**
+ * Navigate to a step URL
+ */
+function navigateToStep(step: number) {
+  if (typeof window !== 'undefined') {
+    const stepId = step.toString().padStart(2, '0');
+    window.location.href = `/calculator/step-${stepId}`;
+  }
+}
+
+/**
  * Go to next step
  */
 export function nextStep() {
   const current = calculatorStore.get().currentStep;
   if (current < 12) {
-    calculatorStore.setKey('currentStep', current + 1);
+    const nextStepNum = current + 1;
+    calculatorStore.setKey('currentStep', nextStepNum);
     saveState();
+    navigateToStep(nextStepNum);
   }
 }
 
@@ -408,18 +420,23 @@ export function nextStep() {
 export function prevStep() {
   const current = calculatorStore.get().currentStep;
   if (current > 1) {
-    calculatorStore.setKey('currentStep', current - 1);
+    const prevStepNum = current - 1;
+    calculatorStore.setKey('currentStep', prevStepNum);
     saveState();
+    navigateToStep(prevStepNum);
   }
 }
 
 /**
  * Go to specific step
  */
-export function goToStep(step: number) {
+export function goToStep(step: number, navigate: boolean = true) {
   if (step >= 1 && step <= 12) {
     calculatorStore.setKey('currentStep', step);
     saveState();
+    if (navigate) {
+      navigateToStep(step);
+    }
   }
 }
 
