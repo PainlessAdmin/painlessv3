@@ -4,7 +4,7 @@
  * Branches:
  * - Home: 9 property size options
  * - Office: 3 office size options
- * - Furniture: Redirects to Step2FurnitureOnly
+ * - Furniture: Shows Step2FurnitureOnly inline
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -21,6 +21,7 @@ import type { PropertySize, OfficeSize } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
+import { Step2FurnitureOnly } from './Step2FurnitureOnly';
 
 // ===================
 // MAIN COMPONENT
@@ -32,6 +33,11 @@ export function Step2PropertySize() {
   // Office branch
   if (state.serviceType === 'office') {
     return <OfficeSelection />;
+  }
+
+  // Furniture Only branch - show FurnitureOnly component if already selected
+  if (state.propertySize === 'furniture') {
+    return <Step2FurnitureOnly />;
   }
 
   // Home branch (default)
@@ -83,15 +89,15 @@ function HomePropertySelection() {
     setSelectedSizeLocal(size);
     setPropertySize(size);
 
-    // Auto-next after selection
+    // Furniture Only → show the FurnitureOnly form (no navigation, just re-render)
+    if (size === 'furniture') {
+      // The component will re-render and show Step2FurnitureOnly
+      return;
+    }
+
+    // Auto-next after selection for other property types
     navigationTimeoutRef.current = setTimeout(() => {
       navigationTimeoutRef.current = null;
-
-      // Furniture Only → special flow (Step 2B)
-      if (size === 'furniture') {
-        nextStep();
-        return;
-      }
 
       // Studio → skip belongings slider (fixed 250 cubes)
       if (size === 'studio') {
@@ -107,8 +113,9 @@ function HomePropertySelection() {
   const handleNext = () => {
     if (!selectedSize) return;
 
+    // Furniture Only - just set the property size, component will re-render
     if (selectedSize === 'furniture') {
-      nextStep();
+      setPropertySize(selectedSize);
       return;
     }
 

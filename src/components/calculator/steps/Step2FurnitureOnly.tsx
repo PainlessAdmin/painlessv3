@@ -15,7 +15,7 @@ import {
   calculatorStore,
   setFurnitureOnly,
   goToStep,
-  prevStep,
+  saveState,
   type FurnitureOnlyData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
@@ -278,7 +278,11 @@ export function Step2FurnitureOnly() {
 
       {/* Navigation Buttons */}
       <NavigationButtons
-        onPrevious={prevStep}
+        onPrevious={() => {
+          // Go back to property selection by clearing the furniture selection
+          calculatorStore.setKey('propertySize', null);
+          saveState();
+        }}
         onNext={handleContinue}
         nextLabel={hasSpecialistItems ? 'Request Callback' : 'Continue'}
       />
