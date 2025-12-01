@@ -19,6 +19,9 @@ const {
   description = 'Get your custom quote',
   currentStep = 1,
 } = Astro.props;
+
+// Google Maps API key for address autocomplete
+const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY || '';
 ---
 
 <!doctype html>
@@ -29,6 +32,15 @@ const {
     <meta name="description" content={description} />
     <title>{title} | Calculator Boilerplate</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* Google Maps API for address autocomplete */}
+    {googleMapsApiKey && (
+      <script
+        async
+        defer
+        src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
+      />
+    )}
   </head>
   <body class="min-h-screen bg-background antialiased">
     <!-- Header -->
