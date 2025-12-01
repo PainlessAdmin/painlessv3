@@ -3,7 +3,7 @@
  *
  * Multi-page flow for moving just furniture items:
  * Page 1: Item count slider
- * Page 2: Size (2-person) and Weight (>40kg) questions
+ * Page 2: Size (2-person) and Weight (>40kg) questions - side by side on desktop
  * Page 3: Specialist items selection
  *
  * After completion:
@@ -329,7 +329,7 @@ function Page1ItemCount({ itemCount, setItemCount, onPrevious, onNext }: Page1Pr
 }
 
 // ===================
-// PAGE 2: SIZE & WEIGHT
+// PAGE 2: SIZE & WEIGHT (Side by side on desktop)
 // ===================
 
 interface Page2Props {
@@ -349,7 +349,32 @@ function Page2SizeWeight({
   onPrevious,
   onNext,
 }: Page2Props) {
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const canContinue = needs2Person !== null && over40kg !== null;
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-next when both questions are answered
+  useEffect(() => {
+    if (canContinue) {
+      // Clear any existing timeout
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+      // Auto-next after short delay
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigationTimeoutRef.current = null;
+        onNext();
+      }, 400);
+    }
+  }, [needs2Person, over40kg, canContinue, onNext]);
 
   return (
     <div className="space-y-6">
@@ -363,60 +388,63 @@ function Page2SizeWeight({
         </p>
       </div>
 
-      {/* Question 1: 2-Person Items (Size) */}
-      <Card className="p-6">
-        <h3 className="text-base font-medium text-foreground">
-          Do any items require 2 people due to SIZE?
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1 mb-4">
-          e.g., sofa, desk, large wardrobe, bookshelf
-        </p>
+      {/* Both questions side by side on desktop, stacked on mobile */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Question 1: 2-Person Items (Size) */}
+        <Card className="p-5">
+          <h3 className="text-base font-medium text-foreground">
+            Do any items require 2 people due to SIZE?
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            e.g., sofa, desk, large wardrobe, bookshelf
+          </p>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SelectionCard
-            selected={needs2Person === false}
-            onClick={() => setNeeds2Person(false)}
-            title="No"
-            description="All items can be carried by one person"
-          />
-          <SelectionCard
-            selected={needs2Person === true}
-            onClick={() => setNeeds2Person(true)}
-            title="Yes"
-            description="At least one item needs two people"
-          />
-        </div>
-      </Card>
+          <div className="space-y-3">
+            <SelectionCard
+              selected={needs2Person === false}
+              onClick={() => setNeeds2Person(false)}
+              title="No"
+              description="All items can be carried by one person"
+            />
+            <SelectionCard
+              selected={needs2Person === true}
+              onClick={() => setNeeds2Person(true)}
+              title="Yes"
+              description="At least one item needs two people"
+            />
+          </div>
+        </Card>
 
-      {/* Question 2: Heavy Items (>40kg) */}
-      <Card className="p-6">
-        <h3 className="text-base font-medium text-foreground">
-          Is any single item heavier than 40kg?
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1 mb-4">
-          e.g., washing machine, heavy wooden furniture
-        </p>
+        {/* Question 2: Heavy Items (>40kg) */}
+        <Card className="p-5">
+          <h3 className="text-base font-medium text-foreground">
+            Is any single item heavier than 40kg?
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            e.g., washing machine, heavy wooden furniture
+          </p>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SelectionCard
-            selected={over40kg === false}
-            onClick={() => setOver40kg(false)}
-            title="No"
-            description="Everything is under 40kg"
-          />
-          <SelectionCard
-            selected={over40kg === true}
-            onClick={() => setOver40kg(true)}
-            title="Yes"
-            description="At least one item is over 40kg"
-          />
-        </div>
-      </Card>
+          <div className="space-y-3">
+            <SelectionCard
+              selected={over40kg === false}
+              onClick={() => setOver40kg(false)}
+              title="No"
+              description="Everything is under 40kg"
+            />
+            <SelectionCard
+              selected={over40kg === true}
+              onClick={() => setOver40kg(true)}
+              title="Yes"
+              description="At least one item is over 40kg"
+            />
+          </div>
+        </Card>
+      </div>
 
       {/* Summary */}
       {canContinue && (
         <Card className="p-4 bg-muted/50">
-          <div className="text-sm font-medium text-foreground">
+          <div className="text-sm font-medium text-foreground text-center">
             Estimated crew: {needs2Person || over40kg ? '2 movers' : '1 mover'}, 1 van
           </div>
         </Card>

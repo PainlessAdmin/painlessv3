@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { CALCULATOR_STEPS } from '@/lib/core/calculator/config';
 import { calculatorStore, applicableSteps, goToStep } from '@/lib/calculator-store';
@@ -22,6 +22,9 @@ interface ProgressBarReactProps {
 
 const BRAND_COLOR = '#035349';
 
+// Default steps for SSR (full flow)
+const DEFAULT_STEPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
   currentStep,
   className,
@@ -30,8 +33,16 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentStepRef = useRef<HTMLButtonElement>(null);
 
-  // Get applicable steps for this flow
-  const steps = applicableSteps.get();
+  // Use state to avoid hydration mismatch - start with default steps
+  const [steps, setSteps] = useState<number[]>(DEFAULT_STEPS);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Update steps after hydration when store is ready
+  useEffect(() => {
+    setIsHydrated(true);
+    setSteps(applicableSteps.get());
+  }, [state.propertySize, state.serviceType]);
+
   const totalSteps = steps.length;
 
   // Find current position in the flow
@@ -43,7 +54,7 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
     const stepConfig = CALCULATOR_STEPS.find(s => s.order === stepNum);
     return {
       order: stepNum,
-      displayOrder: index + 1, // 1-based position in flow
+      displayOrder: index + 1,
       title: stepConfig?.title.en || `Step ${stepNum}`,
       id: stepConfig?.id || `step-${stepNum}`,
     };
@@ -51,7 +62,7 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
 
   // Scroll to center current step on mobile
   useEffect(() => {
-    if (currentStepRef.current && scrollContainerRef.current) {
+    if (currentStepRef.current && scrollContainerRef.current && isHydrated) {
       const container = scrollContainerRef.current;
       const stepElement = currentStepRef.current;
 
@@ -65,10 +76,9 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
         behavior: 'smooth',
       });
     }
-  }, [currentStep]);
+  }, [currentStep, isHydrated]);
 
   const handleStepClick = (stepOrder: number) => {
-    // Only allow clicking on completed steps (steps before current in the flow)
     const clickedIndex = steps.indexOf(stepOrder);
     if (clickedIndex < currentIndex && clickedIndex >= 0) {
       goToStep(stepOrder);
