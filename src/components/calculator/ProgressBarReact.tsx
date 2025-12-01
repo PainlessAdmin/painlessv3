@@ -2,6 +2,7 @@
  * PROGRESS BAR (React)
  *
  * Interactive progress bar with:
+ * - Dynamic steps based on flow (furniture, office, home)
  * - Clickable steps (completed steps only)
  * - Scrollable on mobile with current step centered
  * - Brand color #035349
@@ -9,8 +10,9 @@
 
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
+import { useStore } from '@nanostores/react';
 import { CALCULATOR_STEPS } from '@/lib/core/calculator/config';
-import { goToStep } from '@/lib/calculator-store';
+import { calculatorStore, applicableSteps, goToStep } from '@/lib/calculator-store';
 import { cn } from '@/lib/utils';
 
 interface ProgressBarReactProps {
@@ -24,10 +26,28 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
   currentStep,
   className,
 }) => {
+  const state = useStore(calculatorStore);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const currentStepRef = useRef<HTMLButtonElement>(null);
-  const totalSteps = CALCULATOR_STEPS.length;
-  const progress = Math.round((currentStep / totalSteps) * 100);
+
+  // Get applicable steps for this flow
+  const steps = applicableSteps.get();
+  const totalSteps = steps.length;
+
+  // Find current position in the flow
+  const currentIndex = steps.indexOf(currentStep);
+  const progress = currentIndex >= 0 ? Math.round(((currentIndex + 1) / totalSteps) * 100) : 0;
+
+  // Get step config for each applicable step
+  const displaySteps = steps.map((stepNum, index) => {
+    const stepConfig = CALCULATOR_STEPS.find(s => s.order === stepNum);
+    return {
+      order: stepNum,
+      displayOrder: index + 1, // 1-based position in flow
+      title: stepConfig?.title.en || `Step ${stepNum}`,
+      id: stepConfig?.id || `step-${stepNum}`,
+    };
+  });
 
   // Scroll to center current step on mobile
   useEffect(() => {
@@ -35,7 +55,6 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
       const container = scrollContainerRef.current;
       const stepElement = currentStepRef.current;
 
-      // Calculate scroll position to center the current step
       const containerWidth = container.offsetWidth;
       const stepLeft = stepElement.offsetLeft;
       const stepWidth = stepElement.offsetWidth;
@@ -49,8 +68,9 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
   }, [currentStep]);
 
   const handleStepClick = (stepOrder: number) => {
-    // Only allow clicking on completed steps (steps before current)
-    if (stepOrder < currentStep) {
+    // Only allow clicking on completed steps (steps before current in the flow)
+    const clickedIndex = steps.indexOf(stepOrder);
+    if (clickedIndex < currentIndex && clickedIndex >= 0) {
       goToStep(stepOrder);
     }
   };
@@ -63,7 +83,7 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
           className="text-sm font-medium"
           style={{ color: BRAND_COLOR }}
         >
-          Step {currentStep} of {totalSteps} ({progress}%)
+          Step {currentIndex + 1} of {totalSteps} ({progress}%)
         </span>
       </div>
 
@@ -88,10 +108,11 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
         }}
       >
         <div className="flex gap-1 md:gap-2 min-w-max md:min-w-0 md:justify-between py-2">
-          {CALCULATOR_STEPS.map((step) => {
-            const isCompleted = step.order < currentStep;
+          {displaySteps.map((step, index) => {
+            const stepIndex = index;
+            const isCompleted = stepIndex < currentIndex;
             const isCurrent = step.order === currentStep;
-            const isFuture = step.order > currentStep;
+            const isFuture = stepIndex > currentIndex;
             const isClickable = isCompleted;
 
             return (
@@ -105,7 +126,7 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
                   isClickable && 'cursor-pointer hover:opacity-80',
                   !isClickable && 'cursor-default'
                 )}
-                aria-label={`${step.title.en} - Step ${step.order}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+                aria-label={`${step.title} - Step ${step.displayOrder}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
               >
                 {/* Step circle */}
                 <div
@@ -124,7 +145,7 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : (
-                    step.order
+                    step.displayOrder
                   )}
                 </div>
 
@@ -139,18 +160,8 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
                     color: isCompleted || isCurrent ? BRAND_COLOR : '#6B7280',
                   }}
                 >
-                  {step.title.en}
+                  {step.title}
                 </span>
-
-                {/* Progress line between steps (hidden on last step) */}
-                {step.order < totalSteps && (
-                  <div
-                    className="hidden md:block absolute h-0.5 top-4 -right-1/2 w-full -z-10"
-                    style={{
-                      backgroundColor: step.order < currentStep ? BRAND_COLOR : '#E5E7EB',
-                    }}
-                  />
-                )}
               </button>
             );
           })}

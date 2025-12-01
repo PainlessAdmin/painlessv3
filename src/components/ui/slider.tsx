@@ -26,17 +26,29 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     };
 
     return (
-      <div className={cn('relative flex w-full touch-none select-none items-center', className)}>
+      <div className={cn('relative flex w-full touch-none select-none items-center h-5', className)}>
         {/* Track background */}
-        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
+        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary pointer-events-none">
           {/* Filled track */}
           <div
-            className="absolute h-full bg-primary"
+            className="absolute h-full bg-primary transition-all"
             style={{ width: `${percentage}%` }}
           />
         </div>
 
-        {/* Native range input (for accessibility) */}
+        {/* Thumb (visual only) */}
+        <div
+          className={cn(
+            'absolute h-5 w-5 rounded-full border-2 border-primary bg-background',
+            'ring-offset-background transition-all',
+            'shadow-md pointer-events-none'
+          )}
+          style={{
+            left: `calc(${percentage}% - 10px)`,
+          }}
+        />
+
+        {/* Native range input (interactive layer on top) */}
         <input
           type="range"
           ref={ref}
@@ -45,25 +57,8 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
           min={min}
           max={max}
           step={step}
-          className={cn(
-            'absolute w-full h-2 opacity-0 cursor-pointer',
-            'focus-visible:outline-none'
-          )}
+          className="absolute w-full h-full opacity-0 cursor-pointer z-10"
           {...props}
-        />
-
-        {/* Thumb */}
-        <div
-          className={cn(
-            'absolute h-5 w-5 rounded-full border-2 border-primary bg-background',
-            'ring-offset-background transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            'disabled:pointer-events-none disabled:opacity-50',
-            'shadow-md'
-          )}
-          style={{
-            left: `calc(${percentage}% - 10px)`,
-          }}
         />
       </div>
     );
