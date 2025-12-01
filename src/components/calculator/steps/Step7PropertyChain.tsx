@@ -11,10 +11,11 @@ import {
   calculatorStore,
   setPropertyChain,
   nextStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
 export function Step7PropertyChain() {
@@ -48,12 +49,12 @@ export function Step7PropertyChain() {
         </p>
       </div>
 
-      {/* Options */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Options - 2 cols on mobile */}
+      <div className="grid gap-4 grid-cols-2">
         {/* Yes */}
         <Card
           className={cn(
-            'p-6 cursor-pointer transition-all',
+            'p-4 cursor-pointer transition-all',
             'hover:border-primary/50 hover:-translate-y-1',
             isChain === true && 'border-primary bg-primary/5 ring-2 ring-primary'
           )}
@@ -68,23 +69,29 @@ export function Step7PropertyChain() {
           }}
         >
           <div className="text-center space-y-3">
-            {/* Icon */}
-            <div className="text-4xl">🔗</div>
+            {/* Image */}
+            <div className="flex justify-center">
+              <img
+                src="/images/calculator/chain-yes.svg"
+                alt="Property chain"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+              />
+            </div>
 
             {/* Label */}
-            <h3 className="font-semibold text-lg text-foreground">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">
               Yes, I'm in a chain
             </h3>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground">
-              Multiple completions on the same day - timing is critical
+            {/* Description - hidden on mobile */}
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Multiple completions on the same day
             </p>
 
             {/* Selected indicator */}
             {isChain === true && (
               <div className="flex justify-center">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                   ✓
                 </span>
               </div>
@@ -95,7 +102,7 @@ export function Step7PropertyChain() {
         {/* No */}
         <Card
           className={cn(
-            'p-6 cursor-pointer transition-all',
+            'p-4 cursor-pointer transition-all',
             'hover:border-primary/50 hover:-translate-y-1',
             isChain === false && 'border-primary bg-primary/5 ring-2 ring-primary'
           )}
@@ -110,23 +117,29 @@ export function Step7PropertyChain() {
           }}
         >
           <div className="text-center space-y-3">
-            {/* Icon */}
-            <div className="text-4xl">✓</div>
+            {/* Image */}
+            <div className="flex justify-center">
+              <img
+                src="/images/calculator/chain-no.svg"
+                alt="Independent move"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+              />
+            </div>
 
             {/* Label */}
-            <h3 className="font-semibold text-lg text-foreground">
-              No, my move is independent
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">
+              No, independent
             </h3>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground">
-              No other transactions depend on my move
+            {/* Description - hidden on mobile */}
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              No other transactions depend on mine
             </p>
 
             {/* Selected indicator */}
             {isChain === false && (
               <div className="flex justify-center">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                   ✓
                 </span>
               </div>
@@ -169,15 +182,13 @@ export function Step7PropertyChain() {
         </Card>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={isChain === null}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        canGoNext={isChain !== null}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

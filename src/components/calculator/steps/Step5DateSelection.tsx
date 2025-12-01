@@ -15,11 +15,12 @@ import {
   calculatorStore,
   setDate,
   nextStep,
+  prevStep,
   type DateFlexibility,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -243,15 +244,13 @@ export function Step5DateSelection() {
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!canContinue}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        canGoNext={!!canContinue}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

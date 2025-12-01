@@ -20,6 +20,7 @@ import {
   quoteResult,
   requiresCallback,
   getSubmissionData,
+  prevStep,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
@@ -379,6 +380,14 @@ export function Step12Quote() {
           className="w-full"
         >
           📞 Request a callback to discuss
+        </Button>
+
+        <Button
+          onClick={prevStep}
+          variant="ghost"
+          className="w-full"
+        >
+          ← Edit my details
         </Button>
       </div>
 

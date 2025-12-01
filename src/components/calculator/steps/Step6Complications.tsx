@@ -14,11 +14,12 @@ import {
   calculatorStore,
   setComplications,
   nextStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import type { Complication } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
 // Complication options with details
@@ -173,14 +174,12 @@ export function Step6Complications() {
         </Card>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

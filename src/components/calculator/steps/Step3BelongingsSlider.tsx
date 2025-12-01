@@ -12,11 +12,12 @@ import {
   calculatedCubes,
   recommendedResources,
   nextStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
 import type { SliderPosition } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
 // Slider position details
@@ -196,14 +197,12 @@ export function Step3BelongingsSlider() {
         Not sure? "Average" works for most homes. You can adjust on the next screen.
       </p>
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   calculatorStore,
   setContact,
   nextStep,
+  prevStep,
   type ContactData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
@@ -302,15 +303,26 @@ export function Step11Contact() {
             </div>
           </div>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Processing...' : 'Get My Quote'}
-          </Button>
+          {/* Navigation Buttons */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              size="lg"
+              onClick={prevStep}
+            >
+              Back
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1"
+              size="lg"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Processing...' : 'Get My Quote'}
+            </Button>
+          </div>
         </form>
       </Card>
 

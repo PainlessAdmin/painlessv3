@@ -15,12 +15,13 @@ import {
   calculatorStore,
   setFurnitureOnly,
   goToStep,
+  prevStep,
   type FurnitureOnlyData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -275,14 +276,12 @@ export function Step2FurnitureOnly() {
         )}
       </Card>
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        {hasSpecialistItems ? 'Request Callback' : 'Continue'}
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        nextLabel={hasSpecialistItems ? 'Request Callback' : 'Continue'}
+      />
     </div>
   );
 }

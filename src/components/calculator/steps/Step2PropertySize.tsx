@@ -7,16 +7,19 @@
  * - Furniture: Redirects to Step2FurnitureOnly
  */
 
+import { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setPropertySize,
   setOfficeSize,
   nextStep,
+  prevStep,
   goToStep,
 } from '@/lib/calculator-store';
 import type { PropertySize, OfficeSize } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
 // ===================
@@ -42,43 +45,60 @@ export function Step2PropertySize() {
 const propertyOptions: Array<{
   value: PropertySize;
   label: string;
-  icon: string;
+  image: string;
   description?: string;
 }> = [
-  { value: 'furniture', label: 'Furniture Only', icon: '🪑', description: 'Just a few items' },
-  { value: 'studio', label: 'Studio', icon: '🏠' },
-  { value: '1bed', label: '1 Bedroom', icon: '🏠' },
-  { value: '2bed', label: '2 Bedrooms', icon: '🏠' },
-  { value: '3bed-small', label: '3 Bed (Small)', icon: '🏡', description: 'Typical 3-bed' },
-  { value: '3bed-large', label: '3 Bed (Large)', icon: '🏡', description: 'Spacious 3-bed' },
-  { value: '4bed', label: '4 Bedrooms', icon: '🏡' },
-  { value: '5bed', label: '5 Bedrooms', icon: '🏘️' },
-  { value: '5bed-plus', label: '5+ Bedrooms', icon: '🏰', description: 'Large estate' },
+  { value: 'furniture', label: 'Furniture Only', image: '/images/calculator/furniture-only.svg', description: 'Just a few items' },
+  { value: 'studio', label: 'Studio', image: '/images/calculator/studio.svg' },
+  { value: '1bed', label: '1 Bedroom', image: '/images/calculator/1bed.svg' },
+  { value: '2bed', label: '2 Bedrooms', image: '/images/calculator/2bed.svg' },
+  { value: '3bed-small', label: '3 Bed (Small)', image: '/images/calculator/3bed-small.svg', description: 'Typical 3-bed' },
+  { value: '3bed-large', label: '3 Bed (Large)', image: '/images/calculator/3bed-large.svg', description: 'Spacious 3-bed' },
+  { value: '4bed', label: '4 Bedrooms', image: '/images/calculator/4bed.svg' },
+  { value: '5bed', label: '5 Bedrooms', image: '/images/calculator/5bed.svg' },
+  { value: '5bed-plus', label: '5+ Bedrooms', image: '/images/calculator/5bed-plus.svg', description: 'Large estate' },
 ];
 
 function HomePropertySelection() {
   const state = useStore(calculatorStore);
-  const selectedSize = state.propertySize;
+  const [selectedSize, setSelectedSizeLocal] = useState<PropertySize | null>(state.propertySize);
 
   const handleSelect = (size: PropertySize) => {
+    setSelectedSizeLocal(size);
     setPropertySize(size);
 
-    // Furniture Only → special flow (Step 2B)
-    if (size === 'furniture') {
-      // We'll handle this with a sub-step or separate component
-      // For now, go to step 2.5 (furniture flow)
-      nextStep(); // Goes to Step2FurnitureOnly
+    // Auto-next after selection
+    setTimeout(() => {
+      // Furniture Only → special flow (Step 2B)
+      if (size === 'furniture') {
+        nextStep();
+        return;
+      }
+
+      // Studio → skip belongings slider (fixed 250 cubes)
+      if (size === 'studio') {
+        goToStep(4);
+        return;
+      }
+
+      // All others → belongings slider (Step 3)
+      nextStep();
+    }, 300);
+  };
+
+  const handleNext = () => {
+    if (!selectedSize) return;
+
+    if (selectedSize === 'furniture') {
+      nextStep();
       return;
     }
 
-    // Studio → skip belongings slider (fixed 250 cubes)
-    if (size === 'studio') {
-      nextStep(); // Skip to Step 4 (recommendation)
+    if (selectedSize === 'studio') {
       goToStep(4);
       return;
     }
 
-    // All others → belongings slider (Step 3)
     nextStep();
   };
 
@@ -94,7 +114,7 @@ function HomePropertySelection() {
         </p>
       </div>
 
-      {/* Property Cards - Grid */}
+      {/* Property Cards - Grid: 2 cols mobile, 3 cols desktop */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         {propertyOptions.map((option) => (
           <PropertyCard
@@ -110,6 +130,14 @@ function HomePropertySelection() {
       <p className="text-center text-sm text-muted-foreground">
         Not sure? Pick the closest match - you can adjust later.
       </p>
+
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleNext}
+        canGoNext={!!selectedSize}
+        nextLabel="Continue"
+      />
     </div>
   );
 }
@@ -122,35 +150,44 @@ const officeOptions: Array<{
   value: OfficeSize;
   label: string;
   description: string;
-  icon: string;
+  image: string;
 }> = [
   {
     value: 'small',
     label: 'Small Office',
     description: '1-5 desks, minimal equipment',
-    icon: '🏢',
+    image: '/images/calculator/office-small.svg',
   },
   {
     value: 'medium',
     label: 'Medium Office',
     description: '6-15 desks, standard equipment',
-    icon: '🏢',
+    image: '/images/calculator/office-medium.svg',
   },
   {
     value: 'large',
     label: 'Large Office',
     description: '16+ desks, server room, heavy equipment',
-    icon: '🏢',
+    image: '/images/calculator/office-large.svg',
   },
 ];
 
 function OfficeSelection() {
   const state = useStore(calculatorStore);
-  const selectedSize = state.officeSize;
+  const [selectedSize, setSelectedSizeLocal] = useState<OfficeSize | null>(state.officeSize);
 
   const handleSelect = (size: OfficeSize) => {
+    setSelectedSizeLocal(size);
     setOfficeSize(size);
-    // Office skips belongings slider → go to Step 5 (Date)
+
+    // Auto-next after selection
+    setTimeout(() => {
+      goToStep(5);
+    }, 300);
+  };
+
+  const handleNext = () => {
+    if (!selectedSize) return;
     goToStep(5);
   };
 
@@ -166,13 +203,13 @@ function OfficeSelection() {
         </p>
       </div>
 
-      {/* Office Cards - Stack on mobile, row on desktop */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Office Cards - 2 cols on mobile, 3 on desktop */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
         {officeOptions.map((option) => (
           <Card
             key={option.value}
             className={cn(
-              'relative cursor-pointer p-6 transition-all duration-200',
+              'relative cursor-pointer p-4 transition-all duration-200',
               'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
               selectedSize === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
@@ -190,23 +227,29 @@ function OfficeSelection() {
           >
             {/* Selected indicator */}
             {selectedSize === option.value && (
-              <div className="absolute top-3 right-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+              <div className="absolute top-2 right-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                   ✓
                 </span>
               </div>
             )}
 
-            {/* Icon */}
-            <div className="text-3xl mb-3">{option.icon}</div>
+            {/* Image */}
+            <div className="flex justify-center mb-3">
+              <img
+                src={option.image}
+                alt={option.label}
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+              />
+            </div>
 
             {/* Label */}
-            <h3 className="font-semibold text-foreground">
+            <h3 className="font-semibold text-sm text-foreground text-center">
               {option.label}
             </h3>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground mt-1">
+            {/* Description - hidden on mobile */}
+            <p className="text-xs text-muted-foreground mt-1 text-center hidden sm:block">
               {option.description}
             </p>
           </Card>
@@ -217,6 +260,14 @@ function OfficeSelection() {
       <p className="text-center text-sm text-muted-foreground">
         Need a larger office move? We'll call you to discuss details.
       </p>
+
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleNext}
+        canGoNext={!!selectedSize}
+        nextLabel="Continue"
+      />
     </div>
   );
 }
@@ -229,7 +280,7 @@ interface PropertyCardProps {
   option: {
     value: PropertySize;
     label: string;
-    icon: string;
+    image: string;
     description?: string;
   };
   isSelected: boolean;
@@ -240,7 +291,7 @@ function PropertyCard({ option, isSelected, onSelect }: PropertyCardProps) {
   return (
     <Card
       className={cn(
-        'relative cursor-pointer p-4 transition-all duration-200',
+        'relative cursor-pointer p-3 transition-all duration-200',
         'hover:border-primary hover:-translate-y-1 hover:shadow-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         isSelected && 'border-primary bg-primary/5 ring-2 ring-primary',
@@ -269,17 +320,23 @@ function PropertyCard({ option, isSelected, onSelect }: PropertyCardProps) {
 
       {/* Content */}
       <div className="text-center">
-        {/* Icon */}
-        <div className="text-2xl mb-2">{option.icon}</div>
+        {/* Image */}
+        <div className="flex justify-center mb-2">
+          <img
+            src={option.image}
+            alt={option.label}
+            className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
+          />
+        </div>
 
         {/* Label */}
-        <h3 className="font-medium text-sm text-foreground">
+        <h3 className="font-medium text-xs sm:text-sm text-foreground">
           {option.label}
         </h3>
 
-        {/* Description (if any) */}
+        {/* Description (if any) - hidden on mobile */}
         {option.description && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
             {option.description}
           </p>
         )}
