@@ -5,10 +5,11 @@
  * - Large/fragile items: ×1.07
  * - Stairs: ×1.07
  * - Restricted access: ×1.07
+ * - Attic items: ×1.07
  * - Plants: +1 van, +1 mover
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -18,7 +19,6 @@ import {
 } from '@/lib/calculator-store';
 import type { Complication } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
@@ -32,36 +32,44 @@ const complicationOptions: Array<{
 }> = [
   {
     id: 'largeFragile',
-    label: 'Large or fragile items',
-    description: 'Piano, artwork, antiques, glass furniture, or delicate items',
+    label: 'Large/fragile',
+    description: 'Piano, artwork, antiques',
     icon: '📦',
-    impact: 'Extra care needed',
+    impact: 'Extra care',
   },
   {
     id: 'stairs',
-    label: 'Stairs without elevator',
-    description: 'Multiple floors with no lift access at either property',
+    label: 'Stairs',
+    description: 'No lift access',
     icon: '🪜',
-    impact: 'Additional time required',
+    impact: 'Extra time',
   },
   {
     id: 'restrictedAccess',
-    label: 'Limited or restricted access',
-    description: 'Narrow streets, parking restrictions, or long carry distance',
+    label: 'Access issues',
+    description: 'Narrow streets, parking',
     icon: '🚫',
-    impact: 'May need permits or extra planning',
+    impact: 'Extra planning',
+  },
+  {
+    id: 'attic',
+    label: 'Attic items',
+    description: 'Items in loft/attic',
+    icon: '🏠',
+    impact: 'Extra time',
   },
   {
     id: 'plants',
-    label: 'Large collection of plants (20+)',
-    description: 'Plants need special handling and separate transport',
+    label: 'Plants (20+)',
+    description: 'Large plant collection',
     icon: '🌿',
-    impact: 'Additional van required',
+    impact: 'Extra van',
   },
 ];
 
 export function Step6Complications() {
   const state = useStore(calculatorStore);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [selected, setSelected] = useState<Complication[]>(
     state.complications || []
@@ -70,8 +78,23 @@ export function Step6Complications() {
     state.complications?.length === 0
   );
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Handle complication toggle
   const handleToggle = (id: Complication) => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setNoneSelected(false);
 
     setSelected(prev => {
@@ -82,13 +105,26 @@ export function Step6Complications() {
     });
   };
 
-  // Handle "None of these" toggle
+  // Handle "None of these" toggle with auto-next
   const handleNoneToggle = () => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     if (noneSelected) {
       setNoneSelected(false);
     } else {
       setNoneSelected(true);
       setSelected([]);
+
+      // Auto-next after selecting "None"
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigationTimeoutRef.current = null;
+        setComplications([]);
+        nextStep();
+      }, 300);
     }
   };
 
@@ -106,15 +142,15 @@ export function Step6Complications() {
       {/* Heading */}
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground">
-          Do any of these apply to your move?
+          Do any of these apply?
         </h2>
         <p className="text-muted-foreground mt-2">
-          Select all that apply - this helps us prepare properly
+          Select all that apply
         </p>
       </div>
 
-      {/* Complication Options */}
-      <div className="space-y-3">
+      {/* Complication Options - 2 cols mobile, 3 cols desktop */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         {complicationOptions.map((option) => (
           <ComplicationCard
             key={option.id}
@@ -124,11 +160,11 @@ export function Step6Complications() {
           />
         ))}
 
-        {/* None of these */}
+        {/* None of these - Last card */}
         <Card
           className={cn(
-            'p-4 cursor-pointer transition-all',
-            'hover:border-primary/50',
+            'p-3 cursor-pointer transition-all',
+            'hover:border-primary/50 hover:-translate-y-1',
             noneSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
           )}
           onClick={handleNoneToggle}
@@ -141,18 +177,19 @@ export function Step6Complications() {
             }
           }}
         >
-          <div className="flex items-center gap-4">
-            <Checkbox
-              checked={noneSelected}
-              onCheckedChange={handleNoneToggle}
-              className="pointer-events-none"
-            />
-            <div className="flex items-center gap-2">
-              <span className="text-xl">✅</span>
-              <span className="font-medium text-foreground">
-                None of these apply
+          <div className="flex flex-col items-center text-center space-y-2">
+            <span className="text-3xl">✅</span>
+            <h3 className="font-semibold text-sm text-foreground">
+              None
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              No complications
+            </p>
+            {noneSelected && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                ✓
               </span>
-            </div>
+            )}
           </div>
         </Card>
       </div>
@@ -204,8 +241,8 @@ function ComplicationCard({ option, isSelected, onToggle }: ComplicationCardProp
   return (
     <Card
       className={cn(
-        'p-4 cursor-pointer transition-all',
-        'hover:border-primary/50',
+        'p-3 cursor-pointer transition-all',
+        'hover:border-primary/50 hover:-translate-y-1',
         isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
       )}
       onClick={onToggle}
@@ -218,33 +255,33 @@ function ComplicationCard({ option, isSelected, onToggle }: ComplicationCardProp
         }
       }}
     >
-      <div className="flex items-start gap-4">
-        {/* Checkbox */}
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onToggle}
-          className="mt-1 pointer-events-none"
-        />
+      <div className="flex flex-col items-center text-center space-y-2">
+        {/* Icon */}
+        <span className="text-3xl">{option.icon}</span>
 
-        {/* Content */}
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{option.icon}</span>
-            <span className="font-medium text-foreground">{option.label}</span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {option.description}
-          </p>
+        {/* Label */}
+        <h3 className="font-semibold text-sm text-foreground">
+          {option.label}
+        </h3>
 
-          {/* Impact badge */}
-          {isSelected && (
-            <div className="mt-2">
-              <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                {option.impact}
-              </span>
-            </div>
-          )}
-        </div>
+        {/* Description */}
+        <p className="text-xs text-muted-foreground line-clamp-2">
+          {option.description}
+        </p>
+
+        {/* Selected indicator */}
+        {isSelected && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+            ✓
+          </span>
+        )}
+
+        {/* Impact badge */}
+        {isSelected && (
+          <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+            {option.impact}
+          </span>
+        )}
       </div>
     </Card>
   );
@@ -258,7 +295,7 @@ function getImpactPreview(selected: Complication[]): string[] {
   const impacts: string[] = [];
 
   const percentageFactors = selected.filter(
-    c => c === 'largeFragile' || c === 'stairs' || c === 'restrictedAccess'
+    c => c === 'largeFragile' || c === 'stairs' || c === 'restrictedAccess' || c === 'attic'
   );
 
   if (percentageFactors.length > 0) {

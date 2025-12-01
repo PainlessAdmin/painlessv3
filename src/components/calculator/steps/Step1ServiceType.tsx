@@ -4,7 +4,7 @@
  * User selects: Home Removal | Office Removal | Clearance Service
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -46,8 +46,24 @@ const serviceOptions: Array<{
 export function Step1ServiceType() {
   const state = useStore(calculatorStore);
   const [selectedType, setSelectedTypeLocal] = useState<ServiceType | null>(state.serviceType);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (type: ServiceType) => {
+    // Clear any pending navigation timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setSelectedTypeLocal(type);
     setServiceType(type);
 
@@ -58,7 +74,8 @@ export function Step1ServiceType() {
     }
 
     // Auto-next after selection
-    setTimeout(() => {
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
       nextStep();
     }, 300);
   };
@@ -99,15 +116,15 @@ export function Step1ServiceType() {
       </div>
 
       {/* Trust badges */}
-      <div className="flex flex-wrap justify-center gap-4 pt-4 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span>✓</span> Free quote
+      <div className="flex flex-wrap justify-center gap-6 pt-2 text-sm font-medium">
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> Free quote
         </span>
-        <span className="flex items-center gap-1">
-          <span>✓</span> No obligation
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> No obligation
         </span>
-        <span className="flex items-center gap-1">
-          <span>✓</span> Takes 2 minutes
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> Takes 2 minutes
         </span>
       </div>
 

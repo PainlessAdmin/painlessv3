@@ -16,9 +16,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-01',
     order: 1,
     title: {
-      en: 'Service Type',
-      es: 'Tipo de Servicio',
-      fr: 'Type de Service',
+      en: 'Service',
+      es: 'Servicio',
+      fr: 'Service',
     },
     description: {
       en: 'What type of removal service do you need?',
@@ -31,9 +31,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-02',
     order: 2,
     title: {
-      en: 'Property Size',
-      es: 'Tamaño de la Propiedad',
-      fr: 'Taille de la Propriété',
+      en: 'Size',
+      es: 'Tamaño',
+      fr: 'Taille',
     },
     description: {
       en: 'Tell us about your property',
@@ -46,9 +46,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-03',
     order: 3,
     title: {
-      en: 'Belongings',
-      es: 'Pertenencias',
-      fr: 'Affaires',
+      en: 'Items',
+      es: 'Objetos',
+      fr: 'Objets',
     },
     description: {
       en: 'How much stuff do you have?',
@@ -61,9 +61,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-04',
     order: 4,
     title: {
-      en: 'Recommendation',
-      es: 'Recomendación',
-      fr: 'Recommandation',
+      en: 'Plan',
+      es: 'Plan',
+      fr: 'Plan',
     },
     description: {
       en: 'Our recommended resources for your move',
@@ -76,9 +76,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-05',
     order: 5,
     title: {
-      en: 'Moving Date',
-      es: 'Fecha de Mudanza',
-      fr: 'Date de Déménagement',
+      en: 'Date',
+      es: 'Fecha',
+      fr: 'Date',
     },
     description: {
       en: 'When would you like to move?',
@@ -91,9 +91,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-06',
     order: 6,
     title: {
-      en: 'Complications',
-      es: 'Complicaciones',
-      fr: 'Complications',
+      en: 'Access',
+      es: 'Acceso',
+      fr: 'Accès',
     },
     description: {
       en: 'Any access issues or special requirements?',
@@ -106,9 +106,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-07',
     order: 7,
     title: {
-      en: 'Property Chain',
-      es: 'Cadena de Propiedades',
-      fr: 'Chaîne Immobilière',
+      en: 'Chain',
+      es: 'Cadena',
+      fr: 'Chaîne',
     },
     description: {
       en: 'Are you part of a property chain?',
@@ -121,9 +121,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-08',
     order: 8,
     title: {
-      en: 'From Address',
-      es: 'Dirección de Origen',
-      fr: 'Adresse de Départ',
+      en: 'From',
+      es: 'Origen',
+      fr: 'Départ',
     },
     description: {
       en: 'Where are you moving from?',
@@ -136,9 +136,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-09',
     order: 9,
     title: {
-      en: 'To Address',
-      es: 'Dirección de Destino',
-      fr: 'Adresse d\'Arrivée',
+      en: 'To',
+      es: 'Destino',
+      fr: 'Arrivée',
     },
     description: {
       en: 'Where are you moving to?',
@@ -151,9 +151,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-10',
     order: 10,
     title: {
-      en: 'Optional Services',
-      es: 'Servicios Opcionales',
-      fr: 'Services Optionnels',
+      en: 'Extras',
+      es: 'Extras',
+      fr: 'Extras',
     },
     description: {
       en: 'Would you like any additional services?',
@@ -166,9 +166,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-11',
     order: 11,
     title: {
-      en: 'Contact Details',
-      es: 'Detalles de Contacto',
-      fr: 'Coordonnées',
+      en: 'Contact',
+      es: 'Contacto',
+      fr: 'Contact',
     },
     description: {
       en: 'How can we reach you?',
@@ -181,9 +181,9 @@ export const CALCULATOR_STEPS: Step[] = [
     id: 'step-12',
     order: 12,
     title: {
-      en: 'Your Quote',
-      es: 'Tu Cotización',
-      fr: 'Votre Devis',
+      en: 'Quote',
+      es: 'Precio',
+      fr: 'Devis',
     },
     description: {
       en: 'Review your instant quote',

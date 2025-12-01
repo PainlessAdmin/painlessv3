@@ -7,7 +7,7 @@
  * - Furniture: Redirects to Step2FurnitureOnly
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -62,13 +62,31 @@ const propertyOptions: Array<{
 function HomePropertySelection() {
   const state = useStore(calculatorStore);
   const [selectedSize, setSelectedSizeLocal] = useState<PropertySize | null>(state.propertySize);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (size: PropertySize) => {
+    // Clear any pending navigation timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setSelectedSizeLocal(size);
     setPropertySize(size);
 
     // Auto-next after selection
-    setTimeout(() => {
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
+
       // Furniture Only → special flow (Step 2B)
       if (size === 'furniture') {
         nextStep();
@@ -175,13 +193,30 @@ const officeOptions: Array<{
 function OfficeSelection() {
   const state = useStore(calculatorStore);
   const [selectedSize, setSelectedSizeLocal] = useState<OfficeSize | null>(state.officeSize);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (size: OfficeSize) => {
+    // Clear any pending navigation timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setSelectedSizeLocal(size);
     setOfficeSize(size);
 
     // Auto-next after selection
-    setTimeout(() => {
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
       goToStep(5);
     }, 300);
   };

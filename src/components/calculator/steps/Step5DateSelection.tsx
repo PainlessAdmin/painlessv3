@@ -130,14 +130,14 @@ export function Step5DateSelection() {
         </p>
       </div>
 
-      {/* Flexibility Options */}
-      <div className="space-y-3">
+      {/* Flexibility Options - 3 columns on desktop */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {flexibilityOptions.map((option) => (
           <Card
             key={option.value}
             className={cn(
               'p-4 cursor-pointer transition-all',
-              'hover:border-primary/50',
+              'hover:border-primary/50 hover:-translate-y-1',
               flexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
             )}
             onClick={() => handleFlexibilitySelect(option.value)}
@@ -150,36 +150,35 @@ export function Step5DateSelection() {
               }
             }}
           >
-            <div className="flex items-start gap-4">
-              {/* Radio indicator */}
-              <div className={cn(
-                'mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2',
-                flexibility === option.value
-                  ? 'border-primary bg-primary'
-                  : 'border-muted-foreground'
-              )}>
-                {flexibility === option.value && (
-                  <span className="text-primary-foreground text-xs">✓</span>
-                )}
-              </div>
+            <div className="flex flex-col items-center text-center space-y-3">
+              {/* Icon */}
+              <span className="text-4xl">{option.icon}</span>
 
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{option.icon}</span>
-                  <span className="font-medium text-foreground">{option.label}</span>
+              {/* Label */}
+              <h3 className="font-semibold text-sm sm:text-base text-foreground">
+                {option.label}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs text-muted-foreground">
+                {option.description}
+              </p>
+
+              {/* Selected indicator */}
+              {flexibility === option.value && (
+                <div className="flex justify-center">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                    ✓
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {option.description}
-                </p>
+              )}
 
-                {/* Flexible date tip */}
-                {option.value === 'flexible' && flexibility === 'flexible' && (
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                    Flexible dates often mean better prices!
-                  </div>
-                )}
-              </div>
+              {/* Flexible date tip */}
+              {option.value === 'flexible' && flexibility === 'flexible' && (
+                <div className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                  Better prices!
+                </div>
+              )}
             </div>
           </Card>
         ))}
