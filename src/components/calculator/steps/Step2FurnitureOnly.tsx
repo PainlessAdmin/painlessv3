@@ -117,14 +117,10 @@ export function Step2FurnitureOnly() {
 
     setFurnitureOnly(data);
 
-    // If specialist items → need contact details first for callback
-    if (specialist.length > 0) {
-      goToStep(11);
-      return;
-    }
-
-    // Furniture flow skips: Plan (4), Access (6), Chain (7), Extras (10)
-    // Goes to: Date (5) → From (8) → To (9) → Contact (11) → Quote (12)
+    // Furniture flow (with or without specialist items):
+    // Always go through: Date (5) → From (8) → To (9) → Contact (11) → Quote (12)
+    // Skips: Plan (4), Access (6), Chain (7), Extras (10)
+    // Note: specialist items will trigger callback view at Step 12
     goToStep(5);
   };
 

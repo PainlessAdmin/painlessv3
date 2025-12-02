@@ -13,17 +13,18 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ className, checked, onCheckedChange, onChange, ...props }, ref) => {
+  ({ className, checked, onCheckedChange, onChange, id, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
       onCheckedChange?.(e.target.checked);
     };
 
     return (
-      <div className="relative inline-flex items-center">
+      <label htmlFor={id} className="relative inline-flex items-center cursor-pointer">
         <input
           type="checkbox"
           ref={ref}
+          id={id}
           checked={checked}
           onChange={handleChange}
           className="sr-only peer"
@@ -54,7 +55,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             </svg>
           )}
         </div>
-      </div>
+      </label>
     );
   }
 );
