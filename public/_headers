@@ -1,2 +1,2 @@
 /*
-  Permissions-Policy: geolocation=(self)
+  Permissions-Policy: geolocation=(self), camera=(), microphone=()
