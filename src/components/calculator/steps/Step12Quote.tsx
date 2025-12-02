@@ -55,6 +55,7 @@ export function Step12Quote() {
   // Submit quote to backend
   const submitQuote = async () => {
     if (submissionStatus === 'submitting' || submissionStatus === 'success') return;
+    if (!quote) return; // Don't submit if no quote
 
     setSubmissionStatus('submitting');
     setErrorMessage(null);
@@ -62,10 +63,26 @@ export function Step12Quote() {
     try {
       const submissionData = getSubmissionData();
 
-      const response = await fetch('/api/quotes', {
+      // Format data for save-quote API
+      const apiData = {
+        data: submissionData,
+        totalPrice: quote.totalPrice,
+        breakdown: quote.breakdown,
+        currency: 'GBP' as const,
+        name: state.contact ? `${state.contact.firstName} ${state.contact.lastName}` : undefined,
+        email: state.contact?.email,
+        phone: state.contact?.phone,
+        language: 'en' as const,
+        utm_source: state.utmSource || undefined,
+        utm_medium: state.utmMedium || undefined,
+        utm_campaign: state.utmCampaign || undefined,
+        gclid: state.gclid || undefined,
+      };
+
+      const response = await fetch('/api/save-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData),
+        body: JSON.stringify(apiData),
       });
 
       if (!response.ok) {
@@ -109,12 +126,33 @@ export function Step12Quote() {
     return <CallbackRequiredView state={state} reason={callbackRequired.reason} />;
   }
 
-  // If no quote calculated
+  // If no quote calculated - show error with option to go back
   if (!quote) {
     return (
-      <div className="text-center py-12">
-        <Spinner className="h-8 w-8 mx-auto" />
-        <p className="mt-4 text-muted-foreground">Calculating your quote...</p>
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-semibold text-foreground">
+            Unable to calculate quote
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Some information may be missing. Please go back and check your details.
+          </p>
+        </div>
+
+        <Card className="p-4">
+          <h3 className="font-medium text-foreground mb-2">Missing information:</h3>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            {!state.distances && <li>• Route distances not calculated</li>}
+            {!state.propertySize && !state.furnitureOnly && <li>• Property size not selected</li>}
+            {!state.fromAddress && <li>• Moving from address not set</li>}
+            {!state.toAddress && <li>• Moving to address not set</li>}
+          </ul>
+        </Card>
+
+        <Button onClick={prevStep} className="w-full" size="lg">
+          ← Go back and fix
+        </Button>
       </div>
     );
   }
