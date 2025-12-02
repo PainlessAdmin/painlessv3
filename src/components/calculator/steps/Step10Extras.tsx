@@ -17,12 +17,13 @@ import {
   addAssemblyItem,
   removeAssemblyItem,
   nextStep,
+  prevStep,
   type ExtrasData,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG, type PackingSize } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -417,14 +418,12 @@ export function Step10Extras() {
         </Card>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        {extrasTotal > 0 ? 'Continue with Extras' : 'Skip Extras & Continue'}
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        nextLabel={extrasTotal > 0 ? 'Continue with Extras' : 'Skip Extras'}
+      />
     </div>
   );
 }

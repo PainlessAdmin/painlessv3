@@ -11,11 +11,13 @@ import {
   calculatorStore,
   setFromAddress,
   nextStep,
+  prevStep,
   type AddressData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
@@ -80,7 +82,7 @@ export function Step8FromAddress() {
     // Create autocomplete instance
     autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
       componentRestrictions: { country: 'gb' },
-      types: ['address'],
+      types: ['geocode'], // Allows addresses, postcodes, and places
       fields: ['formatted_address', 'geometry', 'address_components'],
     });
 
@@ -201,11 +203,6 @@ export function Step8FromAddress() {
       return;
     }
 
-    if (!address.postcode) {
-      setError('Please enter a complete address with postcode');
-      return;
-    }
-
     setFromAddress(address);
     nextStep();
   };
@@ -219,7 +216,7 @@ export function Step8FromAddress() {
     const city = formData.get('city') as string;
     const postcode = formData.get('postcode') as string;
 
-    if (!line1 || !city || !postcode) {
+    if (!line1 || !city) {
       setError('Please fill in all required fields');
       return;
     }
@@ -398,15 +395,13 @@ export function Step8FromAddress() {
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!address}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        canGoNext={!!address}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

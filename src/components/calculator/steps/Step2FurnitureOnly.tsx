@@ -1,29 +1,29 @@
 /**
  * STEP 2B: FURNITURE ONLY FLOW
  *
- * Special flow for moving just furniture items.
- * All questions on one page:
- * - Item count
- * - 2-person items (size)
- * - Heavy items (>40kg)
- * - Specialist items (callback required)
+ * Multi-page flow for moving just furniture items:
+ * Page 1: Item count slider
+ * Page 2: Size (2-person) and Weight (>40kg) questions - side by side on desktop
+ * Page 3: Specialist items selection
+ *
+ * After completion:
+ * - If specialist items → callback required (Step 12)
+ * - Otherwise → skip to Step 5 (Date), then 8, 9, 11, 12
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setFurnitureOnly,
   goToStep,
+  saveState,
   type FurnitureOnlyData,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Slider } from '@/components/ui/slider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 // Specialist items list
@@ -39,22 +39,43 @@ const specialistItems = [
 export function Step2FurnitureOnly() {
   const state = useStore(calculatorStore);
 
-  // Local form state
+  // Internal page state (1, 2, or 3)
+  const [page, setPage] = useState(1);
+
+  // Form data
   const [itemCount, setItemCount] = useState(state.furnitureOnly?.itemCount ?? 3);
-  const [needs2Person, setNeeds2Person] = useState(state.furnitureOnly?.needs2Person ?? false);
-  const [over40kg, setOver40kg] = useState(state.furnitureOnly?.over40kg ?? false);
+  const [needs2Person, setNeeds2Person] = useState<boolean | null>(
+    state.furnitureOnly?.needs2Person ?? null
+  );
+  const [over40kg, setOver40kg] = useState<boolean | null>(
+    state.furnitureOnly?.over40kg ?? null
+  );
   const [selectedSpecialist, setSelectedSpecialist] = useState<string[]>(
     state.furnitureOnly?.specialistItems ?? []
   );
-  const [otherDescription, setOtherDescription] = useState(
-    state.furnitureOnly?.otherSpecialistDescription ?? ''
-  );
+
+  // Auto-next timeout ref
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Check if specialist items selected (requires callback)
-  const hasSpecialistItems = selectedSpecialist.length > 0 &&
-    !selectedSpecialist.every(item => item === 'none');
+  const hasSpecialistItems = selectedSpecialist.length > 0;
 
   const handleSpecialistToggle = (itemId: string) => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setSelectedSpecialist(prev => {
       if (prev.includes(itemId)) {
         return prev.filter(id => id !== itemId);
@@ -63,30 +84,185 @@ export function Step2FurnitureOnly() {
     });
   };
 
-  const handleContinue = () => {
-    // Save to store
+  const handleNoneSelected = () => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
+    setSelectedSpecialist([]);
+
+    // Auto-next after selecting "None"
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
+      handleFinalContinue([]);
+    }, 300);
+  };
+
+  // Go back to property selection
+  const handleBackToPropertySelection = () => {
+    calculatorStore.setKey('propertySize', null);
+    saveState();
+  };
+
+  // Handle final continue (save data and navigate)
+  const handleFinalContinue = (specialist: string[] = selectedSpecialist) => {
     const data: FurnitureOnlyData = {
       itemCount,
-      needs2Person,
-      over40kg,
-      specialistItems: selectedSpecialist.filter(s => s !== 'none'),
-      otherSpecialistDescription: selectedSpecialist.includes('other') ? otherDescription : undefined,
+      needs2Person: needs2Person ?? false,
+      over40kg: over40kg ?? false,
+      specialistItems: specialist,
     };
 
     setFurnitureOnly(data);
 
-    // If specialist items → callback required, go to callback step
-    if (hasSpecialistItems) {
-      goToStep(12); // Final step shows callback request
-      return;
-    }
-
-    // Otherwise skip to Step 5 (Date) - no belongings slider for furniture
+    // Furniture flow (with or without specialist items):
+    // Always go through: Date (5) → From (8) → To (9) → Contact (11) → Quote (12)
+    // Skips: Plan (4), Access (6), Chain (7), Extras (10)
+    // Note: specialist items will trigger callback view at Step 12
     goToStep(5);
   };
 
+  // Render based on current page
+  if (page === 1) {
+    return (
+      <Page1ItemCount
+        itemCount={itemCount}
+        setItemCount={setItemCount}
+        onPrevious={handleBackToPropertySelection}
+        onNext={() => setPage(2)}
+      />
+    );
+  }
+
+  if (page === 2) {
+    return (
+      <Page2SizeWeight
+        needs2Person={needs2Person}
+        setNeeds2Person={setNeeds2Person}
+        over40kg={over40kg}
+        setOver40kg={setOver40kg}
+        onPrevious={() => setPage(1)}
+        onNext={() => setPage(3)}
+      />
+    );
+  }
+
+  // Page 3: Specialist items
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Heading */}
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-foreground">
+          Any SPECIALIST items?
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          These require special equipment and expertise
+        </p>
+      </div>
+
+      {/* Specialist Items Grid - 3 cols desktop, 2 mobile */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+        {specialistItems.map((item) => (
+          <Card
+            key={item.id}
+            className={cn(
+              'p-4 cursor-pointer transition-all',
+              'hover:border-primary/50 hover:-translate-y-1',
+              selectedSpecialist.includes(item.id) && 'border-primary bg-primary/5 ring-2 ring-primary'
+            )}
+            onClick={() => handleSpecialistToggle(item.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleSpecialistToggle(item.id);
+              }
+            }}
+          >
+            <div className="flex flex-col items-center text-center space-y-2">
+              <span className="text-3xl">{item.icon}</span>
+              <h3 className="font-semibold text-sm text-foreground">
+                {item.label}
+              </h3>
+              {selectedSpecialist.includes(item.id) && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                  ✓
+                </span>
+              )}
+            </div>
+          </Card>
+        ))}
+
+        {/* None of these - Last card */}
+        <Card
+          className={cn(
+            'p-4 cursor-pointer transition-all',
+            'hover:border-primary/50 hover:-translate-y-1',
+            selectedSpecialist.length === 0 && 'border-primary bg-primary/5 ring-2 ring-primary'
+          )}
+          onClick={handleNoneSelected}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNoneSelected();
+            }
+          }}
+        >
+          <div className="flex flex-col items-center text-center space-y-2">
+            <span className="text-3xl">✅</span>
+            <h3 className="font-semibold text-sm text-foreground">
+              None of these
+            </h3>
+            {selectedSpecialist.length === 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                ✓
+              </span>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Warning if specialist items selected */}
+      {hasSpecialistItems && (
+        <Alert className="border-amber-500 bg-amber-50">
+          <AlertDescription className="text-amber-800">
+            <strong>Specialist items require a custom quote.</strong>
+            <br />
+            We'll call you within 2 hours during business hours to discuss your requirements.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={() => setPage(2)}
+        onNext={() => handleFinalContinue()}
+        nextLabel={hasSpecialistItems ? 'Request Callback' : 'Continue'}
+        canGoNext={true}
+      />
+    </div>
+  );
+}
+
+// ===================
+// PAGE 1: ITEM COUNT
+// ===================
+
+interface Page1Props {
+  itemCount: number;
+  setItemCount: (count: number) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+}
+
+function Page1ItemCount({ itemCount, setItemCount, onPrevious, onNext }: Page1Props) {
+  return (
+    <div className="space-y-6">
       {/* Heading */}
       <div className="text-center">
         <h2 className="text-2xl font-semibold text-foreground">
@@ -97,25 +273,26 @@ export function Step2FurnitureOnly() {
         </p>
       </div>
 
-      {/* Question 1: Item Count */}
+      {/* Item Count Card */}
       <Card className="p-6">
-        <Label className="text-base font-medium">
+        <h3 className="text-lg font-medium text-foreground mb-6">
           How many items need moving?
-        </Label>
+        </h3>
 
-        <div className="mt-4 space-y-4">
+        <div className="space-y-6">
           {/* Slider */}
-          <Slider
-            value={[itemCount]}
-            onValueChange={(value) => setItemCount(value[0])}
-            min={1}
-            max={10}
-            step={1}
-            className="w-full"
-          />
+          <div className="px-2">
+            <Slider
+              value={[itemCount]}
+              onValueChange={(value) => setItemCount(value[0])}
+              min={1}
+              max={10}
+              step={1}
+            />
+          </div>
 
           {/* Labels */}
-          <div className="flex justify-between text-sm text-muted-foreground px-1">
+          <div className="flex justify-between text-xs text-muted-foreground px-1">
             <span>1</span>
             <span>2</span>
             <span>3</span>
@@ -130,159 +307,152 @@ export function Step2FurnitureOnly() {
 
           {/* Current value display */}
           <div className="text-center">
-            <span className="inline-flex items-center justify-center px-4 py-2 bg-primary/10 text-primary font-semibold rounded-full">
+            <span className="inline-flex items-center justify-center px-6 py-3 bg-primary/10 text-primary font-bold text-xl rounded-full">
               {itemCount === 10 ? '10+ items' : `${itemCount} item${itemCount > 1 ? 's' : ''}`}
             </span>
           </div>
         </div>
       </Card>
 
-      {/* Question 2: 2-Person Items (Size) */}
-      <Card className="p-6">
-        <Label className="text-base font-medium">
-          Do any items require 2 people due to SIZE?
-        </Label>
-        <p className="text-sm text-muted-foreground mt-1">
-          e.g., sofa, desk, large wardrobe, bookshelf
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={onPrevious}
+        onNext={onNext}
+        nextLabel="Continue"
+      />
+    </div>
+  );
+}
+
+// ===================
+// PAGE 2: SIZE & WEIGHT (Side by side on desktop)
+// ===================
+
+interface Page2Props {
+  needs2Person: boolean | null;
+  setNeeds2Person: (val: boolean) => void;
+  over40kg: boolean | null;
+  setOver40kg: (val: boolean) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+}
+
+function Page2SizeWeight({
+  needs2Person,
+  setNeeds2Person,
+  over40kg,
+  setOver40kg,
+  onPrevious,
+  onNext,
+}: Page2Props) {
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const canContinue = needs2Person !== null && over40kg !== null;
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-next when both questions are answered
+  useEffect(() => {
+    if (canContinue) {
+      // Clear any existing timeout
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+      // Auto-next after short delay
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigationTimeoutRef.current = null;
+        onNext();
+      }, 400);
+    }
+  }, [needs2Person, over40kg, canContinue, onNext]);
+
+  return (
+    <div className="space-y-6">
+      {/* Heading */}
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-foreground">
+          A few more details
+        </h2>
+        <p className="text-muted-foreground mt-2">
+          This helps us determine crew size
         </p>
+      </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <SelectionCard
-            selected={!needs2Person}
-            onClick={() => setNeeds2Person(false)}
-            title="No"
-            description="All items can be carried by one person"
-          />
-          <SelectionCard
-            selected={needs2Person}
-            onClick={() => setNeeds2Person(true)}
-            title="Yes"
-            description="At least one item needs two people"
-          />
-        </div>
-      </Card>
+      {/* Both questions side by side on desktop, stacked on mobile */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Question 1: 2-Person Items (Size) */}
+        <Card className="p-5">
+          <h3 className="text-base font-medium text-foreground">
+            Do any items require 2 people due to SIZE?
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            e.g., sofa, desk, large wardrobe, bookshelf
+          </p>
 
-      {/* Question 3: Heavy Items (>40kg) */}
-      <Card className="p-6">
-        <Label className="text-base font-medium">
-          Is any single item heavier than 40kg?
-        </Label>
-        <p className="text-sm text-muted-foreground mt-1">
-          e.g., washing machine, heavy wooden furniture
-        </p>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <SelectionCard
-            selected={!over40kg}
-            onClick={() => setOver40kg(false)}
-            title="No"
-            description="Everything is under 40kg"
-          />
-          <SelectionCard
-            selected={over40kg}
-            onClick={() => setOver40kg(true)}
-            title="Yes"
-            description="At least one item is over 40kg"
-          />
-        </div>
-      </Card>
-
-      {/* Question 4: Specialist Items */}
-      <Card className="p-6">
-        <Label className="text-base font-medium">
-          Any SPECIALIST items requiring special handling?
-        </Label>
-        <p className="text-sm text-muted-foreground mt-1">
-          These require special equipment and expertise
-        </p>
-
-        <div className="mt-4 space-y-3">
-          {specialistItems.map((item) => (
-            <div key={item.id}>
-              <label
-                className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-                  selectedSpecialist.includes(item.id)
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50'
-                )}
-              >
-                <Checkbox
-                  checked={selectedSpecialist.includes(item.id)}
-                  onCheckedChange={() => handleSpecialistToggle(item.id)}
-                />
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-sm font-medium">{item.label}</span>
-              </label>
-
-              {/* Other description field */}
-              {item.id === 'other' && selectedSpecialist.includes('other') && (
-                <div className="mt-2 ml-10">
-                  <Input
-                    placeholder="Please describe..."
-                    value={otherDescription}
-                    onChange={(e) => setOtherDescription(e.target.value)}
-                    className="max-w-xs"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* None option */}
-          <label
-            className={cn(
-              'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
-              selectedSpecialist.length === 0
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50'
-            )}
-          >
-            <Checkbox
-              checked={selectedSpecialist.length === 0}
-              onCheckedChange={() => setSelectedSpecialist([])}
+          <div className="space-y-3">
+            <SelectionCard
+              selected={needs2Person === false}
+              onClick={() => setNeeds2Person(false)}
+              title="No"
+              description="All items can be carried by one person"
             />
-            <span className="text-xl">✅</span>
-            <span className="text-sm font-medium">None of these</span>
-          </label>
-        </div>
-      </Card>
+            <SelectionCard
+              selected={needs2Person === true}
+              onClick={() => setNeeds2Person(true)}
+              title="Yes"
+              description="At least one item needs two people"
+            />
+          </div>
+        </Card>
 
-      {/* Warning if specialist items selected */}
-      {hasSpecialistItems && (
-        <Alert className="border-amber-500 bg-amber-50">
-          <AlertDescription className="text-amber-800">
-            <strong>Specialist items require a custom quote.</strong>
-            <br />
-            We'll call you within 2 hours during business hours to discuss your requirements and provide an accurate quote.
-          </AlertDescription>
-        </Alert>
-      )}
+        {/* Question 2: Heavy Items (>40kg) */}
+        <Card className="p-5">
+          <h3 className="text-base font-medium text-foreground">
+            Is any single item heavier than 40kg?
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            e.g., washing machine, heavy wooden furniture
+          </p>
+
+          <div className="space-y-3">
+            <SelectionCard
+              selected={over40kg === false}
+              onClick={() => setOver40kg(false)}
+              title="No"
+              description="Everything is under 40kg"
+            />
+            <SelectionCard
+              selected={over40kg === true}
+              onClick={() => setOver40kg(true)}
+              title="Yes"
+              description="At least one item is over 40kg"
+            />
+          </div>
+        </Card>
+      </div>
 
       {/* Summary */}
-      <Card className="p-4 bg-muted/50">
-        <div className="text-sm text-muted-foreground">
-          <strong>Summary:</strong> {itemCount === 10 ? '10+' : itemCount} item{itemCount > 1 ? 's' : ''}
-          {needs2Person && ' - Some need 2 people'}
-          {over40kg && ' - Heavy items (40kg+)'}
-          {hasSpecialistItems && ' - Specialist items'}
-        </div>
-
-        {!hasSpecialistItems && (
-          <div className="mt-2 text-sm font-medium text-foreground">
-            Estimated: {needs2Person || over40kg ? '2 movers' : '1 mover'}, 1 van
+      {canContinue && (
+        <Card className="p-4 bg-muted/50">
+          <div className="text-sm font-medium text-foreground text-center">
+            Estimated crew: {needs2Person || over40kg ? '2 movers' : '1 mover'}, 1 van
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-      >
-        {hasSpecialistItems ? 'Request Callback' : 'Continue'}
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={onPrevious}
+        onNext={onNext}
+        canGoNext={canContinue}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

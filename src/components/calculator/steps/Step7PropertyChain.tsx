@@ -1,41 +1,136 @@
 /**
  * STEP 7: PROPERTY CHAIN
  *
- * Simple yes/no question.
+ * Simple yes/no question with auto-next.
+ * If yes, shows info page before continuing.
  * Property chain = minimum full day booking.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setPropertyChain,
   nextStep,
+  prevStep,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
 export function Step7PropertyChain() {
   const state = useStore(calculatorStore);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isChain, setIsChain] = useState<boolean | null>(
     state.propertyChain
   );
   const [showExplanation, setShowExplanation] = useState(false);
+  // Internal page: 1 = question, 2 = chain info (only if yes)
+  const [internalPage, setInternalPage] = useState(1);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (value: boolean) => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setIsChain(value);
+
+    // Auto-navigate after short delay
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
+      setPropertyChain(value);
+
+      if (value) {
+        // If yes, show info page
+        setInternalPage(2);
+      } else {
+        // If no, go to next step
+        nextStep();
+      }
+    }, 400);
   };
 
-  const handleContinue = () => {
-    if (isChain === null) return;
-
-    setPropertyChain(isChain);
+  const handleContinueFromInfo = () => {
     nextStep();
   };
 
+  const handleBackFromInfo = () => {
+    setInternalPage(1);
+    setIsChain(null);
+  };
+
+  // Page 2: Chain info
+  if (internalPage === 2) {
+    return (
+      <div className="space-y-6">
+        {/* Heading */}
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-foreground">
+            Property chain moves
+          </h2>
+          <p className="text-muted-foreground mt-2">
+            Here's what you need to know
+          </p>
+        </div>
+
+        {/* Info Card */}
+        <Card className="p-6 bg-primary/5 border-primary/20">
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">📅</span>
+              <div>
+                <h3 className="font-semibold text-foreground">Full day reservation</h3>
+                <p className="text-sm text-muted-foreground">
+                  We'll reserve a full day for your move to ensure we can accommodate any delays in the chain.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">👥</span>
+              <div>
+                <h3 className="font-semibold text-foreground">Experienced team</h3>
+                <p className="text-sm text-muted-foreground">
+                  Our team is experienced with chain completions and understands the pressures involved.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">📞</span>
+              <div>
+                <h3 className="font-semibold text-foreground">Close communication</h3>
+                <p className="text-sm text-muted-foreground">
+                  We'll stay in close contact throughout the day to coordinate timing with solicitors and estate agents.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Navigation Buttons */}
+        <NavigationButtons
+          onPrevious={handleBackFromInfo}
+          onNext={handleContinueFromInfo}
+          nextLabel="Continue"
+        />
+      </div>
+    );
+  }
+
+  // Page 1: Question
   return (
     <div className="space-y-6">
       {/* Heading */}
@@ -48,12 +143,12 @@ export function Step7PropertyChain() {
         </p>
       </div>
 
-      {/* Options */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Options - 2 cols on mobile */}
+      <div className="grid gap-4 grid-cols-2">
         {/* Yes */}
         <Card
           className={cn(
-            'p-6 cursor-pointer transition-all',
+            'p-4 cursor-pointer transition-all',
             'hover:border-primary/50 hover:-translate-y-1',
             isChain === true && 'border-primary bg-primary/5 ring-2 ring-primary'
           )}
@@ -68,23 +163,29 @@ export function Step7PropertyChain() {
           }}
         >
           <div className="text-center space-y-3">
-            {/* Icon */}
-            <div className="text-4xl">🔗</div>
+            {/* Image */}
+            <div className="flex justify-center">
+              <img
+                src="/images/calculator/chain-yes.svg"
+                alt="Property chain"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+              />
+            </div>
 
             {/* Label */}
-            <h3 className="font-semibold text-lg text-foreground">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">
               Yes, I'm in a chain
             </h3>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground">
-              Multiple completions on the same day - timing is critical
+            {/* Description - hidden on mobile */}
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Multiple completions on the same day
             </p>
 
             {/* Selected indicator */}
             {isChain === true && (
               <div className="flex justify-center">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                   ✓
                 </span>
               </div>
@@ -95,7 +196,7 @@ export function Step7PropertyChain() {
         {/* No */}
         <Card
           className={cn(
-            'p-6 cursor-pointer transition-all',
+            'p-4 cursor-pointer transition-all',
             'hover:border-primary/50 hover:-translate-y-1',
             isChain === false && 'border-primary bg-primary/5 ring-2 ring-primary'
           )}
@@ -110,23 +211,29 @@ export function Step7PropertyChain() {
           }}
         >
           <div className="text-center space-y-3">
-            {/* Icon */}
-            <div className="text-4xl">✓</div>
+            {/* Image */}
+            <div className="flex justify-center">
+              <img
+                src="/images/calculator/chain-no.svg"
+                alt="Independent move"
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+              />
+            </div>
 
             {/* Label */}
-            <h3 className="font-semibold text-lg text-foreground">
-              No, my move is independent
+            <h3 className="font-semibold text-sm sm:text-base text-foreground">
+              No, independent
             </h3>
 
-            {/* Description */}
-            <p className="text-sm text-muted-foreground">
-              No other transactions depend on my move
+            {/* Description - hidden on mobile */}
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              No other transactions depend on mine
             </p>
 
             {/* Selected indicator */}
             {isChain === false && (
               <div className="flex justify-center">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                   ✓
                 </span>
               </div>
@@ -134,17 +241,6 @@ export function Step7PropertyChain() {
           </div>
         </Card>
       </div>
-
-      {/* Chain info */}
-      {isChain === true && (
-        <Alert>
-          <AlertDescription>
-            <strong>Property chain moves</strong>
-            <br />
-            We'll reserve a full day for your move to ensure we can accommodate any delays in the chain. Our team is experienced with chain completions and will stay in close contact throughout the day.
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Not sure helper */}
       <div className="text-center">
@@ -169,15 +265,13 @@ export function Step7PropertyChain() {
         </Card>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={isChain === null}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={() => {}}
+        canGoNext={false}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

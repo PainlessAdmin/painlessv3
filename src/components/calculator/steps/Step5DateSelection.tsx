@@ -9,17 +9,18 @@
  * Shows date picker for fixed/flexible options.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   setDate,
   nextStep,
+  prevStep,
   type DateFlexibility,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +57,7 @@ const flexibilityOptions: Array<{
 
 export function Step5DateSelection() {
   const state = useStore(calculatorStore);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [flexibility, setFlexibility] = useState<DateFlexibility | null>(
     state.dateFlexibility
@@ -64,6 +66,15 @@ export function Step5DateSelection() {
     state.selectedDate ? new Date(state.selectedDate) : undefined
   );
   const [showCalendar, setShowCalendar] = useState(false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Get minimum date (tomorrow)
   const minDate = new Date();
@@ -75,12 +86,25 @@ export function Step5DateSelection() {
   maxDate.setFullYear(maxDate.getFullYear() + 1);
 
   const handleFlexibilitySelect = (option: DateFlexibility) => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setFlexibility(option);
 
     if (option === 'unknown') {
-      // No date needed, can continue
+      // No date needed, auto-next
       setShowCalendar(false);
       setSelectedDate(undefined);
+
+      // Auto-navigate after short delay
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigationTimeoutRef.current = null;
+        setDate('unknown', undefined);
+        nextStep();
+      }, 400);
     } else {
       // Show calendar for fixed/flexible
       setShowCalendar(true);
@@ -129,14 +153,14 @@ export function Step5DateSelection() {
         </p>
       </div>
 
-      {/* Flexibility Options */}
-      <div className="space-y-3">
+      {/* Flexibility Options - 3 columns on desktop */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {flexibilityOptions.map((option) => (
           <Card
             key={option.value}
             className={cn(
               'p-4 cursor-pointer transition-all',
-              'hover:border-primary/50',
+              'hover:border-primary/50 hover:-translate-y-1',
               flexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
             )}
             onClick={() => handleFlexibilitySelect(option.value)}
@@ -149,36 +173,35 @@ export function Step5DateSelection() {
               }
             }}
           >
-            <div className="flex items-start gap-4">
-              {/* Radio indicator */}
-              <div className={cn(
-                'mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2',
-                flexibility === option.value
-                  ? 'border-primary bg-primary'
-                  : 'border-muted-foreground'
-              )}>
-                {flexibility === option.value && (
-                  <span className="text-primary-foreground text-xs">✓</span>
-                )}
-              </div>
+            <div className="flex flex-col items-center text-center space-y-3">
+              {/* Icon */}
+              <span className="text-4xl">{option.icon}</span>
 
-              {/* Content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{option.icon}</span>
-                  <span className="font-medium text-foreground">{option.label}</span>
+              {/* Label */}
+              <h3 className="font-semibold text-sm sm:text-base text-foreground">
+                {option.label}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs text-muted-foreground">
+                {option.description}
+              </p>
+
+              {/* Selected indicator */}
+              {flexibility === option.value && (
+                <div className="flex justify-center">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                    ✓
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {option.description}
-                </p>
+              )}
 
-                {/* Flexible date tip */}
-                {option.value === 'flexible' && flexibility === 'flexible' && (
-                  <div className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                    Flexible dates often mean better prices!
-                  </div>
-                )}
-              </div>
+              {/* Flexible date tip */}
+              {option.value === 'flexible' && flexibility === 'flexible' && (
+                <div className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                  Better prices!
+                </div>
+              )}
             </div>
           </Card>
         ))}
@@ -243,15 +266,13 @@ export function Step5DateSelection() {
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!canContinue}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        canGoNext={!!canContinue}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

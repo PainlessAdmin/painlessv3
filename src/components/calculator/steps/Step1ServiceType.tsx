@@ -4,6 +4,7 @@
  * User selects: Home Removal | Office Removal | Clearance Service
  */
 
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -12,40 +13,58 @@ import {
   type ServiceType
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
-// Service options with icons and descriptions
+// Service options with images and descriptions
 const serviceOptions: Array<{
   value: ServiceType;
   label: string;
   description: string;
-  icon: string;
+  image: string;
 }> = [
   {
     value: 'home',
     label: 'Home Removal',
     description: 'Moving house? We handle everything from studios to 5+ bed homes.',
-    icon: '🏠',
+    image: '/images/calculator/home-removal.svg',
   },
   {
     value: 'office',
     label: 'Office Removal',
     description: 'Relocating your business? Minimal downtime, maximum care.',
-    icon: '🏢',
+    image: '/images/calculator/office-removal.svg',
   },
   {
     value: 'clearance',
     label: 'Clearance Service',
     description: 'House clearance, rubbish removal, or end of tenancy clear-outs.',
-    icon: '🗑️',
+    image: '/images/calculator/clearance.svg',
   },
 ];
 
 export function Step1ServiceType() {
   const state = useStore(calculatorStore);
-  const selectedType = state.serviceType;
+  const [selectedType, setSelectedTypeLocal] = useState<ServiceType | null>(state.serviceType);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (type: ServiceType) => {
+    // Clear any pending navigation timeout
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
+    setSelectedTypeLocal(type);
     setServiceType(type);
 
     // Clearance redirects to separate calculator
@@ -54,7 +73,21 @@ export function Step1ServiceType() {
       return;
     }
 
-    // Otherwise proceed to next step
+    // Auto-next after selection
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
+      nextStep();
+    }, 300);
+  };
+
+  const handleNext = () => {
+    if (!selectedType) return;
+
+    if (selectedType === 'clearance') {
+      window.location.href = '/clearance-calculator';
+      return;
+    }
+
     nextStep();
   };
 
@@ -70,8 +103,8 @@ export function Step1ServiceType() {
         </p>
       </div>
 
-      {/* Service Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Service Cards - 2 columns on mobile, 3 on desktop */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
         {serviceOptions.map((option) => (
           <ServiceCard
             key={option.value}
@@ -83,17 +116,24 @@ export function Step1ServiceType() {
       </div>
 
       {/* Trust badges */}
-      <div className="flex flex-wrap justify-center gap-4 pt-4 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span>✓</span> Free quote
+      <div className="flex flex-wrap justify-center gap-6 pt-2 text-sm font-medium">
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> Free quote
         </span>
-        <span className="flex items-center gap-1">
-          <span>✓</span> No obligation
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> No obligation
         </span>
-        <span className="flex items-center gap-1">
-          <span>✓</span> Takes 2 minutes
+        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
+          <span className="text-base">✓</span> Takes 2 minutes
         </span>
       </div>
+
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onNext={handleNext}
+        canGoNext={!!selectedType}
+        nextLabel="Continue"
+      />
     </div>
   );
 }
@@ -107,7 +147,7 @@ interface ServiceCardProps {
     value: ServiceType;
     label: string;
     description: string;
-    icon: string;
+    image: string;
   };
   isSelected: boolean;
   onSelect: () => void;
@@ -117,7 +157,7 @@ function ServiceCard({ option, isSelected, onSelect }: ServiceCardProps) {
   return (
     <Card
       className={cn(
-        'relative cursor-pointer p-6 transition-all duration-200',
+        'relative cursor-pointer p-4 transition-all duration-200',
         'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
@@ -135,23 +175,29 @@ function ServiceCard({ option, isSelected, onSelect }: ServiceCardProps) {
     >
       {/* Selected indicator */}
       {isSelected && (
-        <div className="absolute top-3 right-3">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm">
+        <div className="absolute top-2 right-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
             ✓
           </span>
         </div>
       )}
 
-      {/* Icon */}
-      <div className="text-4xl mb-4">{option.icon}</div>
+      {/* Image */}
+      <div className="flex justify-center mb-3">
+        <img
+          src={option.image}
+          alt={option.label}
+          className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+        />
+      </div>
 
       {/* Label */}
-      <h3 className="font-semibold text-lg text-foreground">
+      <h3 className="font-semibold text-sm sm:text-base text-foreground text-center">
         {option.label}
       </h3>
 
-      {/* Description */}
-      <p className="text-sm text-muted-foreground mt-2">
+      {/* Description - hidden on mobile */}
+      <p className="text-xs text-muted-foreground mt-1 text-center hidden sm:block">
         {option.description}
       </p>
     </Card>

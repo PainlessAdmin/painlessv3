@@ -15,13 +15,15 @@ import {
   setToAddress,
   setDistances,
   nextStep,
+  prevStep,
   type AddressData,
   type DistanceData,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
@@ -83,7 +85,7 @@ export function Step9ToAddress() {
 
     autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
       componentRestrictions: { country: 'gb' },
-      types: ['address'],
+      types: ['geocode'], // Allows addresses, postcodes, and places
       fields: ['formatted_address', 'geometry', 'address_components'],
     });
 
@@ -121,6 +123,9 @@ export function Step9ToAddress() {
     };
   }, [useManualEntry, googleLoaded]);
 
+  // Store pending route result to display after map initializes
+  const pendingRouteRef = useRef<google.maps.DirectionsResult | null>(null);
+
   // Initialize map when we have both addresses
   useEffect(() => {
     if (!mapRef.current || !state.fromAddress || !address || !googleLoaded) return;
@@ -141,6 +146,15 @@ export function Step9ToAddress() {
           strokeWeight: 4,
         },
       });
+
+      // If we have a pending route, display it now
+      if (pendingRouteRef.current && directionsRendererRef.current) {
+        directionsRendererRef.current.setDirections(pendingRouteRef.current);
+        if (mapInstanceRef.current && pendingRouteRef.current.routes[0]?.bounds) {
+          mapInstanceRef.current.fitBounds(pendingRouteRef.current.routes[0].bounds);
+        }
+        pendingRouteRef.current = null;
+      }
     }
   }, [state.fromAddress, address, googleLoaded]);
 
@@ -170,11 +184,16 @@ export function Step9ToAddress() {
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
-      // Display route on map
-      if (routeResult.routes[0]?.legs[0] && directionsRendererRef.current) {
-        directionsRendererRef.current.setDirections(routeResult);
-        if (mapInstanceRef.current && routeResult.routes[0].bounds) {
-          mapInstanceRef.current.fitBounds(routeResult.routes[0].bounds);
+      // Display route on map (or store for later if map not ready)
+      if (routeResult.routes[0]?.legs[0]) {
+        if (directionsRendererRef.current && mapInstanceRef.current) {
+          directionsRendererRef.current.setDirections(routeResult);
+          if (routeResult.routes[0].bounds) {
+            mapInstanceRef.current.fitBounds(routeResult.routes[0].bounds);
+          }
+        } else {
+          // Map not ready yet, store route for later
+          pendingRouteRef.current = routeResult;
         }
       }
 
@@ -240,7 +259,7 @@ export function Step9ToAddress() {
     const city = formData.get('city') as string;
     const postcode = formData.get('postcode') as string;
 
-    if (!line1 || !city || !postcode) {
+    if (!line1 || !city) {
       setError('Please fill in all required fields');
       return;
     }
@@ -280,11 +299,6 @@ export function Step9ToAddress() {
   const handleContinue = () => {
     if (!address) {
       setError('Please enter your destination address');
-      return;
-    }
-
-    if (!address.postcode) {
-      setError('Please enter a complete address with postcode');
       return;
     }
 
@@ -437,9 +451,10 @@ export function Step9ToAddress() {
       {address && state.fromAddress && (
         <Card className="overflow-hidden">
           {/* Map */}
-          <div ref={mapRef} className="w-full h-[250px] bg-muted">
+          <div className="relative w-full h-[300px]">
+            <div ref={mapRef} className="absolute inset-0 w-full h-full" style={{ minHeight: '300px' }} />
             {isCalculatingRoute && (
-              <div className="flex items-center justify-center h-full">
+              <div className="absolute inset-0 flex items-center justify-center bg-muted/80 z-10">
                 <Spinner className="h-8 w-8" />
                 <span className="ml-2 text-muted-foreground">Calculating route...</span>
               </div>
@@ -525,15 +540,13 @@ export function Step9ToAddress() {
         </Alert>
       )}
 
-      {/* Continue Button */}
-      <Button
-        onClick={handleContinue}
-        className="w-full"
-        size="lg"
-        disabled={!address || isCalculatingRoute}
-      >
-        Continue
-      </Button>
+      {/* Navigation Buttons */}
+      <NavigationButtons
+        onPrevious={prevStep}
+        onNext={handleContinue}
+        canGoNext={!!address && !isCalculatingRoute}
+        nextLabel="Continue"
+      />
     </div>
   );
 }

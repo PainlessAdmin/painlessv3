@@ -1,12 +1,12 @@
 ---
 /**
  * CALCULATOR LAYOUT
- * 
+ *
  * Main layout wrapper for calculator pages
  */
 
 import '@/styles/global.css';
-import ProgressBarComponent from './progress-bar.astro';
+import { ProgressBarReact } from './ProgressBarReact';
 
 interface Props {
   title?: string;
@@ -19,6 +19,13 @@ const {
   description = 'Get your custom quote',
   currentStep = 1,
 } = Astro.props;
+
+// Google Maps API key for address autocomplete
+// Try Cloudflare runtime env first (SSR), then fallback to build-time env
+const runtime = Astro.locals?.runtime;
+const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
+  || import.meta.env.GOOGLE_MAPS_API_KEY
+  || '';
 ---
 
 <!doctype html>
@@ -29,44 +36,22 @@ const {
     <meta name="description" content={description} />
     <title>{title} | Calculator Boilerplate</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  </head>
-  <body class="min-h-screen bg-background antialiased">
-    <!-- Header -->
-    <header class="border-b">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <a href="/" class="text-xl font-bold text-primary">
-            Calculator Boilerplate
-          </a>
-          <nav class="hidden md:flex items-center gap-6">
-            <a
-              href="/#features"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="/#pricing"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </a>
-            <a
-              href="/#contact"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contact
-            </a>
-          </nav>
-        </div>
-      </div>
-    </header>
 
+    {/* Google Maps API for address autocomplete */}
+    {googleMapsApiKey && (
+      <script
+        async
+        defer
+        src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
+      />
+    )}
+  </head>
+  <body class="min-h-screen bg-background antialiased flex flex-col">
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-6 flex-1">
       <!-- Progress Bar -->
-      <div class="max-w-4xl mx-auto mb-8">
-        <ProgressBarComponent currentStep={currentStep} />
+      <div class="max-w-4xl mx-auto mb-6">
+        <ProgressBarReact client:load currentStep={currentStep} />
       </div>
 
       <!-- Calculator Content -->
@@ -76,8 +61,8 @@ const {
     </main>
 
     <!-- Footer -->
-    <footer class="border-t mt-16">
-      <div class="container mx-auto px-4 py-8">
+    <footer class="border-t mt-auto">
+      <div class="container mx-auto px-4 py-6">
         <div class="text-center text-sm text-muted-foreground">
           <p>&copy; 2024 Calculator Boilerplate. All rights reserved.</p>
         </div>

@@ -167,6 +167,7 @@ export const CALCULATOR_CONFIG = {
     largeFragile: { factor: 1.07, label: 'Large or fragile items' },
     stairs: { factor: 1.07, label: 'Stairs without elevator' },
     restrictedAccess: { factor: 1.07, label: 'Limited/restricted access' },
+    attic: { factor: 1.07, label: 'Items in attic' },
     plants: { addVans: 1, addMen: 1, label: 'Large collection of plants (20+)' },
   },
 

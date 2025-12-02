@@ -31,6 +31,7 @@
     "@libsql/client": "^0.15.15",
     "@nanostores/react": "^0.7.0",
     "@noble/hashes": "^2.0.1",
+    "@sentry/astro": "^10.28.0",
     "astro": "^4.15.0",
     "clsx": "^2.1.0",
     "drizzle-orm": "^0.44.7",

@@ -100,7 +100,7 @@ export interface CalculatorState {
   selectedDate: string | null; // ISO string
 
   // Step 6: Complications
-  complications: Complication[];
+  complications: Complication[] | null;
 
   // Step 7: Property Chain
   propertyChain: boolean | null;
@@ -147,7 +147,7 @@ const initialState: CalculatorState = {
   dateFlexibility: null,
   selectedDate: null,
 
-  complications: [],
+  complications: null,
   propertyChain: null,
 
   fromAddress: null,
@@ -189,11 +189,45 @@ export const calculatorStore = map<CalculatorState>(initialState);
 // ===================
 
 /**
- * Current step progress percentage
+ * Get the steps that apply to the current flow
+ * Furniture/Single item flow skips: Plan (4), Access (6), Chain (7), Extras (10)
+ * Office flow skips: Items (3)
+ * Studio skips: Items (3)
+ */
+export const applicableSteps = computed(calculatorStore, (state): number[] => {
+  const isFurniture = state.propertySize === 'furniture';
+  const isOffice = state.serviceType === 'office';
+  const isStudio = state.propertySize === 'studio';
+
+  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+  // Furniture flow: 1, 2, 5, 8, 9, 11, 12 (skip 3, 4, 6, 7, 10)
+  // Office flow: 1, 2, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3, 4)
+  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3)
+
+  if (isFurniture) {
+    return [1, 2, 5, 8, 9, 11, 12];
+  }
+
+  if (isOffice) {
+    return [1, 2, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+
+  if (isStudio) {
+    return [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  }
+
+  // Full home flow
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+});
+
+/**
+ * Current step progress percentage based on applicable steps
  */
 export const progressPercent = computed(calculatorStore, (state) => {
-  const totalSteps = 12;
-  return Math.round((state.currentStep / totalSteps) * 100);
+  const steps = applicableSteps.get();
+  const currentIndex = steps.indexOf(state.currentStep);
+  if (currentIndex === -1) return 0;
+  return Math.round(((currentIndex + 1) / steps.length) * 100);
 });
 
 /**
@@ -392,34 +426,57 @@ export function clearState() {
 }
 
 /**
- * Go to next step
+ * Navigate to a step URL
  */
-export function nextStep() {
-  const current = calculatorStore.get().currentStep;
-  if (current < 12) {
-    calculatorStore.setKey('currentStep', current + 1);
-    saveState();
+function navigateToStep(step: number) {
+  if (typeof window !== 'undefined') {
+    const stepId = step.toString().padStart(2, '0');
+    window.location.href = `/calculator/step-${stepId}`;
   }
 }
 
 /**
- * Go to previous step
+ * Go to next step in the flow (respects applicable steps)
+ */
+export function nextStep() {
+  const current = calculatorStore.get().currentStep;
+  const steps = applicableSteps.get();
+  const currentIndex = steps.indexOf(current);
+
+  if (currentIndex >= 0 && currentIndex < steps.length - 1) {
+    const nextStepNum = steps[currentIndex + 1];
+    calculatorStore.setKey('currentStep', nextStepNum);
+    saveState();
+    navigateToStep(nextStepNum);
+  }
+}
+
+/**
+ * Go to previous step in the flow (respects applicable steps)
  */
 export function prevStep() {
   const current = calculatorStore.get().currentStep;
-  if (current > 1) {
-    calculatorStore.setKey('currentStep', current - 1);
+  const steps = applicableSteps.get();
+  const currentIndex = steps.indexOf(current);
+
+  if (currentIndex > 0) {
+    const prevStepNum = steps[currentIndex - 1];
+    calculatorStore.setKey('currentStep', prevStepNum);
     saveState();
+    navigateToStep(prevStepNum);
   }
 }
 
 /**
  * Go to specific step
  */
-export function goToStep(step: number) {
+export function goToStep(step: number, navigate: boolean = true) {
   if (step >= 1 && step <= 12) {
     calculatorStore.setKey('currentStep', step);
     saveState();
+    if (navigate) {
+      navigateToStep(step);
+    }
   }
 }
 
@@ -510,7 +567,7 @@ export function setComplications(complications: Complication[]) {
  * Toggle complication
  */
 export function toggleComplication(complication: Complication) {
-  const current = calculatorStore.get().complications;
+  const current = calculatorStore.get().complications || [];
   const index = current.indexOf(complication);
 
   if (index === -1) {

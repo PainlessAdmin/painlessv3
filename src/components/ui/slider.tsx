@@ -26,43 +26,46 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     };
 
     return (
-      <div className={cn('relative flex w-full touch-none select-none items-center', className)}>
-        {/* Track background */}
-        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
-          {/* Filled track */}
-          <div
-            className="absolute h-full bg-primary"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-
-        {/* Native range input (for accessibility) */}
+      <div className={cn('relative flex w-full items-center h-10', className)}>
+        {/* Native range input - positioned first for proper layering */}
         <input
           type="range"
           ref={ref}
           value={currentValue}
           onChange={handleChange}
+          onInput={(e) => {
+            const target = e.target as HTMLInputElement;
+            onValueChange?.([parseFloat(target.value)]);
+          }}
           min={min}
           max={max}
           step={step}
-          className={cn(
-            'absolute w-full h-2 opacity-0 cursor-pointer',
-            'focus-visible:outline-none'
-          )}
+          className="absolute inset-0 w-full h-full cursor-pointer z-30"
+          style={{
+            opacity: 0,
+            WebkitAppearance: 'none',
+            appearance: 'none',
+          }}
           {...props}
         />
 
-        {/* Thumb */}
+        {/* Track background */}
+        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary pointer-events-none">
+          {/* Filled track */}
+          <div
+            className="absolute h-full bg-primary transition-all duration-75"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+
+        {/* Thumb (visual only) */}
         <div
           className={cn(
-            'absolute h-5 w-5 rounded-full border-2 border-primary bg-background',
-            'ring-offset-background transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            'disabled:pointer-events-none disabled:opacity-50',
-            'shadow-md'
+            'absolute h-6 w-6 rounded-full border-2 border-primary bg-background',
+            'shadow-md pointer-events-none transition-all duration-75'
           )}
           style={{
-            left: `calc(${percentage}% - 10px)`,
+            left: `calc(${percentage}% - 12px)`,
           }}
         />
       </div>
