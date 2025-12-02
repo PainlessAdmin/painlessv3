@@ -74,8 +74,9 @@ export function Step6Complications() {
   const [selected, setSelected] = useState<Complication[]>(
     state.complications || []
   );
+  // Only show "None" as selected if explicitly saved as empty array (not null/undefined)
   const [noneSelected, setNoneSelected] = useState(
-    state.complications?.length === 0
+    state.complications !== null && state.complications !== undefined && state.complications.length === 0
   );
 
   // Cleanup timeout on unmount

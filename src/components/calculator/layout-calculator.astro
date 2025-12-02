@@ -21,7 +21,11 @@ const {
 } = Astro.props;
 
 // Google Maps API key for address autocomplete
-const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY || '';
+// Try Cloudflare runtime env first (SSR), then fallback to build-time env
+const runtime = Astro.locals?.runtime;
+const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
+  || import.meta.env.GOOGLE_MAPS_API_KEY
+  || '';
 ---
 
 <!doctype html>
@@ -43,37 +47,6 @@ const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY || '';
     )}
   </head>
   <body class="min-h-screen bg-background antialiased">
-    <!-- Header -->
-    <header class="border-b">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <a href="/" class="text-xl font-bold" style="color: #035349;">
-            Calculator Boilerplate
-          </a>
-          <nav class="hidden md:flex items-center gap-6">
-            <a
-              href="/#features"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="/#pricing"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pricing
-            </a>
-            <a
-              href="/#contact"
-              class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contact
-            </a>
-          </nav>
-        </div>
-      </div>
-    </header>
-
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-6">
       <!-- Progress Bar -->

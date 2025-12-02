@@ -9,7 +9,7 @@
  * Shows date picker for fixed/flexible options.
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -57,6 +57,7 @@ const flexibilityOptions: Array<{
 
 export function Step5DateSelection() {
   const state = useStore(calculatorStore);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [flexibility, setFlexibility] = useState<DateFlexibility | null>(
     state.dateFlexibility
@@ -65,6 +66,15 @@ export function Step5DateSelection() {
     state.selectedDate ? new Date(state.selectedDate) : undefined
   );
   const [showCalendar, setShowCalendar] = useState(false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Get minimum date (tomorrow)
   const minDate = new Date();
@@ -76,12 +86,25 @@ export function Step5DateSelection() {
   maxDate.setFullYear(maxDate.getFullYear() + 1);
 
   const handleFlexibilitySelect = (option: DateFlexibility) => {
+    // Clear any pending navigation
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = null;
+    }
+
     setFlexibility(option);
 
     if (option === 'unknown') {
-      // No date needed, can continue
+      // No date needed, auto-next
       setShowCalendar(false);
       setSelectedDate(undefined);
+
+      // Auto-navigate after short delay
+      navigationTimeoutRef.current = setTimeout(() => {
+        navigationTimeoutRef.current = null;
+        setDate('unknown', undefined);
+        nextStep();
+      }, 400);
     } else {
       // Show calendar for fixed/flexible
       setShowCalendar(true);

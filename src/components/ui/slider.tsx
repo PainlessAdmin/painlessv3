@@ -26,12 +26,12 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     };
 
     return (
-      <div className={cn('relative flex w-full touch-none select-none items-center h-5', className)}>
+      <div className={cn('relative flex w-full select-none items-center h-8', className)}>
         {/* Track background */}
         <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary pointer-events-none">
           {/* Filled track */}
           <div
-            className="absolute h-full bg-primary transition-all"
+            className="absolute h-full bg-primary"
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -39,12 +39,12 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         {/* Thumb (visual only) */}
         <div
           className={cn(
-            'absolute h-5 w-5 rounded-full border-2 border-primary bg-background',
-            'ring-offset-background transition-all',
+            'absolute h-6 w-6 rounded-full border-2 border-primary bg-background',
+            'ring-offset-background',
             'shadow-md pointer-events-none'
           )}
           style={{
-            left: `calc(${percentage}% - 10px)`,
+            left: `calc(${percentage}% - 12px)`,
           }}
         />
 
@@ -57,7 +57,8 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
           min={min}
           max={max}
           step={step}
-          className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+          className="absolute w-full h-full opacity-0 cursor-pointer z-20"
+          style={{ touchAction: 'none' }}
           {...props}
         />
       </div>
