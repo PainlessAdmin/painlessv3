@@ -82,7 +82,7 @@ export function Step8FromAddress() {
     // Create autocomplete instance
     autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
       componentRestrictions: { country: 'gb' },
-      types: ['address'],
+      types: ['geocode'], // Allows addresses, postcodes, and places
       fields: ['formatted_address', 'geometry', 'address_components'],
     });
 
