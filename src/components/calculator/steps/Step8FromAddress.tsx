@@ -38,6 +38,7 @@ export function Step8FromAddress() {
   const [error, setError] = useState<string | null>(null);
   const [useManualEntry, setUseManualEntry] = useState(false);
   const [googleLoaded, setGoogleLoaded] = useState(false);
+  const [accuracyWarning, setAccuracyWarning] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -110,6 +111,7 @@ export function Step8FromAddress() {
       setAddress(addressData);
       setInputValue(place.formatted_address);
       setError(null);
+      setAccuracyWarning(null); // Clear accuracy warning when selecting from autocomplete
     });
 
     // Cleanup
@@ -134,16 +136,29 @@ export function Step8FromAddress() {
 
     setIsLoading(true);
     setError(null);
+    setAccuracyWarning(null);
 
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
+          maximumAge: 0, // Don't use cached position
         });
       });
 
-      const { latitude, longitude } = position.coords;
+      const { latitude, longitude, accuracy } = position.coords;
+
+      // Warn if accuracy is poor (> 1km - common on desktop without GPS)
+      if (accuracy > 1000) {
+        setAccuracyWarning(
+          `Location accuracy is ${Math.round(accuracy / 1000)}km. Please verify your address or enter it manually for accurate pricing.`
+        );
+      } else if (accuracy > 500) {
+        setAccuracyWarning(
+          `Location accuracy is ${Math.round(accuracy)}m. Please verify your address is correct.`
+        );
+      }
 
       // Reverse geocode to get address
       const geocoder = new google.maps.Geocoder();
@@ -194,6 +209,7 @@ export function Step8FromAddress() {
   const handleManualEntryToggle = () => {
     setUseManualEntry(!useManualEntry);
     setError(null);
+    setAccuracyWarning(null);
   };
 
   // Handle continue
@@ -290,6 +306,23 @@ export function Step8FromAddress() {
                     Postcode: {address.postcode}
                   </p>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Accuracy Warning */}
+          {accuracyWarning && (
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <span className="text-amber-600 mt-0.5">⚠️</span>
+              <div className="flex-1">
+                <p className="text-sm text-amber-800">{accuracyWarning}</p>
+                <button
+                  type="button"
+                  className="text-xs text-amber-700 hover:text-amber-900 underline mt-1"
+                  onClick={handleManualEntryToggle}
+                >
+                  Enter address manually instead
+                </button>
               </div>
             </div>
           )}
