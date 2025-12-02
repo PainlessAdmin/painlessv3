@@ -100,7 +100,7 @@ export interface CalculatorState {
   selectedDate: string | null; // ISO string
 
   // Step 6: Complications
-  complications: Complication[];
+  complications: Complication[] | null;
 
   // Step 7: Property Chain
   propertyChain: boolean | null;
@@ -147,7 +147,7 @@ const initialState: CalculatorState = {
   dateFlexibility: null,
   selectedDate: null,
 
-  complications: [],
+  complications: null,
   propertyChain: null,
 
   fromAddress: null,
@@ -567,7 +567,7 @@ export function setComplications(complications: Complication[]) {
  * Toggle complication
  */
 export function toggleComplication(complication: Complication) {
-  const current = calculatorStore.get().complications;
+  const current = calculatorStore.get().complications || [];
   const index = current.indexOf(complication);
 
   if (index === -1) {
