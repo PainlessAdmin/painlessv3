@@ -113,41 +113,53 @@ export function Step3BelongingsSlider() {
 
       {/* Slider Control */}
       <div className="px-2">
-        {/* Custom 5-position slider */}
-        <div className="relative">
+        {/* Draggable slider with 5 positions */}
+        <div className="relative h-10">
+          {/* Hidden range input for drag support */}
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={position}
+            onChange={(e) => handlePositionChange(parseInt(e.target.value) as SliderPosition)}
+            onInput={(e) => handlePositionChange(parseInt((e.target as HTMLInputElement).value) as SliderPosition)}
+            className="absolute inset-0 w-full h-full cursor-pointer z-20"
+            style={{
+              opacity: 0,
+              WebkitAppearance: 'none',
+              appearance: 'none',
+            }}
+          />
+
           {/* Track */}
-          <div className="h-2 bg-muted rounded-full">
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-2 bg-muted rounded-full pointer-events-none">
             {/* Filled portion */}
             <div
-              className="h-full bg-primary rounded-full transition-all duration-200"
+              className="h-full bg-primary rounded-full transition-all duration-150"
               style={{ width: `${((position - 1) / 4) * 100}%` }}
             />
           </div>
 
-          {/* Clickable positions */}
-          <div className="absolute inset-0 flex justify-between items-center">
+          {/* Position markers (visual only) */}
+          <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none">
             {([1, 2, 3, 4, 5] as SliderPosition[]).map((pos) => (
-              <button
+              <div
                 key={pos}
-                type="button"
-                onClick={() => handlePositionChange(pos)}
                 className={cn(
-                  'relative w-6 h-6 rounded-full transition-all duration-200',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                  'w-6 h-6 rounded-full transition-all duration-150',
                   pos <= position
                     ? 'bg-primary'
                     : 'bg-muted-foreground/30',
                   pos === position && 'ring-4 ring-primary/30 scale-125'
                 )}
-                aria-label={sliderDetails[pos].label}
-                aria-pressed={pos === position}
               >
                 {pos === position && (
-                  <span className="absolute inset-0 flex items-center justify-center text-primary-foreground text-xs font-bold">
+                  <span className="flex items-center justify-center h-full text-primary-foreground text-xs font-bold">
                     {pos}
                   </span>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         </div>
