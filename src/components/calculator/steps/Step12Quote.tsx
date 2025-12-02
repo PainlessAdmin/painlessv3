@@ -19,6 +19,7 @@ import {
   calculatorStore,
   quoteResult,
   requiresCallback,
+  finalResources,
   getSubmissionData,
   prevStep,
 } from '@/lib/calculator-store';
@@ -127,7 +128,16 @@ export function Step12Quote() {
   }
 
   // If no quote calculated - show error with option to go back
+  const resources = useStore(finalResources);
+
   if (!quote) {
+    const missingItems = [];
+    if (!state.fromAddress) missingItems.push('Moving from address not set');
+    if (!state.toAddress) missingItems.push('Moving to address not set');
+    if (!state.distances) missingItems.push('Route distances not calculated');
+    if (!state.propertySize && !state.furnitureOnly) missingItems.push('Property size not selected');
+    if (!resources) missingItems.push('Unable to calculate resources - please check property details');
+
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
@@ -140,15 +150,16 @@ export function Step12Quote() {
           </p>
         </div>
 
-        <Card className="p-4">
-          <h3 className="font-medium text-foreground mb-2">Missing information:</h3>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            {!state.distances && <li>• Route distances not calculated</li>}
-            {!state.propertySize && !state.furnitureOnly && <li>• Property size not selected</li>}
-            {!state.fromAddress && <li>• Moving from address not set</li>}
-            {!state.toAddress && <li>• Moving to address not set</li>}
-          </ul>
-        </Card>
+        {missingItems.length > 0 && (
+          <Card className="p-4">
+            <h3 className="font-medium text-foreground mb-2">Missing information:</h3>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              {missingItems.map((item, i) => (
+                <li key={i}>• {item}</li>
+              ))}
+            </ul>
+          </Card>
+        )}
 
         <Button onClick={prevStep} className="w-full" size="lg">
           ← Go back and fix

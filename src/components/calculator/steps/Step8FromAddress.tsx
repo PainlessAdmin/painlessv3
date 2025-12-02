@@ -203,11 +203,6 @@ export function Step8FromAddress() {
       return;
     }
 
-    if (!address.postcode) {
-      setError('Please enter a complete address with postcode');
-      return;
-    }
-
     setFromAddress(address);
     nextStep();
   };
@@ -221,7 +216,7 @@ export function Step8FromAddress() {
     const city = formData.get('city') as string;
     const postcode = formData.get('postcode') as string;
 
-    if (!line1 || !city || !postcode) {
+    if (!line1 || !city) {
       setError('Please fill in all required fields');
       return;
     }

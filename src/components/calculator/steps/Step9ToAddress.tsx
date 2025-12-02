@@ -259,7 +259,7 @@ export function Step9ToAddress() {
     const city = formData.get('city') as string;
     const postcode = formData.get('postcode') as string;
 
-    if (!line1 || !city || !postcode) {
+    if (!line1 || !city) {
       setError('Please fill in all required fields');
       return;
     }
@@ -299,11 +299,6 @@ export function Step9ToAddress() {
   const handleContinue = () => {
     if (!address) {
       setError('Please enter your destination address');
-      return;
-    }
-
-    if (!address.postcode) {
-      setError('Please enter a complete address with postcode');
       return;
     }
 
