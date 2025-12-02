@@ -26,12 +26,34 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     };
 
     return (
-      <div className={cn('relative flex w-full select-none items-center h-8', className)}>
+      <div className={cn('relative flex w-full items-center h-10', className)}>
+        {/* Native range input - positioned first for proper layering */}
+        <input
+          type="range"
+          ref={ref}
+          value={currentValue}
+          onChange={handleChange}
+          onInput={(e) => {
+            const target = e.target as HTMLInputElement;
+            onValueChange?.([parseFloat(target.value)]);
+          }}
+          min={min}
+          max={max}
+          step={step}
+          className="absolute inset-0 w-full h-full cursor-pointer z-30"
+          style={{
+            opacity: 0,
+            WebkitAppearance: 'none',
+            appearance: 'none',
+          }}
+          {...props}
+        />
+
         {/* Track background */}
         <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary pointer-events-none">
           {/* Filled track */}
           <div
-            className="absolute h-full bg-primary"
+            className="absolute h-full bg-primary transition-all duration-75"
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -40,26 +62,11 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         <div
           className={cn(
             'absolute h-6 w-6 rounded-full border-2 border-primary bg-background',
-            'ring-offset-background',
-            'shadow-md pointer-events-none'
+            'shadow-md pointer-events-none transition-all duration-75'
           )}
           style={{
             left: `calc(${percentage}% - 12px)`,
           }}
-        />
-
-        {/* Native range input (interactive layer on top) */}
-        <input
-          type="range"
-          ref={ref}
-          value={currentValue}
-          onChange={handleChange}
-          min={min}
-          max={max}
-          step={step}
-          className="absolute w-full h-full opacity-0 cursor-pointer z-20"
-          style={{ touchAction: 'none' }}
-          {...props}
         />
       </div>
     );
