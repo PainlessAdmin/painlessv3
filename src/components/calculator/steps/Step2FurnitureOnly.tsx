@@ -117,9 +117,9 @@ export function Step2FurnitureOnly() {
 
     setFurnitureOnly(data);
 
-    // If specialist items → callback required, go to quote/callback step
+    // If specialist items → need contact details first for callback
     if (specialist.length > 0) {
-      goToStep(12);
+      goToStep(11);
       return;
     }
 
