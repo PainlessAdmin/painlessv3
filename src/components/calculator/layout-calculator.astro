@@ -46,9 +46,9 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
       />
     )}
   </head>
-  <body class="min-h-screen bg-background antialiased">
+  <body class="min-h-screen bg-background antialiased flex flex-col">
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
+    <main class="container mx-auto px-4 py-6 flex-1">
       <!-- Progress Bar -->
       <div class="max-w-4xl mx-auto mb-6">
         <ProgressBarReact client:load currentStep={currentStep} />
@@ -61,7 +61,7 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
     </main>
 
     <!-- Footer -->
-    <footer class="border-t mt-12">
+    <footer class="border-t mt-auto">
       <div class="container mx-auto px-4 py-6">
         <div class="text-center text-sm text-muted-foreground">
           <p>&copy; 2024 Calculator Boilerplate. All rights reserved.</p>
