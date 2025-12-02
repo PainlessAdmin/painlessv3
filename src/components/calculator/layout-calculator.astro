@@ -42,7 +42,7 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
       <script
         async
         defer
-        src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places`}
+        src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async`}
       />
     )}
   </head>
