@@ -49,7 +49,7 @@ export const saveQuoteSchema = z.object({
   data: z.record(z.unknown()),
   totalPrice: z.number().positive('Price must be positive'),
   breakdown: z.record(z.number()).optional(),
-  currency: currencySchema.default('HUF'),
+  currency: currencySchema.default('GBP'),
 
   // Contact info (optional)
   name: nameSchema.optional(),

@@ -40,41 +40,57 @@ export const POST: APIRoute = async (context) => {
 
   logger.info('API', 'Save quote request received');
 
-  // 1. Payload size check
+  // 1. Check runtime environment is available
+  const env = runtime?.env || import.meta.env;
+  if (!env) {
+    logger.error('API', 'Runtime environment not available', { errorId });
+    return createErrorResponse('Server configuration error', errorId, 500);
+  }
+
+  // 2. Payload size check
   const payloadOk = await checkPayloadSize(context);
   if (!payloadOk) {
     return createPayloadTooLargeResponse(errorId);
   }
 
-  // 2. Rate limit
+  // 3. Rate limit
   const rateLimitOk = await checkRateLimit(context);
   if (!rateLimitOk) {
     return createRateLimitResponse(errorId);
   }
 
   try {
-    // 3. Parse and validate
+    // 4. Parse and validate
     const body = await context.request.json();
     const validated = saveQuoteSchema.parse(body);
 
     logger.debug('API', 'Quote data validated');
 
-    // 4. Get runtime config
-    const runtimeConfig = getRuntimeConfig(runtime.env);
+    // 5. Get runtime config
+    const runtimeConfig = getRuntimeConfig(env);
 
-    // 5. Create DB client
+    // 6. Check database credentials
+    const dbUrl = env.TURSO_DATABASE_URL;
+    const dbToken = env.TURSO_AUTH_TOKEN;
+
+    if (!dbUrl || !dbToken) {
+      logger.error('API', 'Database credentials not configured', { errorId });
+      return createErrorResponse('Database not configured', errorId, 500);
+    }
+
+    // 7. Create DB client
     const db = createDbClient({
-      TURSO_DATABASE_URL: runtime.env.TURSO_DATABASE_URL,
-      TURSO_AUTH_TOKEN: runtime.env.TURSO_AUTH_TOKEN,
+      TURSO_DATABASE_URL: dbUrl,
+      TURSO_AUTH_TOKEN: dbToken,
     });
 
-    // 6. Generate fingerprint for duplicate prevention
+    // 8. Generate fingerprint for duplicate prevention
     const fingerprint = generateFingerprint({
       data: validated.data,
       totalPrice: validated.totalPrice,
     });
 
-    // 7. Check for duplicate
+    // 9. Check for duplicate
     const existing = await getQuoteByFingerprint(db, fingerprint);
 
     if (existing) {
@@ -100,23 +116,23 @@ export const POST: APIRoute = async (context) => {
       );
     }
 
-    // 8. Get and anonymize IP (GDPR)
+    // 10. Get and anonymize IP (GDPR)
     const rawIP = getIPFromRequest(context.request);
     const { raw: ipAddress, hash: ipAddressHash } = anonymizeIP(rawIP);
 
-    // 9. Get enrichment data
+    // 11. Get enrichment data
     const country = context.request.headers.get('CF-IPCountry');
     const userAgent = context.request.headers.get('User-Agent');
     const deviceInfo = getDeviceInfo(userAgent);
 
-    // 10. Extract UTM params from referrer or query
+    // 12. Extract UTM params from referrer or query
     const url = new URL(context.request.url);
     const utmSource = validated.utm_source || url.searchParams.get('utm_source') || undefined;
     const utmMedium = validated.utm_medium || url.searchParams.get('utm_medium') || undefined;
     const utmCampaign = validated.utm_campaign || url.searchParams.get('utm_campaign') || undefined;
     const gclid = validated.gclid || url.searchParams.get('gclid') || undefined;
 
-    // 11. Save to database
+    // 13. Save to database
     const quote = await createQuote(db, {
       schemaVersion: CONFIG.calculator.schemaVersion,
       fingerprint,
@@ -145,7 +161,7 @@ export const POST: APIRoute = async (context) => {
 
     logger.info('API', 'Quote saved', { quoteId: quote.id });
 
-    // 12. Send confirmation email (if email provided)
+    // 14. Send confirmation email (if email provided)
     if (validated.email) {
       try {
         const emailHtml = generateQuoteConfirmationEmail(
@@ -172,7 +188,7 @@ export const POST: APIRoute = async (context) => {
       }
     }
 
-    // 13. Send admin notification (optional)
+    // 15. Send admin notification (optional)
     if (CONFIG.calculator.emailSupport) {
       try {
         const adminEmailHtml = generateAdminNotificationEmail(
@@ -198,7 +214,7 @@ export const POST: APIRoute = async (context) => {
       }
     }
 
-    // 14. Return success
+    // 16. Return success
     return new Response(
       JSON.stringify({
         success: true,

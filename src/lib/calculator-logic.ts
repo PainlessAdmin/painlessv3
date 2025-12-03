@@ -433,10 +433,11 @@ export function getRecommendedPackingSize(cubes: number): PackingSize {
 }
 
 /**
- * Apply profit margin
+ * Apply profit margin (markup)
+ * Example: 65% margin means base cost of £100 becomes £165
  */
 export function applyMargin(baseCost: number): number {
-  return baseCost / (1 - CALCULATOR_CONFIG.profitMargin);
+  return baseCost * (1 + CALCULATOR_CONFIG.profitMargin);
 }
 
 /**
