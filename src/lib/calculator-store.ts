@@ -257,30 +257,45 @@ export const calculatedCubes = computed(calculatorStore, (state) => {
  * Recommended resources based on cubes
  */
 export const recommendedResources = computed(calculatorStore, (state) => {
-  // Furniture only
-  if (state.furnitureOnly) {
-    const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
-    return getResourcesForFurnitureOnly({
-      itemCount: state.furnitureOnly.itemCount,
-      needs2Person: state.furnitureOnly.needs2Person,
-      over40kg: state.furnitureOnly.over40kg,
-      hasSpecialist,
+  try {
+    // Furniture only
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      return getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    }
+
+    // Office
+    if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      return getResourcesFromCubes(cubes);
+    }
+
+    // Home - DEBUG
+    console.log('recommendedResources check:', {
+      propertySize: state.propertySize,
+      sliderPosition: state.sliderPosition,
+      condition: state.propertySize && state.propertySize !== 'furniture'
     });
-  }
 
-  // Office
-  if (state.serviceType === 'office' && state.officeSize) {
-    const cubes = getCubesForOffice(state.officeSize);
-    return getResourcesFromCubes(cubes);
-  }
+    if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      console.log('Calculated cubes:', cubes);
+      const resources = getResourcesFromCubes(cubes);
+      console.log('Calculated resources:', resources);
+      return resources;
+    }
 
-  // Home
-  if (state.propertySize && state.propertySize !== 'furniture') {
-    const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
-    return getResourcesFromCubes(cubes);
+    console.log('recommendedResources returning null - no conditions met');
+    return null;
+  } catch (e) {
+    console.error('Resource calculation error:', e);
+    return null;
   }
-
-  return null;
 });
 
 /**
