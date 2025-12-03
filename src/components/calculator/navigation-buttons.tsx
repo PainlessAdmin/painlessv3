@@ -13,6 +13,7 @@ interface NavigationButtonsProps {
   onNext?: () => void;
   canGoPrevious?: boolean;
   canGoNext?: boolean;
+  showNext?: boolean;
   isLastStep?: boolean;
   isLoading?: boolean;
   nextLabel?: string;
@@ -25,6 +26,7 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   onNext,
   canGoPrevious = true,
   canGoNext = true,
+  showNext = true,
   isLastStep = false,
   isLoading = false,
   nextLabel,
@@ -53,7 +55,7 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       {!onPrevious && <div />}
 
       {/* Next Button */}
-      {onNext && (
+      {showNext && onNext && (
         <Button
           type="button"
           onClick={onNext}

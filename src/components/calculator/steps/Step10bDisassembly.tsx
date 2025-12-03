@@ -5,7 +5,7 @@
  * disassembly and reassembly, with quantity inputs per category.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -16,7 +16,7 @@ import {
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG, type AssemblyComplexity } from '@/lib/calculator-config';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
+import { cn, formatPriceGBP } from '@/lib/utils';
 
 // Category configuration with images
 const CATEGORY_CONFIG: Record<AssemblyComplexity, {
@@ -45,15 +45,6 @@ const CATEGORY_CONFIG: Record<AssemblyComplexity, {
   },
 };
 
-// Format currency
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',
-    minimumFractionDigits: 0,
-  }).format(price);
-}
-
 export function Step10bDisassembly() {
   const state = useStore(calculatorStore);
 
@@ -65,6 +56,15 @@ export function Step10bDisassembly() {
     }
     return map;
   });
+
+  // Sync with store when it changes (e.g., from localStorage reload)
+  useEffect(() => {
+    const map = new Map<AssemblyComplexity, number>();
+    for (const item of state.extras.disassemblyItems || []) {
+      map.set(item.category, item.quantity);
+    }
+    setItems(map);
+  }, [state.extras.disassemblyItems]);
 
   // Calculate total price
   const totalPrice = Array.from(items.entries()).reduce((sum, [category, qty]) => {
@@ -157,7 +157,7 @@ export function Step10bDisassembly() {
       {items.size > 0 && (
         <div className="flex items-center justify-center gap-4 p-4 bg-muted/50 rounded-lg">
           <span className="text-foreground font-medium">Estimated total:</span>
-          <span className="text-2xl font-bold text-primary">{formatPrice(totalPrice)}</span>
+          <span className="text-2xl font-bold text-primary">{formatPriceGBP(totalPrice)}</span>
         </div>
       )}
 
@@ -260,7 +260,7 @@ function DisassemblyCard({
             {label}
           </h3>
           <p className="text-xs text-muted-foreground mt-1">{examples}</p>
-          <p className="text-primary font-semibold mt-2">{formatPrice(price)} per item</p>
+          <p className="text-primary font-semibold mt-2">{formatPriceGBP(price)} per item</p>
         </div>
       </div>
 

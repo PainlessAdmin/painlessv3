@@ -346,7 +346,13 @@ function Page2SizeWeight({
   onNext,
 }: Page2Props) {
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const onNextRef = useRef(onNext);
   const canContinue = needs2Person !== null && over40kg !== null;
+
+  // Keep onNext ref updated
+  useEffect(() => {
+    onNextRef.current = onNext;
+  }, [onNext]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -367,10 +373,10 @@ function Page2SizeWeight({
       // Auto-next after short delay
       navigationTimeoutRef.current = setTimeout(() => {
         navigationTimeoutRef.current = null;
-        onNext();
+        onNextRef.current();
       }, 400);
     }
-  }, [needs2Person, over40kg, canContinue, onNext]);
+  }, [needs2Person, over40kg, canContinue]);
 
   return (
     <div className="space-y-6">

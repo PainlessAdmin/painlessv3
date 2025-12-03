@@ -6,6 +6,7 @@
  */
 
 import { computed, map } from 'nanostores';
+import { z } from 'zod';
 import {
   calculateQuote,
   getCubesForProperty,
@@ -15,6 +16,7 @@ import {
   type QuoteResult,
 } from './calculator-logic';
 import { CALCULATOR_CONFIG } from './calculator-config';
+import { STORAGE } from './constants';
 import type {
   PropertySize,
   OfficeSize,
@@ -217,6 +219,90 @@ const initialState: CalculatorState = {
 // ===================
 
 export const calculatorStore = map<CalculatorState>(initialState);
+
+// ===================
+// VALIDATION SCHEMA
+// ===================
+
+/**
+ * Zod schema for validating localStorage data
+ * This prevents XSS attacks from modifying localStorage
+ */
+const LocalStorageStateSchema = z.object({
+  currentStep: z.number().min(1).max(12).or(z.number().min(10.1).max(10.4)),
+  startedAt: z.string().nullable(),
+  lastUpdatedAt: z.string().nullable(),
+  serviceType: z.enum(['home', 'office', 'clearance']).nullable(),
+  propertySize: z.string().nullable(),
+  officeSize: z.string().nullable(),
+  furnitureOnly: z.object({
+    itemCount: z.number().min(1).max(10),
+    needs2Person: z.boolean(),
+    over40kg: z.boolean(),
+    specialistItems: z.array(z.string()),
+    otherSpecialistDescription: z.string().optional(),
+  }).nullable(),
+  sliderPosition: z.number().min(1).max(5),
+  useManualOverride: z.boolean(),
+  manualMen: z.number().min(1).max(10).nullable(),
+  manualVans: z.number().min(1).max(5).nullable(),
+  dateFlexibility: z.enum(['fixed', 'flexible', 'unknown']).nullable(),
+  selectedDate: z.string().nullable(),
+  complications: z.array(z.string()).nullable(),
+  propertyChain: z.boolean().nullable(),
+  fromAddress: z.object({
+    formatted: z.string(),
+    postcode: z.string(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+  }).nullable(),
+  toAddress: z.object({
+    formatted: z.string(),
+    postcode: z.string(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+  }).nullable(),
+  distances: z.object({
+    depotToFrom: z.number(),
+    fromToTo: z.number(),
+    toToDepot: z.number(),
+    driveTimeHours: z.number(),
+    customerDistance: z.number(),
+    customerDriveMinutes: z.number(),
+  }).nullable(),
+  extras: z.object({
+    gateway: z.array(z.enum(['packing', 'assembly', 'cleaning', 'storage'])),
+    packingTier: z.enum(['materials', 'fragile', 'fullService']).optional(),
+    disassemblyItems: z.array(z.object({
+      category: z.string(),
+      quantity: z.number().min(1).max(9),
+    })),
+    cleaningRooms: z.number().min(1).max(6).optional(),
+    cleaningType: z.enum(['quick', 'deep']).optional(),
+    storageSize: z.string().optional(),
+    storageWeeks: z.number().min(1).max(52).optional(),
+    packing: z.string().optional(),
+    storage: z.string().optional(),
+    assembly: z.array(z.object({
+      type: z.string(),
+      quantity: z.number(),
+    })),
+  }),
+  contact: z.object({
+    firstName: z.string().max(100),
+    lastName: z.string().max(100),
+    phone: z.string().max(20),
+    email: z.string().max(255),
+    gdprConsent: z.boolean(),
+    marketingConsent: z.boolean(),
+  }),
+  gclid: z.string().max(200).nullable(),
+  utmSource: z.string().max(100).nullable(),
+  utmMedium: z.string().max(100).nullable(),
+  utmCampaign: z.string().max(100).nullable(),
+  landingPage: z.string().max(500).nullable(),
+  sessionId: z.string().nullable(),
+}).passthrough(); // Allow additional properties for forwards compatibility
 
 // ===================
 // COMPUTED VALUES
@@ -495,20 +581,33 @@ export function initializeStore() {
 
   // Try to restore from localStorage
   if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('painless-calculator-state');
+    const saved = localStorage.getItem(STORAGE.CALCULATOR_STATE_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
-        // Check if not too old (7 days)
-        const savedDate = new Date(parsed.lastUpdatedAt);
-        const daysDiff = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
+        const rawParsed = JSON.parse(saved);
 
-        if (daysDiff < 7) {
-          calculatorStore.set({ ...parsed, lastUpdatedAt: now });
-          return;
+        // Validate with Zod schema to prevent XSS/malicious data
+        const validationResult = LocalStorageStateSchema.safeParse(rawParsed);
+
+        if (!validationResult.success) {
+          console.warn('Invalid localStorage data, resetting state:', validationResult.error.issues);
+          localStorage.removeItem(STORAGE.CALCULATOR_STATE_KEY);
+        } else {
+          const parsed = validationResult.data;
+
+          // Check if not too old
+          const savedDate = new Date(parsed.lastUpdatedAt || 0);
+          const daysDiff = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
+
+          if (daysDiff < STORAGE.STATE_EXPIRY_DAYS) {
+            // Type assertion needed because Zod validates the structure but returns looser types
+            calculatorStore.set({ ...initialState, ...parsed as Partial<CalculatorState>, lastUpdatedAt: now });
+            return;
+          }
         }
       } catch (e) {
         console.error('Failed to restore state:', e);
+        localStorage.removeItem(STORAGE.CALCULATOR_STATE_KEY);
       }
     }
 
@@ -535,7 +634,7 @@ export function saveState() {
   const state = calculatorStore.get();
   calculatorStore.setKey('lastUpdatedAt', new Date().toISOString());
 
-  localStorage.setItem('painless-calculator-state', JSON.stringify(state));
+  localStorage.setItem(STORAGE.CALCULATOR_STATE_KEY, JSON.stringify(state));
 }
 
 /**
@@ -543,7 +642,7 @@ export function saveState() {
  */
 export function clearState() {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('painless-calculator-state');
+    localStorage.removeItem(STORAGE.CALCULATOR_STATE_KEY);
   }
   calculatorStore.set(initialState);
 }

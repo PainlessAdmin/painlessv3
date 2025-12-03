@@ -15,15 +15,29 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format price with currency
+ * Format price with currency (GBP default for UK market)
  */
-export function formatPrice(amount: number, currency = 'HUF'): string {
-  return new Intl.NumberFormat('hu-HU', {
+export function formatPrice(amount: number, currency: string = 'GBP'): string {
+  const localeMap: Record<string, string> = {
+    GBP: 'en-GB',
+    EUR: 'de-DE',
+    USD: 'en-US',
+    HUF: 'hu-HU',
+  };
+
+  return new Intl.NumberFormat(localeMap[currency] || 'en-GB', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+/**
+ * Format price in GBP (convenience function for UK market)
+ */
+export function formatPriceGBP(amount: number): string {
+  return formatPrice(amount, 'GBP');
 }
 
 /**

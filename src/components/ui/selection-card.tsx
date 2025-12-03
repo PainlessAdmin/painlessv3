@@ -10,6 +10,7 @@
 
 import { cn } from '@/lib/utils';
 import * as React from 'react';
+import { CheckIcon } from '@/components/icons/CheckIcon';
 
 interface SelectionCardProps {
   /** Unique identifier for the card */
@@ -34,7 +35,7 @@ interface SelectionCardProps {
   badgeVariant?: 'default' | 'success' | 'warning';
 }
 
-const SelectionCard = React.forwardRef<HTMLDivElement, SelectionCardProps>(
+const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
   (
     {
       value,
@@ -113,19 +114,7 @@ const SelectionCard = React.forwardRef<HTMLDivElement, SelectionCardProps>(
               : 'scale-0 opacity-0'
           )}
         >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={3}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+          <CheckIcon />
         </div>
 
         {/* Image container - 1:1 aspect ratio */}
@@ -199,7 +188,10 @@ const SelectionCard = React.forwardRef<HTMLDivElement, SelectionCardProps>(
   }
 );
 
-SelectionCard.displayName = 'SelectionCard';
+SelectionCardBase.displayName = 'SelectionCard';
+
+// Memoize the component to prevent unnecessary re-renders
+const SelectionCard = React.memo(SelectionCardBase);
 
 /**
  * Container for SelectionCards that ensures consistent layout
