@@ -62,7 +62,6 @@ export function Step10Extras() {
 
   // Default storage option
   const defaultStorage: StorageKey = 'standardBedroom';
-  const storagePrice = CALCULATOR_CONFIG.storage[defaultStorage].price;
 
   // Format currency
   const formatPrice = (price: number) => {
@@ -129,11 +128,8 @@ export function Step10Extras() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Just fragile items</span>
-                  <span className="text-primary font-semibold">from {formatPrice(fragileOnlyPrice)}</span>
+                  <span className="text-primary font-semibold">~{formatPrice(fragileOnlyPrice)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  We'll wrap glassware, mirrors, artwork & delicate items
-                </p>
               </button>
 
               <button
@@ -151,11 +147,8 @@ export function Step10Extras() {
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Full home packing</span>
-                  <span className="text-primary font-semibold">from {formatPrice(fullPackingPrice)}</span>
+                  <span className="text-primary font-semibold">~{formatPrice(fullPackingPrice)}</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Complete packing service for {propertyLabel} - you won't lift a finger
-                </p>
               </button>
             </div>
           )}
@@ -163,10 +156,10 @@ export function Step10Extras() {
           {selectedPacking === null && (
             <div className="text-sm space-y-1">
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Fragile items only:</span> from {formatPrice(fragileOnlyPrice)}
+                <span className="font-medium text-foreground">Fragile items only:</span> ~{formatPrice(fragileOnlyPrice)}
               </p>
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Full {propertyLabel}:</span> from {formatPrice(fullPackingPrice)}
+                <span className="font-medium text-foreground">Full {propertyLabel}:</span> ~{formatPrice(fullPackingPrice)}
               </p>
             </div>
           )}
@@ -186,11 +179,8 @@ export function Step10Extras() {
             <span className="text-sm">
               Estimated for {propertyLabel}:
             </span>
-            <span className="text-primary font-semibold">from {formatPrice(cleaningPrice)}</span>
+            <span className="text-primary font-semibold">~{formatPrice(cleaningPrice)}</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Includes kitchen, bathrooms, all rooms & windows
-          </p>
         </ExtrasCard>
 
         {/* Storage Service */}
@@ -202,18 +192,8 @@ export function Step10Extras() {
           badge="First 2 months 50% off!"
           badgeVariant="success"
         >
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-sm text-muted-foreground">
             Climate-controlled storage if your new place isn't ready yet.
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm">From:</span>
-            <div className="text-right">
-              <span className="text-primary font-semibold">{formatPrice(storagePrice / 2)}/month</span>
-              <span className="text-xs text-muted-foreground line-through ml-2">{formatPrice(storagePrice)}</span>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Cancel anytime with 7 days notice. Various sizes available.
           </p>
         </ExtrasCard>
 
@@ -224,19 +204,9 @@ export function Step10Extras() {
           isSelected={selectedAssembly}
           onToggle={() => setSelectedAssembly(!selectedAssembly)}
         >
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-sm text-muted-foreground">
             Save time and hassle - we'll take apart and reassemble your furniture safely.
           </p>
-          <div className="flex items-center justify-between">
-            <span className="text-sm">Starting from:</span>
-            <span className="text-primary font-semibold">{formatPrice(20)}/item</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Beds, wardrobes, tables & more. We'll confirm quantities in your quote.
-          </p>
-          <div className="mt-2 inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-            <span>✓</span> Fully insured & guaranteed
-          </div>
         </ExtrasCard>
       </div>
 

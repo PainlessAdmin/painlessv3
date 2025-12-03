@@ -1,15 +1,15 @@
 /**
- * STEP 5: DATE SELECTION
+ * STEP 5: DATE FLEXIBILITY SELECTION
  *
  * Options:
  * 1. Fixed date - completion day, must be this date
  * 2. Flexible date - preferred date but can adjust
  * 3. Unknown - don't know yet
  *
- * Shows date picker for fixed/flexible options.
+ * If fixed/flexible selected, advances to Step 5b for date picker.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -19,9 +19,7 @@ import {
   type DateFlexibility,
 } from '@/lib/calculator-store';
 import { Card } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
 // Date flexibility options
@@ -30,7 +28,7 @@ const flexibilityOptions: Array<{
   label: string;
   description: string;
   icon: string;
-  showDatePicker: boolean;
+  needsDate: boolean;
   badge?: string;
 }> = [
   {
@@ -38,36 +36,28 @@ const flexibilityOptions: Array<{
     label: 'I have a fixed date',
     description: 'Completion day, notice period ending, etc.',
     icon: '📅',
-    showDatePicker: true,
+    needsDate: true,
   },
   {
     value: 'flexible',
     label: "I'm flexible with dates",
     description: 'We can find the best available slot for you',
     icon: '🗓️',
-    showDatePicker: true,
+    needsDate: true,
     badge: 'Better prices!',
   },
   {
     value: 'unknown',
-    label: 'Just browsing for now',
+    label: 'Just exploring options',
     description: "Get a quote to plan your budget",
     icon: '💭',
-    showDatePicker: false,
+    needsDate: false,
   },
 ];
 
 export function Step5DateSelection() {
   const state = useStore(calculatorStore);
   const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [flexibility, setFlexibility] = useState<DateFlexibility | null>(
-    state.dateFlexibility
-  );
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    state.selectedDate ? new Date(state.selectedDate) : undefined
-  );
-  const [showCalendar, setShowCalendar] = useState(false);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -78,15 +68,6 @@ export function Step5DateSelection() {
     };
   }, []);
 
-  // Get minimum date (tomorrow)
-  const minDate = new Date();
-  minDate.setDate(minDate.getDate() + 1);
-  minDate.setHours(0, 0, 0, 0);
-
-  // Get maximum date (1 year from now)
-  const maxDate = new Date();
-  maxDate.setFullYear(maxDate.getFullYear() + 1);
-
   const handleFlexibilitySelect = (option: DateFlexibility) => {
     // Clear any pending navigation
     if (navigationTimeoutRef.current) {
@@ -94,54 +75,26 @@ export function Step5DateSelection() {
       navigationTimeoutRef.current = null;
     }
 
-    setFlexibility(option);
+    const selectedOption = flexibilityOptions.find(o => o.value === option);
 
-    if (option === 'unknown') {
-      // No date needed, auto-next
-      setShowCalendar(false);
-      setSelectedDate(undefined);
+    // Auto-navigate after short delay
+    navigationTimeoutRef.current = setTimeout(() => {
+      navigationTimeoutRef.current = null;
 
-      // Auto-navigate after short delay
-      navigationTimeoutRef.current = setTimeout(() => {
-        navigationTimeoutRef.current = null;
+      if (option === 'unknown') {
+        // No date needed, save and go to next main step
         setDate('unknown', undefined);
         nextStep();
-      }, 400);
-    } else {
-      // Show calendar for fixed/flexible
-      setShowCalendar(true);
-    }
+      } else {
+        // Save flexibility and go to date picker step
+        setDate(option, undefined);
+        // Navigate to step 5b (calendar)
+        if (typeof window !== 'undefined') {
+          window.location.href = '/calculator/step-5b';
+        }
+      }
+    }, 300);
   };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-  };
-
-  const handleContinue = () => {
-    if (!flexibility) return;
-
-    // Save to store
-    setDate(
-      flexibility,
-      selectedDate ? selectedDate.toISOString() : undefined
-    );
-
-    nextStep();
-  };
-
-  // Can continue?
-  const canContinue = flexibility === 'unknown' ||
-    (flexibility && selectedDate);
-
-  // Format selected date for display
-  const formattedDate = selectedDate
-    ? selectedDate.toLocaleDateString('en-GB', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null;
 
   return (
     <div className="space-y-6">
@@ -163,7 +116,7 @@ export function Step5DateSelection() {
             className={cn(
               'relative p-4 cursor-pointer transition-all',
               'hover:border-primary/50 hover:-translate-y-1',
-              flexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
+              state.dateFlexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
             )}
             onClick={() => handleFlexibilitySelect(option.value)}
             role="button"
@@ -195,89 +148,15 @@ export function Step5DateSelection() {
               <p className="text-xs text-muted-foreground">
                 {option.description}
               </p>
-
-              {/* Selected indicator */}
-              {flexibility === option.value && (
-                <div className="flex justify-center">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                    ✓
-                  </span>
-                </div>
-              )}
             </div>
           </Card>
         ))}
       </div>
 
-      {/* Calendar */}
-      {showCalendar && (
-        <Card className="p-4">
-          <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="font-medium text-foreground">
-                {flexibility === 'fixed' ? 'Select your moving date' : 'Select your preferred date'}
-              </h3>
-              {flexibility === 'flexible' && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  We'll try to accommodate this date or suggest alternatives
-                </p>
-              )}
-            </div>
-
-            {/* Calendar Component */}
-            <div className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                disabled={(date) => date < minDate || date > maxDate}
-                initialFocus
-                className="rounded-md border"
-              />
-            </div>
-
-            {/* Selected date display */}
-            {selectedDate && (
-              <div className="text-center space-y-2">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
-                  <span>📅</span>
-                  <span className="font-medium">{formattedDate}</span>
-                </div>
-                {/* Non-binding notice */}
-                <p className="text-xs text-muted-foreground">
-                  This date is not binding - it just helps us plan and give you an accurate quote.
-                </p>
-              </div>
-            )}
-
-            {/* Weekend note */}
-            {selectedDate && (selectedDate.getDay() === 0 || selectedDate.getDay() === 6) && (
-              <Alert>
-                <AlertDescription className="text-sm">
-                  <strong>Weekend move:</strong> Saturdays are our busiest days - book early to secure your slot!
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {/* Unknown date info */}
-      {flexibility === 'unknown' && (
-        <Alert>
-          <AlertDescription>
-            <strong>No problem!</strong> We'll provide a quote based on current rates.
-            Prices are valid for 30 days and may vary depending on your final date.
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Navigation Buttons */}
       <NavigationButtons
         onPrevious={prevStep}
-        onNext={handleContinue}
-        canGoNext={!!canContinue}
-        nextLabel="Continue"
+        showNext={false}
       />
     </div>
   );

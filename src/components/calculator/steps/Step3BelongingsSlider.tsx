@@ -84,51 +84,51 @@ export function Step3BelongingsSlider() {
         </p>
       </div>
 
-      {/* Main content - split layout */}
-      <Card className="p-6 bg-gradient-to-b from-muted/30 to-muted/10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Main content - split layout, side by side on all screens */}
+      <Card className="p-4 sm:p-6 bg-gradient-to-b from-muted/30 to-muted/10">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
           {/* Left side - Slider Info */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Dynamic Illustration */}
-            <div className="h-24 flex items-center justify-center">
+            <div className="h-16 sm:h-24 flex items-center justify-center">
               <IllustrationPlaceholder position={position} />
             </div>
 
             {/* Current Label */}
             <div className="text-center">
-              <span className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-full text-lg">
+              <span className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground font-semibold rounded-full text-sm sm:text-lg">
                 {details.label}
               </span>
             </div>
 
             {/* Description */}
-            <p className="text-center text-muted-foreground">
+            <p className="text-center text-xs sm:text-sm text-muted-foreground">
               {details.description}
             </p>
 
             {/* Estimated Volume */}
-            <p className="text-center text-sm text-muted-foreground">
-              Estimated volume: ~{cubes.toLocaleString()} cu ft
+            <p className="text-center text-xs text-muted-foreground">
+              ~{cubes.toLocaleString()} cu ft
             </p>
           </div>
 
           {/* Right side - Resource Estimate */}
           {resources && (
-            <div className="flex flex-col items-center justify-center p-4 bg-background/50 rounded-lg border">
-              <p className="text-sm text-muted-foreground mb-4">Based on this, you'll likely need:</p>
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">🚚</span>
+            <div className="flex flex-col items-center justify-center">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 text-center">Based on this, you'll need:</p>
+              <div className="flex flex-col gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl">🚚</span>
                   <div>
-                    <p className="text-2xl font-bold text-foreground">{resources.vans}</p>
-                    <p className="text-sm text-muted-foreground">van{resources.vans > 1 ? 's' : ''}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{resources.vans}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">van{resources.vans > 1 ? 's' : ''}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">👷</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-2xl sm:text-3xl">👷</span>
                   <div>
-                    <p className="text-2xl font-bold text-foreground">{resources.men}</p>
-                    <p className="text-sm text-muted-foreground">mover{resources.men > 1 ? 's' : ''}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-foreground">{resources.men}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">mover{resources.men > 1 ? 's' : ''}</p>
                   </div>
                 </div>
               </div>

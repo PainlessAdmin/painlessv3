@@ -297,9 +297,6 @@ export function Step8AddressSelection() {
         <h2 className="text-2xl font-semibold text-foreground">
           Where are you moving from and to?
         </h2>
-        <p className="text-muted-foreground mt-2">
-          Enter both addresses to see your route
-        </p>
       </div>
 
       {/* Map */}

@@ -15,6 +15,7 @@ import { Step2PropertySize } from './steps/Step2PropertySize';
 import { Step3BelongingsSlider } from './steps/Step3BelongingsSlider';
 import { Step4Recommendation } from './steps/Step4Recommendation';
 import { Step5DateSelection } from './steps/Step5DateSelection';
+import { Step5bDatePicker } from './steps/Step5bDatePicker';
 import { Step6Complications } from './steps/Step6Complications';
 import { Step7PropertyChain } from './steps/Step7PropertyChain';
 import { Step8AddressSelection } from './steps/Step8AddressSelection';
@@ -32,6 +33,7 @@ const stepComponents: Record<string, React.ComponentType> = {
   'step-03': Step3BelongingsSlider,
   'step-04': Step4Recommendation,
   'step-05': Step5DateSelection,
+  'step-5b': Step5bDatePicker,
   'step-06': Step6Complications,
   'step-07': Step7PropertyChain,
   'step-08': Step8AddressSelection,

@@ -19,6 +19,7 @@ import {
 } from '@/lib/calculator-store';
 import type { PropertySize, OfficeSize } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
+import { SelectionCard, SelectionCardGrid } from '@/components/ui/selection-card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 import { Step2FurnitureOnly } from './Step2FurnitureOnly';
@@ -139,16 +140,18 @@ function HomePropertySelection() {
       </div>
 
       {/* Property Cards - Grid: 2 cols mobile, 3 cols desktop */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+      <SelectionCardGrid columns={{ default: 2, sm: 2, md: 3 }}>
         {propertyOptions.map((option) => (
-          <PropertyCard
+          <SelectionCard
             key={option.value}
-            option={option}
+            value={option.value}
+            title={option.label}
+            imageSrc={option.image}
             isSelected={selectedSize === option.value}
             onSelect={() => handleSelect(option.value)}
           />
         ))}
-      </div>
+      </SelectionCardGrid>
 
       {/* Help text */}
       <p className="text-center text-sm text-muted-foreground">
@@ -245,57 +248,18 @@ function OfficeSelection() {
       </div>
 
       {/* Office Cards - 2 cols on mobile, 3 on desktop */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+      <SelectionCardGrid columns={{ default: 2, sm: 2, md: 3 }}>
         {officeOptions.map((option) => (
-          <Card
+          <SelectionCard
             key={option.value}
-            className={cn(
-              'relative cursor-pointer p-4 transition-all duration-200',
-              'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              selectedSize === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
-            )}
-            onClick={() => handleSelect(option.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSelect(option.value);
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-pressed={selectedSize === option.value}
-          >
-            {/* Selected indicator */}
-            {selectedSize === option.value && (
-              <div className="absolute top-2 right-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                  ✓
-                </span>
-              </div>
-            )}
-
-            {/* Image */}
-            <div className="flex justify-center mb-3">
-              <img
-                src={option.image}
-                alt={option.label}
-                className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
-              />
-            </div>
-
-            {/* Label */}
-            <h3 className="font-semibold text-sm text-foreground text-center">
-              {option.label}
-            </h3>
-
-            {/* Description - hidden on mobile */}
-            <p className="text-xs text-muted-foreground mt-1 text-center hidden sm:block">
-              {option.description}
-            </p>
-          </Card>
+            value={option.value}
+            title={option.label}
+            imageSrc={option.image}
+            isSelected={selectedSize === option.value}
+            onSelect={() => handleSelect(option.value)}
+          />
         ))}
-      </div>
+      </SelectionCardGrid>
 
       {/* Note */}
       <p className="text-center text-sm text-muted-foreground">
@@ -310,71 +274,6 @@ function OfficeSelection() {
         nextLabel="Continue"
       />
     </div>
-  );
-}
-
-// ===================
-// PROPERTY CARD COMPONENT
-// ===================
-
-interface PropertyCardProps {
-  option: {
-    value: PropertySize;
-    label: string;
-    image: string;
-  };
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-function PropertyCard({ option, isSelected, onSelect }: PropertyCardProps) {
-  return (
-    <Card
-      className={cn(
-        'relative cursor-pointer p-3 transition-all duration-200',
-        'hover:border-primary hover:-translate-y-1 hover:shadow-md',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary',
-        // Furniture Only gets slightly different styling
-        option.value === 'furniture' && 'border-dashed'
-      )}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-pressed={isSelected}
-    >
-      {/* Selected indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-            ✓
-          </span>
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="text-center">
-        {/* Image */}
-        <div className="flex justify-center mb-2">
-          <img
-            src={option.image}
-            alt={option.label}
-            className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
-          />
-        </div>
-
-        {/* Label */}
-        <h3 className="font-medium text-xs sm:text-sm text-foreground">
-          {option.label}
-        </h3>
-      </div>
-    </Card>
   );
 }
 
