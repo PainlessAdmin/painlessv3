@@ -27,13 +27,7 @@ import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 
 // Floor level options
 const FLOOR_LEVELS = [
@@ -423,17 +417,17 @@ export function Step8AddressSelection() {
             <Label htmlFor="from-floor" className="text-sm text-muted-foreground">
               Which floor?
             </Label>
-            <Select value={fromFloorLevel} onValueChange={setFromFloorLevel}>
-              <SelectTrigger id="from-floor" className="mt-1">
-                <SelectValue placeholder="Select floor" />
-              </SelectTrigger>
-              <SelectContent>
-                {FLOOR_LEVELS.map((floor) => (
-                  <SelectItem key={floor.value} value={floor.value}>
-                    {floor.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+            <Select
+              id="from-floor"
+              value={fromFloorLevel}
+              onChange={(e) => setFromFloorLevel(e.target.value)}
+              className="mt-1"
+            >
+              {FLOOR_LEVELS.map((floor) => (
+                <option key={floor.value} value={floor.value}>
+                  {floor.label}
+                </option>
+              ))}
             </Select>
           </div>
         </Card>
@@ -478,17 +472,17 @@ export function Step8AddressSelection() {
             <Label htmlFor="to-floor" className="text-sm text-muted-foreground">
               Which floor?
             </Label>
-            <Select value={toFloorLevel} onValueChange={setToFloorLevel}>
-              <SelectTrigger id="to-floor" className="mt-1">
-                <SelectValue placeholder="Select floor" />
-              </SelectTrigger>
-              <SelectContent>
-                {FLOOR_LEVELS.map((floor) => (
-                  <SelectItem key={floor.value} value={floor.value}>
-                    {floor.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+            <Select
+              id="to-floor"
+              value={toFloorLevel}
+              onChange={(e) => setToFloorLevel(e.target.value)}
+              className="mt-1"
+            >
+              {FLOOR_LEVELS.map((floor) => (
+                <option key={floor.value} value={floor.value}>
+                  {floor.label}
+                </option>
+              ))}
             </Select>
           </div>
         </Card>
