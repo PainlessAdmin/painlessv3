@@ -6,7 +6,7 @@
  */
 
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useCallback } from 'react';
 import { initializeStore, goToStep } from '@/lib/calculator-store';
 
 // Step components
@@ -51,27 +51,48 @@ const stepComponents: Record<string, React.ComponentType> = {
   'step-12': Step12Quote,
 };
 
+/**
+ * Parse step number from stepId
+ */
+function parseStepNumber(stepId: string): number {
+  if (stepId === 'step-10a') return 10.1;
+  if (stepId === 'step-10b') return 10.2;
+  if (stepId === 'step-10c') return 10.3;
+  if (stepId === 'step-10d') return 10.4;
+  return parseInt(stepId.replace('step-', ''), 10);
+}
+
 export const CalculatorStepRenderer: React.FC<CalculatorStepRendererProps> = ({ stepId }) => {
-  useEffect(() => {
-    // Initialize store on mount
+  const stepNumber = parseStepNumber(stepId);
+  const isValidStep = (!isNaN(stepNumber) && stepNumber >= 1 && stepNumber <= 12) ||
+    (stepNumber >= 10.1 && stepNumber <= 10.4);
+
+  // Sync step function - used for initial mount and bfcache restore
+  const syncStep = useCallback(() => {
     initializeStore();
-
-    // Sync URL step with store (without navigation to avoid loop)
-    // Handle sub-steps like 10a, 10b, etc.
-    let stepNumber: number;
-    if (stepId === 'step-10a') stepNumber = 10.1;
-    else if (stepId === 'step-10b') stepNumber = 10.2;
-    else if (stepId === 'step-10c') stepNumber = 10.3;
-    else if (stepId === 'step-10d') stepNumber = 10.4;
-    else stepNumber = parseInt(stepId.replace('step-', ''), 10);
-
-    const isValidStep = (!isNaN(stepNumber) && stepNumber >= 1 && stepNumber <= 12) ||
-      (stepNumber >= 10.1 && stepNumber <= 10.4);
-
     if (isValidStep) {
       goToStep(stepNumber, false);
     }
-  }, [stepId]);
+  }, [stepNumber, isValidStep]);
+
+  // Use useLayoutEffect to sync BEFORE render (prevents flash of wrong state)
+  useLayoutEffect(() => {
+    syncStep();
+  }, [syncStep]);
+
+  // Handle browser back/forward cache (bfcache)
+  // When page is restored from bfcache, useEffect doesn't run again
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // persisted = true means page was restored from bfcache
+      if (event.persisted) {
+        syncStep();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [syncStep]);
 
   const StepComponent = stepComponents[stepId];
 

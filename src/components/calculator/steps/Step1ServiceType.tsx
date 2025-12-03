@@ -15,7 +15,7 @@ import {
 import { SelectionCard, SelectionCardGrid } from '@/components/ui/selection-card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 
-// Service options with images
+// Service options with images (base path without extension)
 const serviceOptions: Array<{
   value: ServiceType;
   label: string;
@@ -24,17 +24,17 @@ const serviceOptions: Array<{
   {
     value: 'home',
     label: 'Home Removal',
-    image: '/images/calculator/home-removal.svg',
+    image: '/images/calculator/step-01-service-type/home-removal',
   },
   {
     value: 'office',
     label: 'Office Removal',
-    image: '/images/calculator/office-removal.svg',
+    image: '/images/calculator/step-01-service-type/office-removal',
   },
   {
     value: 'clearance',
     label: 'Clearance Service',
-    image: '/images/calculator/clearance.svg',
+    image: '/images/calculator/step-01-service-type/clearance',
   },
 ];
 

@@ -574,6 +574,44 @@ export const quoteResult = computed(calculatorStore, (state): QuoteResult | null
 // ===================
 
 /**
+ * Parse step number from URL pathname
+ * e.g., /calculator/step-01 → 1, /calculator/step-10a → 10.1
+ */
+function getStepFromUrl(): number | null {
+  if (typeof window === 'undefined') return null;
+
+  const path = window.location.pathname;
+  const match = path.match(/\/calculator\/step-(\d+)([a-d])?/);
+
+  if (!match) return null;
+
+  const stepNum = parseInt(match[1], 10);
+  const subStep = match[2];
+
+  // Handle sub-steps (10a → 10.1, 10b → 10.2, etc.)
+  if (subStep) {
+    const subStepMap: Record<string, number> = { a: 0.1, b: 0.2, c: 0.3, d: 0.4 };
+    return stepNum + (subStepMap[subStep] || 0);
+  }
+
+  return stepNum;
+}
+
+/**
+ * Sync currentStep from URL (handles browser back/forward navigation)
+ */
+export function syncStepFromUrl() {
+  const urlStep = getStepFromUrl();
+  if (urlStep !== null) {
+    const currentStep = calculatorStore.get().currentStep;
+    if (currentStep !== urlStep) {
+      calculatorStore.setKey('currentStep', urlStep);
+      saveState();
+    }
+  }
+}
+
+/**
  * Initialize store (call on mount)
  */
 export function initializeStore() {
@@ -602,6 +640,8 @@ export function initializeStore() {
           if (daysDiff < STORAGE.STATE_EXPIRY_DAYS) {
             // Type assertion needed because Zod validates the structure but returns looser types
             calculatorStore.set({ ...initialState, ...parsed as Partial<CalculatorState>, lastUpdatedAt: now });
+            // Sync step from URL in case user used browser back/forward
+            syncStepFromUrl();
             return;
           }
         }
@@ -619,6 +659,9 @@ export function initializeStore() {
     calculatorStore.setKey('utmCampaign', params.get('utm_campaign'));
     calculatorStore.setKey('landingPage', window.location.pathname);
     calculatorStore.setKey('sessionId', crypto.randomUUID());
+
+    // Sync step from URL
+    syncStepFromUrl();
   }
 
   calculatorStore.setKey('startedAt', now);

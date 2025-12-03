@@ -18,29 +18,29 @@ import { CALCULATOR_CONFIG, type AssemblyComplexity } from '@/lib/calculator-con
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn, formatPriceGBP } from '@/lib/utils';
 
-// Category configuration with images
+// Category configuration with images (base path without extension)
 const CATEGORY_CONFIG: Record<AssemblyComplexity, {
   image: string;
   examples: string;
 }> = {
   verySimple: {
-    image: '/images/calculator/extras/table.svg',
+    image: '/images/calculator/step-10-extras/disassembly/table',
     examples: 'Tables, TV stands, simple desks',
   },
   simple: {
-    image: '/images/calculator/extras/frame-bed.svg',
+    image: '/images/calculator/step-10-extras/disassembly/frame-bed',
     examples: 'Frame beds, bookshelves, IKEA furniture',
   },
   general: {
-    image: '/images/calculator/extras/bunk-bed.svg',
+    image: '/images/calculator/step-10-extras/disassembly/bunk-bed',
     examples: 'Ottoman beds, cabin beds, bunk beds, double wardrobes',
   },
   complex: {
-    image: '/images/calculator/extras/complex-furniture.svg',
+    image: '/images/calculator/step-10-extras/disassembly/complex-furniture',
     examples: 'Sliding-door wardrobes, mirrored units, grandfather clocks',
   },
   veryComplex: {
-    image: '/images/calculator/extras/gym-equipment.svg',
+    image: '/images/calculator/step-10-extras/disassembly/gym-equipment',
     examples: 'Gym equipment, custom-made furniture, wall beds',
   },
 };
@@ -238,17 +238,16 @@ function DisassemblyCard({
         aria-checked={isSelected}
       >
         {/* Image */}
-        <div className="aspect-square w-full max-w-[120px] mx-auto mb-3">
-          <img
-            src={image}
-            alt={label}
-            className="h-full w-full object-contain"
-            loading="lazy"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
-          />
+        <div className="aspect-square w-full max-w-[120px] mx-auto mb-3 overflow-hidden rounded-lg">
+          <picture>
+            <source srcSet={`${image}.webp`} type="image/webp" />
+            <img
+              src={`${image}.jpg`}
+              alt={label}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </picture>
         </div>
 
         {/* Content */}
