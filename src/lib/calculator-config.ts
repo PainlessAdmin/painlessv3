@@ -218,6 +218,151 @@ export const CALCULATOR_CONFIG = {
   },
 
   // ===================
+  // PACKING TIERS (NEW)
+  // ===================
+  // Three-tier packing system for extras gateway flow
+  packingTiers: {
+    materials: {
+      label: 'Materials Only',
+      description: 'Box and packing material rental only',
+      image: 'moving-materials.jpg',
+      // Pricing based on property size (cubes)
+      priceBySize: {
+        small: 85,    // Studio, 1-bed
+        medium: 120,  // 2-bed, 3-bed small
+        large: 165,   // 3-bed large, 4-bed
+        xl: 220,      // 5-bed+
+      },
+      includes: [
+        'Selection of moving boxes',
+        'Bubble wrap & packing paper',
+        'Tape & labels',
+        'Wardrobe boxes',
+      ],
+    },
+    fragile: {
+      label: 'Fragile Items',
+      description: 'Professional packing for fragile items only',
+      image: 'home-packing.jpg',
+      priceBySize: {
+        small: 285,
+        medium: 365,
+        large: 435,
+        xl: 520,
+      },
+      includes: [
+        'Kitchen accessories & glassware',
+        'Mirrors & artwork',
+        'Electronics & TVs',
+        'Premium packing materials',
+      ],
+    },
+    fullService: {
+      label: 'Full Service',
+      description: 'Complete professional packing service',
+      image: 'home-packing-service.jpg',
+      badge: 'Most Popular',
+      priceBySize: {
+        small: 400,
+        medium: 580,
+        large: 725,
+        xl: 990,
+      },
+      includes: [
+        'Full home packing service',
+        'All furniture protected',
+        'Every item carefully wrapped',
+        'Stress-free experience',
+      ],
+    },
+  },
+
+  // ===================
+  // CLEANING TIERS (ENHANCED)
+  // ===================
+  cleaningTiers: {
+    quick: {
+      label: 'Quick Clean',
+      description: 'Standard move-out cleaning',
+      multiplier: 1.0,
+    },
+    deep: {
+      label: 'Deep Clean',
+      description: 'Thorough end-of-tenancy cleaning',
+      multiplier: 1.6, // 60% more than quick
+      badge: 'Recommended',
+    },
+  },
+
+  // ===================
+  // STORAGE DURATIONS
+  // ===================
+  storageDurations: [
+    { value: 1, label: '1 week', weeks: 1 },
+    { value: 4, label: '1 month', weeks: 4 },
+    { value: 8, label: '2 months', weeks: 8, badge: '50% off first 2 months!' },
+    { value: 12, label: '3 months', weeks: 12 },
+    { value: 26, label: '6 months', weeks: 26 },
+    { value: 52, label: '1 year', weeks: 52 },
+    { value: 'other', label: "Other / I don't know", weeks: 4 }, // Default to 1 month
+  ],
+
+  // ===================
+  // STORAGE SIZES (ENHANCED)
+  // ===================
+  storageSizes: {
+    smallWardrobe: {
+      price: 41,
+      label: 'Small Wardrobe',
+      sqft: 25,
+      description: 'Perfect for a few boxes and small items',
+      image: '25.png',
+      fits: ['10-20 boxes', 'Small furniture items', 'Seasonal items'],
+    },
+    gardenShed: {
+      price: 59,
+      label: 'Garden Shed',
+      sqft: 50,
+      description: 'Great for studio or 1-bed contents',
+      image: '50.png',
+      fits: ['Small sofa', '30-40 boxes', 'Appliances'],
+    },
+    smallBedroom: {
+      price: 82,
+      label: 'Small Bedroom',
+      sqft: 85,
+      description: 'Ideal for 1-2 bedroom home contents',
+      image: '85.png',
+      fits: ['Bed frame & mattress', '50+ boxes', 'Living room furniture'],
+    },
+    standardBedroom: {
+      price: 92,
+      label: 'Standard Bedroom',
+      sqft: 100,
+      description: 'Most popular for 2-3 bed homes',
+      image: '100.png',
+      fits: ['2-3 rooms of furniture', 'Large sofa', 'Full bedroom suite'],
+      badge: 'Most Popular',
+    },
+    largeBedroom: {
+      price: 124,
+      label: 'Large Bedroom',
+      sqft: 150,
+      description: 'Great for larger homes',
+      image: '150.png',
+      fits: ['3-4 rooms of furniture', 'Multiple beds', 'Dining sets'],
+    },
+    oneCarGarage: {
+      price: 157,
+      label: '1 Car Garage',
+      sqft: 250,
+      description: 'For complete house contents',
+      image: '250.png',
+      fits: ['4-5 bed house contents', 'Garden furniture', 'Workshop items'],
+    },
+  },
+
+  // ===================
   // CLEANING SERVICES
   // ===================
   cleaning: {
@@ -311,6 +456,10 @@ export type OfficeSize = keyof typeof CALCULATOR_CONFIG.officeCubes;
 export type BelongingsCategory = 'few' | 'average' | 'many';
 export type SliderPosition = 1 | 2 | 3 | 4 | 5;
 export type PackingSize = keyof typeof CALCULATOR_CONFIG.packing;
+export type PackingTierType = keyof typeof CALCULATOR_CONFIG.packingTiers;
+export type PackingSizeCategory = 'small' | 'medium' | 'large' | 'xl';
+export type CleaningTierType = keyof typeof CALCULATOR_CONFIG.cleaningTiers;
 export type StorageSize = keyof typeof CALCULATOR_CONFIG.storage;
+export type StorageSizeKey = keyof typeof CALCULATOR_CONFIG.storageSizes;
 export type AssemblyComplexity = keyof typeof CALCULATOR_CONFIG.assembly;
 export type Complication = keyof typeof CALCULATOR_CONFIG.complications;

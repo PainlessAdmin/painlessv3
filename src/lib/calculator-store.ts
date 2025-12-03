@@ -54,9 +54,36 @@ export interface DistanceData {
   customerDriveMinutes: number;
 }
 
+export type ExtrasGatewayOption = 'packing' | 'assembly' | 'cleaning' | 'storage';
+export type PackingTier = 'materials' | 'fragile' | 'fullService';
+export type CleaningType = 'quick' | 'deep';
+export type StorageDuration = 1 | 4 | 8 | 12 | 26 | 52 | 'other';
+
+export interface DisassemblyItem {
+  category: keyof typeof CALCULATOR_CONFIG.assembly;
+  quantity: number;
+}
+
 export interface ExtrasData {
-  packing?: PackingSize;
+  // Gateway selection - which extras to show
+  gateway: ExtrasGatewayOption[];
+
+  // Packing (materials, fragile, or full service)
+  packingTier?: PackingTier;
+
+  // Disassembly items with quantities
+  disassemblyItems: DisassemblyItem[];
+
+  // Cleaning
   cleaningRooms?: number;
+  cleaningType?: CleaningType;
+
+  // Storage
+  storageSize?: keyof typeof CALCULATOR_CONFIG.storage;
+  storageWeeks?: number;
+
+  // Legacy fields for backwards compatibility
+  packing?: PackingSize;
   storage?: keyof typeof CALCULATOR_CONFIG.storage;
   assembly: Array<{
     type: keyof typeof CALCULATOR_CONFIG.assembly;
@@ -155,8 +182,15 @@ const initialState: CalculatorState = {
   distances: null,
 
   extras: {
-    packing: undefined,
+    gateway: [],
+    packingTier: undefined,
+    disassemblyItems: [],
     cleaningRooms: undefined,
+    cleaningType: undefined,
+    storageSize: undefined,
+    storageWeeks: undefined,
+    // Legacy fields
+    packing: undefined,
     storage: undefined,
     assembly: [],
   },
@@ -194,31 +228,41 @@ export const calculatorStore = map<CalculatorState>(initialState);
  * Furniture/Single item flow skips: Plan (4), Access (6), Chain (7), Extras (10)
  * Office flow skips: Items (3)
  * Studio skips: Items (3)
+ *
+ * Extras sub-steps (10.1, 10.2, 10.3, 10.4) are conditionally shown based on gateway selection
  */
 export const applicableSteps = computed(calculatorStore, (state): number[] => {
   const isFurniture = state.propertySize === 'furniture';
   const isOffice = state.serviceType === 'office';
   const isStudio = state.propertySize === 'studio';
+  const gateway = state.extras.gateway || [];
 
-  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12 (step 9 combined with 8)
+  // Build extras sub-steps based on gateway selection
+  const extrasSubSteps: number[] = [];
+  if (gateway.includes('packing')) extrasSubSteps.push(10.1);
+  if (gateway.includes('assembly')) extrasSubSteps.push(10.2);
+  if (gateway.includes('cleaning')) extrasSubSteps.push(10.3);
+  if (gateway.includes('storage')) extrasSubSteps.push(10.4);
+
+  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 10, [extras sub-steps], 11, 12 (step 9 combined with 8)
   // Furniture flow: 1, 2, 5, 8, 11, 12 (skip 3, 4, 6, 7, 9, 10)
-  // Office flow: 1, 2, 5, 6, 7, 8, 10, 11, 12 (skip 3, 4, 9)
-  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 10, 11, 12 (skip 3, 9)
+  // Office flow: 1, 2, 5, 6, 7, 8, 10, [extras sub-steps], 11, 12 (skip 3, 4, 9)
+  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 10, [extras sub-steps], 11, 12 (skip 3, 9)
 
   if (isFurniture) {
     return [1, 2, 5, 8, 11, 12];
   }
 
   if (isOffice) {
-    return [1, 2, 5, 6, 7, 8, 10, 11, 12];
+    return [1, 2, 5, 6, 7, 8, 10, ...extrasSubSteps, 11, 12];
   }
 
   if (isStudio) {
-    return [1, 2, 4, 5, 6, 7, 8, 10, 11, 12];
+    return [1, 2, 4, 5, 6, 7, 8, 10, ...extrasSubSteps, 11, 12];
   }
 
   // Full home flow
-  return [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12];
+  return [1, 2, 3, 4, 5, 6, 7, 8, 10, ...extrasSubSteps, 11, 12];
 });
 
 /**
@@ -509,7 +553,15 @@ export function clearState() {
  */
 function navigateToStep(step: number) {
   if (typeof window !== 'undefined') {
-    const stepId = step.toString().padStart(2, '0');
+    let stepId: string;
+
+    // Handle sub-steps (10.1, 10.2, etc.)
+    if (step === 10.1) stepId = '10a';
+    else if (step === 10.2) stepId = '10b';
+    else if (step === 10.3) stepId = '10c';
+    else if (step === 10.4) stepId = '10d';
+    else stepId = Math.floor(step).toString().padStart(2, '0');
+
     window.location.href = `/calculator/step-${stepId}`;
   }
 }
@@ -550,7 +602,11 @@ export function prevStep() {
  * Go to specific step
  */
 export function goToStep(step: number, navigate: boolean = true) {
-  if (step >= 1 && step <= 12) {
+  // Allow steps 1-12 plus sub-steps 10.1-10.4
+  const isValidStep = (step >= 1 && step <= 12) ||
+    (step >= 10.1 && step <= 10.4);
+
+  if (isValidStep) {
     calculatorStore.setKey('currentStep', step);
     saveState();
     if (navigate) {
@@ -695,6 +751,85 @@ export function setDistances(distances: DistanceData) {
 export function setExtras(extras: Partial<ExtrasData>) {
   const current = calculatorStore.get().extras;
   calculatorStore.setKey('extras', { ...current, ...extras });
+  saveState();
+}
+
+/**
+ * Set extras gateway selection (Step 10)
+ */
+export function setExtrasGateway(gateway: ExtrasGatewayOption[]) {
+  const current = calculatorStore.get().extras;
+  calculatorStore.setKey('extras', { ...current, gateway });
+  saveState();
+}
+
+/**
+ * Toggle extras gateway option
+ */
+export function toggleExtrasGateway(option: ExtrasGatewayOption) {
+  const current = calculatorStore.get().extras;
+  const gateway = current.gateway || [];
+  const index = gateway.indexOf(option);
+
+  if (index === -1) {
+    calculatorStore.setKey('extras', { ...current, gateway: [...gateway, option] });
+  } else {
+    calculatorStore.setKey('extras', { ...current, gateway: gateway.filter(o => o !== option) });
+  }
+  saveState();
+}
+
+/**
+ * Set packing tier (Step 10a)
+ */
+export function setPackingTier(tier: PackingTier) {
+  const current = calculatorStore.get().extras;
+  calculatorStore.setKey('extras', { ...current, packingTier: tier });
+  saveState();
+}
+
+/**
+ * Set disassembly items (Step 10b)
+ */
+export function setDisassemblyItems(items: DisassemblyItem[]) {
+  const current = calculatorStore.get().extras;
+  // Also update legacy assembly field for backwards compatibility
+  const legacyAssembly = items.map(item => ({
+    type: item.category,
+    quantity: item.quantity,
+  }));
+  calculatorStore.setKey('extras', {
+    ...current,
+    disassemblyItems: items,
+    assembly: legacyAssembly,
+  });
+  saveState();
+}
+
+/**
+ * Set cleaning details (Step 10c)
+ */
+export function setCleaningDetails(rooms: number, type: CleaningType) {
+  const current = calculatorStore.get().extras;
+  calculatorStore.setKey('extras', {
+    ...current,
+    cleaningRooms: rooms,
+    cleaningType: type,
+  });
+  saveState();
+}
+
+/**
+ * Set storage details (Step 10d)
+ */
+export function setStorageDetails(size: keyof typeof CALCULATOR_CONFIG.storage, weeks: number) {
+  const current = calculatorStore.get().extras;
+  calculatorStore.setKey('extras', {
+    ...current,
+    storageSize: size,
+    storageWeeks: weeks,
+    storage: size, // Legacy field
+  });
   saveState();
 }
 
