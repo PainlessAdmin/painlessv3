@@ -75,7 +75,9 @@ export function Step10Extras() {
   // Handle continue
   const handleContinue = () => {
     // Build extras data based on selections
-    const extras: ExtrasData = {
+    const extras: Partial<ExtrasData> = {
+      gateway: [],
+      disassemblyItems: [],
       packing: selectedPacking || undefined,
       cleaningRooms: selectedCleaning ? estimatedRooms : undefined,
       storage: selectedStorage ? defaultStorage : undefined,

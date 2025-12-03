@@ -344,29 +344,73 @@ export function applyComplications(
 }
 
 /**
- * Calculate extras cost
+ * Get packing size category based on cubes
+ */
+function getPackingSizeCategory(cubes: number): 'small' | 'medium' | 'large' | 'xl' {
+  if (cubes <= 500) return 'small';
+  if (cubes <= 1000) return 'medium';
+  if (cubes <= 1750) return 'large';
+  return 'xl';
+}
+
+/**
+ * Calculate extras cost (enhanced version with new pricing)
  */
 export function getExtrasCost(extras: QuoteInput['extras'], cubes: number): number {
   let total = 0;
 
-  // Packing
-  if (extras.packing) {
+  // New packing tier system
+  if ('packingTier' in extras && extras.packingTier) {
+    const sizeCategory = getPackingSizeCategory(cubes);
+    const tierConfig = CALCULATOR_CONFIG.packingTiers[extras.packingTier as keyof typeof CALCULATOR_CONFIG.packingTiers];
+    if (tierConfig && tierConfig.priceBySize) {
+      total += tierConfig.priceBySize[sizeCategory];
+    }
+  }
+  // Legacy packing support
+  else if (extras.packing) {
     total += CALCULATOR_CONFIG.packing[extras.packing].total;
   }
 
-  // Cleaning
-  if (extras.cleaningRooms && extras.cleaningRooms > 0) {
+  // Enhanced cleaning with quick/deep options
+  if ('cleaningRooms' in extras && extras.cleaningRooms && extras.cleaningRooms > 0) {
     const roomKey = Math.min(extras.cleaningRooms, 6) as 1 | 2 | 3 | 4 | 5 | 6;
-    total += CALCULATOR_CONFIG.cleaning[roomKey].price;
+    const basePrice = CALCULATOR_CONFIG.cleaning[roomKey].price;
+
+    // Apply cleaning type multiplier if available
+    const cleaningType = ('cleaningType' in extras ? extras.cleaningType : 'quick') as keyof typeof CALCULATOR_CONFIG.cleaningTiers;
+    const multiplier = CALCULATOR_CONFIG.cleaningTiers[cleaningType]?.multiplier || 1.0;
+    total += Math.round(basePrice * multiplier);
   }
 
-  // Storage
-  if (extras.storage) {
+  // Enhanced storage with duration
+  if ('storageSize' in extras && extras.storageSize && 'storageWeeks' in extras && extras.storageWeeks) {
+    const sizeConfig = CALCULATOR_CONFIG.storageSizes[extras.storageSize as keyof typeof CALCULATOR_CONFIG.storageSizes];
+    if (sizeConfig) {
+      const weeklyRate = sizeConfig.price;
+      const weeks = extras.storageWeeks as number;
+
+      // Apply 50% discount for first 2 months (8 weeks)
+      const discountedWeeks = Math.min(weeks, 8);
+      const fullPriceWeeks = Math.max(0, weeks - 8);
+      const discountedCost = discountedWeeks * weeklyRate * 0.5;
+      const fullPriceCost = fullPriceWeeks * weeklyRate;
+      total += discountedCost + fullPriceCost;
+    }
+  }
+  // Legacy storage support (monthly rate only)
+  else if (extras.storage) {
     total += CALCULATOR_CONFIG.storage[extras.storage].price;
   }
 
-  // Assembly
-  if (extras.assembly && extras.assembly.length > 0) {
+  // Disassembly items (new structure)
+  if ('disassemblyItems' in extras && extras.disassemblyItems && Array.isArray(extras.disassemblyItems)) {
+    for (const item of extras.disassemblyItems as Array<{ category: keyof typeof CALCULATOR_CONFIG.assembly; quantity: number }>) {
+      total += CALCULATOR_CONFIG.assembly[item.category].price * item.quantity;
+    }
+  }
+  // Legacy assembly support
+  else if (extras.assembly && extras.assembly.length > 0) {
     for (const item of extras.assembly) {
       total += CALCULATOR_CONFIG.assembly[item.type].price * item.quantity;
     }

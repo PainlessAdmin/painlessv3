@@ -171,11 +171,71 @@ export const CALCULATOR_STEPS: Step[] = [
       fr: 'Extras',
     },
     description: {
-      en: 'Would you like any additional services?',
-      es: '¿Te gustaría algún servicio adicional?',
-      fr: 'Souhaitez-vous des services supplémentaires?',
+      en: 'Can we assist you with any of the following?',
+      es: '¿Podemos ayudarte con algo de lo siguiente?',
+      fr: 'Pouvons-nous vous aider avec l\'un des éléments suivants?',
     },
-    component: 'Step10Extras',
+    component: 'Step10ExtrasGateway',
+  },
+  {
+    id: 'step-10a',
+    order: 10.1,
+    title: {
+      en: 'Packing',
+      es: 'Embalaje',
+      fr: 'Emballage',
+    },
+    description: {
+      en: 'How much packing assistance do you need?',
+      es: '¿Cuánta ayuda con el embalaje necesitas?',
+      fr: 'De combien d\'aide à l\'emballage avez-vous besoin?',
+    },
+    component: 'Step10aPacking',
+  },
+  {
+    id: 'step-10b',
+    order: 10.2,
+    title: {
+      en: 'Assembly',
+      es: 'Montaje',
+      fr: 'Assemblage',
+    },
+    description: {
+      en: 'Which furniture needs disassembly?',
+      es: '¿Qué muebles necesitan desmontaje?',
+      fr: 'Quels meubles doivent être démontés?',
+    },
+    component: 'Step10bDisassembly',
+  },
+  {
+    id: 'step-10c',
+    order: 10.3,
+    title: {
+      en: 'Cleaning',
+      es: 'Limpieza',
+      fr: 'Nettoyage',
+    },
+    description: {
+      en: 'How many rooms do you need cleaned?',
+      es: '¿Cuántas habitaciones necesitas limpiar?',
+      fr: 'Combien de pièces devez-vous faire nettoyer?',
+    },
+    component: 'Step10cCleaning',
+  },
+  {
+    id: 'step-10d',
+    order: 10.4,
+    title: {
+      en: 'Storage',
+      es: 'Almacenamiento',
+      fr: 'Stockage',
+    },
+    description: {
+      en: 'How much storage space do you need?',
+      es: '¿Cuánto espacio de almacenamiento necesitas?',
+      fr: 'De combien d\'espace de stockage avez-vous besoin?',
+    },
+    component: 'Step10dStorage',
   },
   {
     id: 'step-11',
