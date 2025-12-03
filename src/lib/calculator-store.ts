@@ -300,9 +300,32 @@ export const recommendedResources = computed(calculatorStore, (state) => {
 
 /**
  * Final resources (recommended or manual override)
+ * Note: Inlined recommendedResources logic to avoid .get() reactivity issues in nanostores
  */
 export const finalResources = computed(calculatorStore, (state) => {
-  const recommended = recommendedResources.get();
+  // Calculate recommended resources inline (don't use .get() on other computed stores)
+  let recommended = null;
+
+  try {
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      recommended = getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    } else if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      recommended = getResourcesFromCubes(cubes);
+    } else if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      recommended = getResourcesFromCubes(cubes);
+    }
+  } catch (e) {
+    console.error('finalResources calculation error:', e);
+    return null;
+  }
 
   if (!recommended) return null;
 
@@ -320,6 +343,7 @@ export const finalResources = computed(calculatorStore, (state) => {
 
 /**
  * Whether callback is required
+ * Note: Inlined cubes calculation to avoid .get() reactivity issues
  */
 export const requiresCallback = computed(calculatorStore, (state) => {
   // Specialist furniture items
@@ -327,8 +351,15 @@ export const requiresCallback = computed(calculatorStore, (state) => {
     return { required: true, reason: 'specialist_items' };
   }
 
+  // Calculate cubes inline (don't use .get() on other computed stores)
+  let cubes = 0;
+  if (state.serviceType === 'office' && state.officeSize) {
+    cubes = getCubesForOffice(state.officeSize);
+  } else if (state.propertySize && state.propertySize !== 'furniture') {
+    cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+  }
+
   // Large property (> 2000 cubes)
-  const cubes = calculatedCubes.get();
   if (cubes > CALCULATOR_CONFIG.thresholds.callbackRequired) {
     return { required: true, reason: 'large_property' };
   }
@@ -338,17 +369,59 @@ export const requiresCallback = computed(calculatorStore, (state) => {
 
 /**
  * Full quote calculation
+ * Note: All calculations inlined to avoid .get() reactivity issues in nanostores
  */
 export const quoteResult = computed(calculatorStore, (state): QuoteResult | null => {
   // Need minimum data
   if (!state.distances) return null;
 
-  const resources = finalResources.get();
+  // Calculate resources inline
+  let resources = null;
+  try {
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      resources = getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    } else if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      resources = getResourcesFromCubes(cubes);
+    } else if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      resources = getResourcesFromCubes(cubes);
+    }
+
+    // Apply manual override if set
+    if (resources && state.useManualOverride && state.manualMen && state.manualVans) {
+      resources = {
+        ...resources,
+        men: state.manualMen,
+        vans: state.manualVans,
+      };
+    }
+  } catch (e) {
+    console.error('Quote resources calculation error:', e);
+    return null;
+  }
+
   if (!resources) return null;
 
-  // Check for callback requirement
-  const callback = requiresCallback.get();
-  if (callback.required) return null;
+  // Check for callback requirement inline
+  if (state.furnitureOnly?.specialistItems.length) {
+    return null; // Requires callback
+  }
+  let cubes = 0;
+  if (state.serviceType === 'office' && state.officeSize) {
+    cubes = getCubesForOffice(state.officeSize);
+  } else if (state.propertySize && state.propertySize !== 'furniture') {
+    cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+  }
+  if (cubes > CALCULATOR_CONFIG.thresholds.callbackRequired) {
+    return null; // Requires callback
+  }
 
   try {
     return calculateQuote({
