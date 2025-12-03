@@ -116,7 +116,7 @@ export function Step3BelongingsSlider() {
           {resources && (
             <div className="flex flex-col items-center justify-center">
               <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 text-center">Based on this, you'll need:</p>
-              <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex gap-4 sm:gap-6">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <span className="text-2xl sm:text-3xl">🚚</span>
                   <div>

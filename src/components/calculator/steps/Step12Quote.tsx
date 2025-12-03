@@ -43,6 +43,7 @@ export function Step12Quote() {
   const state = useStore(calculatorStore);
   const quote = useStore(quoteResult);
   const callbackRequired = useStore(requiresCallback);
+  const resources = useStore(finalResources);
 
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
@@ -128,8 +129,6 @@ export function Step12Quote() {
   }
 
   // If no quote calculated - show error with option to go back
-  const resources = useStore(finalResources);
-
   if (!quote) {
     const missingItems = [];
     if (!state.fromAddress) missingItems.push('Moving from address not set');

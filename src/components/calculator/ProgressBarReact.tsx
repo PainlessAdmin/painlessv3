@@ -87,16 +87,6 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
 
   return (
     <div className={cn('w-full', className)}>
-      {/* Progress text */}
-      <div className="text-center mb-4">
-        <span
-          className="text-sm font-medium"
-          style={{ color: BRAND_COLOR }}
-        >
-          Step {currentIndex + 1} of {totalSteps} ({progress}%)
-        </span>
-      </div>
-
       {/* Linear progress bar */}
       <div className="relative h-1.5 bg-gray-200 rounded-full overflow-hidden mb-4">
         <div

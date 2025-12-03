@@ -81,9 +81,9 @@ export function Step5bDatePicker() {
 
       {/* Calendar with side info */}
       <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 md:gap-6 items-start">
           {/* Calendar */}
-          <div className="flex justify-center md:justify-start">
+          <div className="flex justify-center">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -96,7 +96,7 @@ export function Step5bDatePicker() {
 
           {/* Selected date display - beside calendar on desktop */}
           {selectedDate && (
-            <div className="flex flex-col items-center md:items-start justify-center space-y-3 md:min-w-[200px] md:pt-4">
+            <div className="flex flex-col items-center md:items-start justify-start space-y-3 md:pt-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
                 <span>📅</span>
                 <span className="font-medium">{formattedDate}</span>
@@ -105,19 +105,16 @@ export function Step5bDatePicker() {
               <p className="text-sm text-muted-foreground text-center md:text-left">
                 Don't worry, this isn't set in stone. It just helps us plan your move better.
               </p>
+              {/* Weekend note - inside box */}
+              {(selectedDate.getDay() === 0 || selectedDate.getDay() === 6) && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+                  <strong>Weekend move:</strong> Saturdays are our busiest days - book early to secure your slot!
+                </div>
+              )}
             </div>
           )}
         </div>
       </Card>
-
-      {/* Weekend note */}
-      {selectedDate && (selectedDate.getDay() === 0 || selectedDate.getDay() === 6) && (
-        <Alert>
-          <AlertDescription className="text-sm">
-            <strong>Weekend move:</strong> Saturdays are our busiest days - book early to secure your slot!
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Navigation Buttons */}
       <NavigationButtons
