@@ -146,7 +146,7 @@ export function Step6Complications() {
           Do any of these apply?
         </h2>
         <p className="text-muted-foreground mt-2">
-          Select all that apply
+          Select all that apply, or "None" if none apply
         </p>
       </div>
 
@@ -216,6 +216,7 @@ export function Step6Complications() {
       <NavigationButtons
         onPrevious={prevStep}
         onNext={handleContinue}
+        canGoNext={selected.length > 0 || noneSelected}
         nextLabel="Continue"
       />
     </div>

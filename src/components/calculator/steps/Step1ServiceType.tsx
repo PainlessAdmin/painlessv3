@@ -12,33 +12,28 @@ import {
   nextStep,
   type ServiceType
 } from '@/lib/calculator-store';
-import { Card } from '@/components/ui/card';
+import { SelectionCard, SelectionCardGrid } from '@/components/ui/selection-card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
 
-// Service options with images and descriptions
+// Service options with images
 const serviceOptions: Array<{
   value: ServiceType;
   label: string;
-  description: string;
   image: string;
 }> = [
   {
     value: 'home',
     label: 'Home Removal',
-    description: 'Moving house? We handle everything from studios to 5+ bed homes.',
     image: '/images/calculator/home-removal.svg',
   },
   {
     value: 'office',
     label: 'Office Removal',
-    description: 'Relocating your business? Minimal downtime, maximum care.',
     image: '/images/calculator/office-removal.svg',
   },
   {
     value: 'clearance',
     label: 'Clearance Service',
-    description: 'House clearance, rubbish removal, or end of tenancy clear-outs.',
     image: '/images/calculator/clearance.svg',
   },
 ];
@@ -104,16 +99,18 @@ export function Step1ServiceType() {
       </div>
 
       {/* Service Cards - 2 columns on mobile, 3 on desktop */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+      <SelectionCardGrid columns={{ default: 2, sm: 3 }}>
         {serviceOptions.map((option) => (
-          <ServiceCard
+          <SelectionCard
             key={option.value}
-            option={option}
+            value={option.value}
+            title={option.label}
+            imageSrc={option.image}
             isSelected={selectedType === option.value}
             onSelect={() => handleSelect(option.value)}
           />
         ))}
-      </div>
+      </SelectionCardGrid>
 
       {/* Trust badges */}
       <div className="flex flex-wrap justify-center gap-6 pt-2 text-sm font-medium">
@@ -135,72 +132,6 @@ export function Step1ServiceType() {
         nextLabel="Continue"
       />
     </div>
-  );
-}
-
-// ===================
-// SUB-COMPONENTS
-// ===================
-
-interface ServiceCardProps {
-  option: {
-    value: ServiceType;
-    label: string;
-    description: string;
-    image: string;
-  };
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-function ServiceCard({ option, isSelected, onSelect }: ServiceCardProps) {
-  return (
-    <Card
-      className={cn(
-        'relative cursor-pointer p-4 transition-all duration-200',
-        'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-      )}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-pressed={isSelected}
-    >
-      {/* Selected indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-            ✓
-          </span>
-        </div>
-      )}
-
-      {/* Image */}
-      <div className="flex justify-center mb-3">
-        <img
-          src={option.image}
-          alt={option.label}
-          className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-        />
-      </div>
-
-      {/* Label */}
-      <h3 className="font-semibold text-sm sm:text-base text-foreground text-center">
-        {option.label}
-      </h3>
-
-      {/* Description - hidden on mobile */}
-      <p className="text-xs text-muted-foreground mt-1 text-center hidden sm:block">
-        {option.description}
-      </p>
-    </Card>
   );
 }
 

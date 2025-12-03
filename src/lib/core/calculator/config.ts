@@ -88,6 +88,21 @@ export const CALCULATOR_STEPS: Step[] = [
     component: 'Step5DateSelection',
   },
   {
+    id: 'step-5b',
+    order: 5.5,
+    title: {
+      en: 'Pick Date',
+      es: 'Elegir Fecha',
+      fr: 'Choisir Date',
+    },
+    description: {
+      en: 'Select your preferred moving date',
+      es: 'Selecciona tu fecha de mudanza preferida',
+      fr: 'Sélectionnez votre date de déménagement préférée',
+    },
+    component: 'Step5bDatePicker',
+  },
+  {
     id: 'step-06',
     order: 6,
     title: {

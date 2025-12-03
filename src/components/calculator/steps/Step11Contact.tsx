@@ -206,9 +206,6 @@ export function Step11Contact() {
             {errors.phone && (
               <p className="text-xs text-destructive">{errors.phone}</p>
             )}
-            <p className="text-xs text-muted-foreground">
-              We'll only call if we have questions about your move
-            </p>
           </div>
 
           {/* Email */}

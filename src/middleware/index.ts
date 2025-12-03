@@ -78,7 +78,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('X-XSS-Protection', '1; mode=block');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // Permissions-Policy is set via public/_headers to avoid duplicates
 
   // Cache control for API routes
   if (url.pathname.startsWith('/api/')) {

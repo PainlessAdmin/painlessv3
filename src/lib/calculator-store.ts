@@ -190,6 +190,7 @@ export const calculatorStore = map<CalculatorState>(initialState);
 
 /**
  * Get the steps that apply to the current flow
+ * Step 9 is now combined with Step 8 (addresses on one page)
  * Furniture/Single item flow skips: Plan (4), Access (6), Chain (7), Extras (10)
  * Office flow skips: Items (3)
  * Studio skips: Items (3)
@@ -199,25 +200,25 @@ export const applicableSteps = computed(calculatorStore, (state): number[] => {
   const isOffice = state.serviceType === 'office';
   const isStudio = state.propertySize === 'studio';
 
-  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-  // Furniture flow: 1, 2, 5, 8, 9, 11, 12 (skip 3, 4, 6, 7, 10)
-  // Office flow: 1, 2, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3, 4)
-  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3)
+  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12 (step 9 combined with 8)
+  // Furniture flow: 1, 2, 5, 8, 11, 12 (skip 3, 4, 6, 7, 9, 10)
+  // Office flow: 1, 2, 5, 6, 7, 8, 10, 11, 12 (skip 3, 4, 9)
+  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 10, 11, 12 (skip 3, 9)
 
   if (isFurniture) {
-    return [1, 2, 5, 8, 9, 11, 12];
+    return [1, 2, 5, 8, 11, 12];
   }
 
   if (isOffice) {
-    return [1, 2, 5, 6, 7, 8, 9, 10, 11, 12];
+    return [1, 2, 5, 6, 7, 8, 10, 11, 12];
   }
 
   if (isStudio) {
-    return [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    return [1, 2, 4, 5, 6, 7, 8, 10, 11, 12];
   }
 
   // Full home flow
-  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  return [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12];
 });
 
 /**
@@ -256,37 +257,65 @@ export const calculatedCubes = computed(calculatorStore, (state) => {
  * Recommended resources based on cubes
  */
 export const recommendedResources = computed(calculatorStore, (state) => {
-  // Furniture only
-  if (state.furnitureOnly) {
-    const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
-    return getResourcesForFurnitureOnly({
-      itemCount: state.furnitureOnly.itemCount,
-      needs2Person: state.furnitureOnly.needs2Person,
-      over40kg: state.furnitureOnly.over40kg,
-      hasSpecialist,
-    });
-  }
+  try {
+    // Furniture only
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      return getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    }
 
-  // Office
-  if (state.serviceType === 'office' && state.officeSize) {
-    const cubes = getCubesForOffice(state.officeSize);
-    return getResourcesFromCubes(cubes);
-  }
+    // Office
+    if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      return getResourcesFromCubes(cubes);
+    }
 
-  // Home
-  if (state.propertySize && state.propertySize !== 'furniture') {
-    const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
-    return getResourcesFromCubes(cubes);
-  }
+    // Home
+    if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      return getResourcesFromCubes(cubes);
+    }
 
-  return null;
+    return null;
+  } catch (e) {
+    console.error('Resource calculation error:', e);
+    return null;
+  }
 });
 
 /**
  * Final resources (recommended or manual override)
+ * Note: Inlined recommendedResources logic to avoid .get() reactivity issues in nanostores
  */
 export const finalResources = computed(calculatorStore, (state) => {
-  const recommended = recommendedResources.get();
+  // Calculate recommended resources inline (don't use .get() on other computed stores)
+  let recommended = null;
+
+  try {
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      recommended = getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    } else if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      recommended = getResourcesFromCubes(cubes);
+    } else if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      recommended = getResourcesFromCubes(cubes);
+    }
+  } catch (e) {
+    console.error('finalResources calculation error:', e);
+    return null;
+  }
 
   if (!recommended) return null;
 
@@ -304,6 +333,7 @@ export const finalResources = computed(calculatorStore, (state) => {
 
 /**
  * Whether callback is required
+ * Note: Inlined cubes calculation to avoid .get() reactivity issues
  */
 export const requiresCallback = computed(calculatorStore, (state) => {
   // Specialist furniture items
@@ -311,8 +341,15 @@ export const requiresCallback = computed(calculatorStore, (state) => {
     return { required: true, reason: 'specialist_items' };
   }
 
+  // Calculate cubes inline (don't use .get() on other computed stores)
+  let cubes = 0;
+  if (state.serviceType === 'office' && state.officeSize) {
+    cubes = getCubesForOffice(state.officeSize);
+  } else if (state.propertySize && state.propertySize !== 'furniture') {
+    cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+  }
+
   // Large property (> 2000 cubes)
-  const cubes = calculatedCubes.get();
   if (cubes > CALCULATOR_CONFIG.thresholds.callbackRequired) {
     return { required: true, reason: 'large_property' };
   }
@@ -322,17 +359,59 @@ export const requiresCallback = computed(calculatorStore, (state) => {
 
 /**
  * Full quote calculation
+ * Note: All calculations inlined to avoid .get() reactivity issues in nanostores
  */
 export const quoteResult = computed(calculatorStore, (state): QuoteResult | null => {
   // Need minimum data
   if (!state.distances) return null;
 
-  const resources = finalResources.get();
+  // Calculate resources inline
+  let resources = null;
+  try {
+    if (state.furnitureOnly) {
+      const hasSpecialist = state.furnitureOnly.specialistItems.length > 0;
+      resources = getResourcesForFurnitureOnly({
+        itemCount: state.furnitureOnly.itemCount,
+        needs2Person: state.furnitureOnly.needs2Person,
+        over40kg: state.furnitureOnly.over40kg,
+        hasSpecialist,
+      });
+    } else if (state.serviceType === 'office' && state.officeSize) {
+      const cubes = getCubesForOffice(state.officeSize);
+      resources = getResourcesFromCubes(cubes);
+    } else if (state.propertySize && state.propertySize !== 'furniture') {
+      const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+      resources = getResourcesFromCubes(cubes);
+    }
+
+    // Apply manual override if set
+    if (resources && state.useManualOverride && state.manualMen && state.manualVans) {
+      resources = {
+        ...resources,
+        men: state.manualMen,
+        vans: state.manualVans,
+      };
+    }
+  } catch (e) {
+    console.error('Quote resources calculation error:', e);
+    return null;
+  }
+
   if (!resources) return null;
 
-  // Check for callback requirement
-  const callback = requiresCallback.get();
-  if (callback.required) return null;
+  // Check for callback requirement inline
+  if (state.furnitureOnly?.specialistItems.length) {
+    return null; // Requires callback
+  }
+  let cubes = 0;
+  if (state.serviceType === 'office' && state.officeSize) {
+    cubes = getCubesForOffice(state.officeSize);
+  } else if (state.propertySize && state.propertySize !== 'furniture') {
+    cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
+  }
+  if (cubes > CALCULATOR_CONFIG.thresholds.callbackRequired) {
+    return null; // Requires callback
+  }
 
   try {
     return calculateQuote({
@@ -346,7 +425,7 @@ export const quoteResult = computed(calculatorStore, (state): QuoteResult | null
         over40kg: state.furnitureOnly.over40kg,
         hasSpecialist: state.furnitureOnly.specialistItems.length > 0,
       } : undefined,
-      complications: state.complications,
+      complications: state.complications || [],
       propertyChain: state.propertyChain || false,
       distances: state.distances,
       extras: state.extras,

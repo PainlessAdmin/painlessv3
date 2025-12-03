@@ -1,124 +1,67 @@
 /**
  * STEP 10: EXTRAS
  *
- * Optional add-on services:
+ * Optional add-on services with card-based selection:
  * - Packing (based on cubes)
- * - Cleaning (by room count)
- * - Storage (by size)
- * - Assembly/Disassembly (items with quantity)
+ * - Cleaning (by property size)
+ * - Storage (with promo)
+ * - Assembly/Disassembly
+ *
+ * Prices shown in salesy manner, total hidden until submission
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
   calculatedCubes,
   setExtras,
-  addAssemblyItem,
-  removeAssemblyItem,
   nextStep,
   prevStep,
   type ExtrasData,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG, type PackingSize } from '@/lib/calculator-config';
 import { Card } from '@/components/ui/card';
-import { Select } from '@/components/ui/select';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-// Storage option type
+// Types
 type StorageKey = keyof typeof CALCULATOR_CONFIG.storage;
-type AssemblyKey = keyof typeof CALCULATOR_CONFIG.assembly;
 
 export function Step10Extras() {
   const state = useStore(calculatorStore);
   const cubes = useStore(calculatedCubes);
 
   // Local state for extras
-  const [packing, setPacking] = useState<PackingSize | ''>(state.extras.packing || '');
-  const [cleaningRooms, setCleaningRooms] = useState<number | ''>(state.extras.cleaningRooms || '');
-  const [storage, setStorage] = useState<StorageKey | ''>(state.extras.storage || '');
-  const [assemblyItems, setAssemblyItems] = useState<ExtrasData['assembly']>(
-    state.extras.assembly || []
-  );
+  const [selectedPacking, setSelectedPacking] = useState<PackingSize | null>(state.extras.packing || null);
+  const [selectedCleaning, setSelectedCleaning] = useState<boolean>(!!state.extras.cleaningRooms);
+  const [selectedStorage, setSelectedStorage] = useState<boolean>(!!state.extras.storage);
+  const [selectedAssembly, setSelectedAssembly] = useState<boolean>((state.extras.assembly?.length || 0) > 0);
 
-  // For adding new assembly items
-  const [newAssemblyType, setNewAssemblyType] = useState<AssemblyKey | ''>('');
-  const [newAssemblyQty, setNewAssemblyQty] = useState(1);
+  // Get property label and room count for cleaning estimate
+  const propertySize = state.propertySize;
+  const propertyLabel = CALCULATOR_CONFIG.propertySizeOptions.find(
+    p => p.value === propertySize
+  )?.label || 'your home';
 
-  // Calculate totals
-  const packingTotal = packing ? CALCULATOR_CONFIG.packing[packing].total : 0;
-  const cleaningTotal = cleaningRooms ? CALCULATOR_CONFIG.cleaning[cleaningRooms].price : 0;
-  const storageTotal = storage ? CALCULATOR_CONFIG.storage[storage].price : 0;
-  const assemblyTotal = assemblyItems.reduce((sum, item) => {
-    return sum + CALCULATOR_CONFIG.assembly[item.type].price * item.quantity;
-  }, 0);
-  const extrasTotal = packingTotal + cleaningTotal + storageTotal + assemblyTotal;
+  // Estimate rooms based on property size
+  const estimatedRooms = getEstimatedRooms(propertySize);
+  const cleaningPrice = estimatedRooms ? CALCULATOR_CONFIG.cleaning[estimatedRooms]?.price || 120 : 120;
 
-  // Get available packing options based on cubes
-  const getAvailablePackingOptions = () => {
-    const options: Array<{ value: PackingSize; label: string; price: number }> = [];
-
-    // Fragile only always available
-    options.push({
-      value: 'fragileOnly',
-      label: CALCULATOR_CONFIG.packing.fragileOnly.label,
-      price: CALCULATOR_CONFIG.packing.fragileOnly.total,
-    });
-
-    // Size-based options
-    const packingKeys: PackingSize[] = ['small', 'medium', 'large', 'xl'];
-    for (const key of packingKeys) {
-      const opt = CALCULATOR_CONFIG.packing[key];
-      if (cubes >= opt.cubesMin && cubes <= opt.cubesMax) {
-        options.push({
-          value: key,
-          label: opt.label,
-          price: opt.total,
-        });
-      }
-    }
-
-    return options;
+  // Get recommended packing option based on cubes
+  const getRecommendedPacking = (): PackingSize => {
+    if (cubes <= 750) return 'small';
+    if (cubes <= 1350) return 'medium';
+    if (cubes <= 2000) return 'large';
+    return 'xl';
   };
 
-  // Handle adding assembly item
-  const handleAddAssembly = () => {
-    if (!newAssemblyType || newAssemblyQty < 1) return;
+  const recommendedPacking = getRecommendedPacking();
+  const fullPackingPrice = CALCULATOR_CONFIG.packing[recommendedPacking]?.total || 580;
+  const fragileOnlyPrice = CALCULATOR_CONFIG.packing.fragileOnly.total;
 
-    const existing = assemblyItems.findIndex(item => item.type === newAssemblyType);
-    if (existing >= 0) {
-      // Update quantity
-      const updated = [...assemblyItems];
-      updated[existing].quantity += newAssemblyQty;
-      setAssemblyItems(updated);
-    } else {
-      setAssemblyItems([...assemblyItems, { type: newAssemblyType, quantity: newAssemblyQty }]);
-    }
-
-    setNewAssemblyType('');
-    setNewAssemblyQty(1);
-  };
-
-  // Handle removing assembly item
-  const handleRemoveAssembly = (type: AssemblyKey) => {
-    setAssemblyItems(assemblyItems.filter(item => item.type !== type));
-  };
-
-  // Handle continue
-  const handleContinue = () => {
-    // Save to store
-    setExtras({
-      packing: packing || undefined,
-      cleaningRooms: cleaningRooms || undefined,
-      storage: storage || undefined,
-      assembly: assemblyItems,
-    });
-
-    nextStep();
-  };
+  // Default storage option
+  const defaultStorage: StorageKey = 'standardBedroom';
 
   // Format currency
   const formatPrice = (price: number) => {
@@ -129,6 +72,20 @@ export function Step10Extras() {
     }).format(price);
   };
 
+  // Handle continue
+  const handleContinue = () => {
+    // Build extras data based on selections
+    const extras: ExtrasData = {
+      packing: selectedPacking || undefined,
+      cleaningRooms: selectedCleaning ? estimatedRooms : undefined,
+      storage: selectedStorage ? defaultStorage : undefined,
+      assembly: selectedAssembly ? [{ type: 'general', quantity: 1 }] : [],
+    };
+
+    setExtras(extras);
+    nextStep();
+  };
+
   return (
     <div className="space-y-6">
       {/* Heading */}
@@ -137,295 +94,226 @@ export function Step10Extras() {
           Would you like any extra services?
         </h2>
         <p className="text-muted-foreground mt-2">
-          All optional - skip if you don't need them
+          Select the services you're interested in - we'll include exact pricing in your quote
         </p>
       </div>
 
-      {/* Packing Service */}
-      <Card className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">📦</span>
-            <div>
-              <h3 className="font-medium text-foreground">Packing Service</h3>
-              <p className="text-sm text-muted-foreground">
-                Professional packing by our team
-              </p>
-            </div>
-          </div>
-          {packingTotal > 0 && (
-            <span className="font-semibold text-primary">
-              {formatPrice(packingTotal)}
-            </span>
-          )}
-        </div>
+      {/* Extras Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Packing Service */}
+        <ExtrasCard
+          icon="📦"
+          title="Professional Packing"
+          isSelected={selectedPacking !== null}
+          onToggle={() => setSelectedPacking(selectedPacking ? null : 'fragileOnly')}
+        >
+          <p className="text-sm text-muted-foreground mb-4">
+            Let our trained team pack your belongings with care and premium materials.
+          </p>
 
-        <div className="space-y-2">
-          <Label htmlFor="packing">Select packing option</Label>
-          <Select
-            id="packing"
-            value={packing}
-            onChange={(e) => setPacking(e.target.value as PackingSize | '')}
-          >
-            <option value="">No packing needed</option>
-            {getAvailablePackingOptions().map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label} - {formatPrice(opt.price)}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {packing && (
-          <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-            Includes materials and labour. Our team will pack your belongings
-            {packing === 'fragileOnly' ? ' (fragile items only)' : ' the day before your move'}.
-          </div>
-        )}
-      </Card>
-
-      {/* Cleaning Service */}
-      <Card className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🧹</span>
-            <div>
-              <h3 className="font-medium text-foreground">End of Tenancy Cleaning</h3>
-              <p className="text-sm text-muted-foreground">
-                Professional deep clean after you move out
-              </p>
-            </div>
-          </div>
-          {cleaningTotal > 0 && (
-            <span className="font-semibold text-primary">
-              {formatPrice(cleaningTotal)}
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="cleaning">Number of rooms</Label>
-          <Select
-            id="cleaning"
-            value={cleaningRooms}
-            onChange={(e) => setCleaningRooms(e.target.value ? parseInt(e.target.value) : '')}
-          >
-            <option value="">No cleaning needed</option>
-            {Object.entries(CALCULATOR_CONFIG.cleaning).map(([rooms, data]) => (
-              <option key={rooms} value={rooms}>
-                {data.label} - {formatPrice(data.price)}
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {cleaningRooms && (
-          <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-            Professional cleaning to help get your deposit back. Includes kitchen, bathrooms, and all rooms.
-          </div>
-        )}
-      </Card>
-
-      {/* Storage Service */}
-      <Card className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🏠</span>
-            <div>
-              <h3 className="font-medium text-foreground">Storage</h3>
-              <p className="text-sm text-muted-foreground">
-                Secure storage per month
-              </p>
-            </div>
-          </div>
-          {storageTotal > 0 && (
-            <span className="font-semibold text-primary">
-              {formatPrice(storageTotal)}/month
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="storage">Storage size</Label>
-          <Select
-            id="storage"
-            value={storage}
-            onChange={(e) => setStorage(e.target.value as StorageKey | '')}
-          >
-            <option value="">No storage needed</option>
-            {Object.entries(CALCULATOR_CONFIG.storage).map(([key, data]) => (
-              <option key={key} value={key}>
-                {data.label} - {formatPrice(data.price)}/month
-              </option>
-            ))}
-          </Select>
-        </div>
-
-        {storage && (
-          <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-            Secure, climate-controlled storage. First month included with your move. Cancel anytime with 7 days notice.
-          </div>
-        )}
-      </Card>
-
-      {/* Assembly Service */}
-      <Card className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🔧</span>
-            <div>
-              <h3 className="font-medium text-foreground">Furniture Assembly</h3>
-              <p className="text-sm text-muted-foreground">
-                Disassembly & reassembly at destination
-              </p>
-            </div>
-          </div>
-          {assemblyTotal > 0 && (
-            <span className="font-semibold text-primary">
-              {formatPrice(assemblyTotal)}
-            </span>
-          )}
-        </div>
-
-        {/* Add assembly item */}
-        <div className="grid gap-2 sm:grid-cols-[1fr_80px_auto]">
-          <div className="space-y-1">
-            <Label htmlFor="assembly-type" className="text-xs">Item type</Label>
-            <Select
-              id="assembly-type"
-              value={newAssemblyType}
-              onChange={(e) => setNewAssemblyType(e.target.value as AssemblyKey | '')}
-            >
-              <option value="">Select item type...</option>
-              {Object.entries(CALCULATOR_CONFIG.assembly).map(([key, data]) => (
-                <option key={key} value={key}>
-                  {data.label} ({data.examples}) - {formatPrice(data.price)}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="assembly-qty" className="text-xs">Qty</Label>
-            <Input
-              id="assembly-qty"
-              type="number"
-              min={1}
-              max={20}
-              value={newAssemblyQty}
-              onChange={(e) => setNewAssemblyQty(parseInt(e.target.value) || 1)}
-              className="text-center"
-            />
-          </div>
-
-          <div className="flex items-end">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddAssembly}
-              disabled={!newAssemblyType}
-            >
-              Add
-            </Button>
-          </div>
-        </div>
-
-        {/* Assembly items list */}
-        {assemblyItems.length > 0 && (
-          <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Items to assemble:</Label>
+          {selectedPacking !== null && (
             <div className="space-y-2">
-              {assemblyItems.map((item) => {
-                const config = CALCULATOR_CONFIG.assembly[item.type];
-                const itemTotal = config.price * item.quantity;
-                return (
-                  <div
-                    key={item.type}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{item.quantity}×</span>
-                      <span className="text-sm">{config.label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{formatPrice(itemTotal)}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveAssembly(item.type)}
-                        className="text-muted-foreground hover:text-destructive transition-colors"
-                        aria-label="Remove item"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPacking('fragileOnly');
+                }}
+                className={cn(
+                  'w-full p-3 rounded-lg border text-left transition-all',
+                  selectedPacking === 'fragileOnly'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                )}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Just fragile items</span>
+                  <span className="text-primary font-semibold">~{formatPrice(fragileOnlyPrice)}</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPacking(recommendedPacking);
+                }}
+                className={cn(
+                  'w-full p-3 rounded-lg border text-left transition-all',
+                  selectedPacking !== 'fragileOnly'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                )}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Full home packing</span>
+                  <span className="text-primary font-semibold">~{formatPrice(fullPackingPrice)}</span>
+                </div>
+              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {assemblyItems.length === 0 && (
-          <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
-            Add items that need disassembly before the move and reassembly at your new home.
-          </div>
-        )}
-      </Card>
-
-      {/* Extras Total */}
-      {extrasTotal > 0 && (
-        <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium text-foreground">Extras Total</h3>
-              <p className="text-sm text-muted-foreground">
-                Added to your moving quote
+          {selectedPacking === null && (
+            <div className="text-sm space-y-1">
+              <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">Fragile items only:</span> ~{formatPrice(fragileOnlyPrice)}
+              </p>
+              <p className="text-muted-foreground">
+                <span className="font-medium text-foreground">Full {propertyLabel}:</span> ~{formatPrice(fullPackingPrice)}
               </p>
             </div>
-            <span className="text-2xl font-bold text-primary">
-              {formatPrice(extrasTotal)}
-            </span>
-          </div>
+          )}
+        </ExtrasCard>
 
-          {/* Breakdown */}
-          <div className="mt-3 pt-3 border-t border-primary/10 space-y-1 text-sm">
-            {packingTotal > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Packing</span>
-                <span>{formatPrice(packingTotal)}</span>
-              </div>
-            )}
-            {cleaningTotal > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Cleaning</span>
-                <span>{formatPrice(cleaningTotal)}</span>
-              </div>
-            )}
-            {storageTotal > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Storage (1st month)</span>
-                <span>{formatPrice(storageTotal)}</span>
-              </div>
-            )}
-            {assemblyTotal > 0 && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Assembly ({assemblyItems.reduce((s, i) => s + i.quantity, 0)} items)</span>
-                <span>{formatPrice(assemblyTotal)}</span>
-              </div>
-            )}
+        {/* Cleaning Service */}
+        <ExtrasCard
+          icon="✨"
+          title="End of Tenancy Clean"
+          isSelected={selectedCleaning}
+          onToggle={() => setSelectedCleaning(!selectedCleaning)}
+        >
+          <p className="text-sm text-muted-foreground mb-3">
+            Professional deep clean to help you get your deposit back.
+          </p>
+          <div className="flex items-center justify-between">
+            <span className="text-sm">
+              Estimated for {propertyLabel}:
+            </span>
+            <span className="text-primary font-semibold">~{formatPrice(cleaningPrice)}</span>
           </div>
-        </Card>
-      )}
+        </ExtrasCard>
+
+        {/* Storage Service */}
+        <ExtrasCard
+          icon="🏠"
+          title="Secure Storage"
+          isSelected={selectedStorage}
+          onToggle={() => setSelectedStorage(!selectedStorage)}
+          badge="First 2 months 50% off!"
+          badgeVariant="success"
+        >
+          <p className="text-sm text-muted-foreground">
+            Climate-controlled storage if your new place isn't ready yet.
+          </p>
+        </ExtrasCard>
+
+        {/* Assembly Service */}
+        <ExtrasCard
+          icon="🔧"
+          title="Furniture Dis/Assembly"
+          isSelected={selectedAssembly}
+          onToggle={() => setSelectedAssembly(!selectedAssembly)}
+        >
+          <p className="text-sm text-muted-foreground">
+            Save time and hassle - we'll take apart and reassemble your furniture safely.
+          </p>
+        </ExtrasCard>
+      </div>
+
+      {/* Info note */}
+      <p className="text-center text-sm text-muted-foreground">
+        Exact prices will be calculated in your personalized quote
+      </p>
 
       {/* Navigation Buttons */}
       <NavigationButtons
         onPrevious={prevStep}
         onNext={handleContinue}
-        nextLabel={extrasTotal > 0 ? 'Continue with Extras' : 'Skip Extras'}
+        nextLabel="Continue"
       />
     </div>
   );
+}
+
+// ===================
+// EXTRAS CARD COMPONENT
+// ===================
+
+interface ExtrasCardProps {
+  icon: string;
+  title: string;
+  isSelected: boolean;
+  onToggle: () => void;
+  badge?: string;
+  badgeVariant?: 'default' | 'success';
+  children: React.ReactNode;
+}
+
+function ExtrasCard({
+  icon,
+  title,
+  isSelected,
+  onToggle,
+  badge,
+  badgeVariant = 'default',
+  children
+}: ExtrasCardProps) {
+  return (
+    <Card
+      className={cn(
+        'relative p-4 transition-all cursor-pointer',
+        'hover:border-primary/50',
+        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
+      )}
+      onClick={onToggle}
+    >
+      {/* Badge */}
+      {badge && (
+        <div className={cn(
+          'absolute -top-2 right-4 px-2 py-0.5 rounded-full text-xs font-medium',
+          badgeVariant === 'success' && 'bg-emerald-100 text-emerald-700',
+          badgeVariant === 'default' && 'bg-primary/10 text-primary'
+        )}>
+          {badge}
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">{icon}</span>
+          <h3 className="font-semibold text-foreground">{title}</h3>
+        </div>
+
+        {/* Toggle indicator */}
+        <div className={cn(
+          'w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all',
+          isSelected
+            ? 'bg-primary border-primary text-primary-foreground'
+            : 'border-muted-foreground/30'
+        )}>
+          {isSelected && (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div onClick={(e) => e.stopPropagation()}>
+        {children}
+      </div>
+    </Card>
+  );
+}
+
+// ===================
+// HELPER FUNCTIONS
+// ===================
+
+function getEstimatedRooms(propertySize: string | null): number {
+  const roomMap: Record<string, number> = {
+    'studio': 1,
+    '1bed': 2,
+    '2bed': 3,
+    '3bed-small': 4,
+    '3bed-large': 4,
+    '4bed': 5,
+    '5bed': 6,
+    '5bed-plus': 6,
+  };
+  return propertySize ? (roomMap[propertySize] || 3) : 3;
 }
 
 export default Step10Extras;

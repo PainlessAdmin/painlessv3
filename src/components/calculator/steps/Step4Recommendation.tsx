@@ -183,8 +183,6 @@ export function Step4Recommendation() {
         />
       )}
 
-      {/* Social Proof */}
-      <SocialProofCard />
     </div>
   );
 }
@@ -383,43 +381,6 @@ function CallbackRequiredView({ reason }: CallbackRequiredViewProps) {
         Request a Callback
       </Button>
     </div>
-  );
-}
-
-// ===================
-// SOCIAL PROOF CARD
-// ===================
-
-function SocialProofCard() {
-  return (
-    <Card className="p-4 bg-muted/30">
-      <div className="flex gap-4">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-xl">
-            👨🏻
-          </div>
-        </div>
-
-        {/* Content */}
-        <div>
-          {/* Stars */}
-          <div className="text-amber-500 mb-1">★★★★★</div>
-
-          {/* Quote */}
-          <p className="text-sm text-foreground italic">
-            "Absolutely brilliant from start to finish. The lads arrived early, wrapped everything carefully, and had us in our new place by 3pm. Can't recommend them enough!"
-          </p>
-
-          {/* Attribution */}
-          <p className="text-xs text-muted-foreground mt-2">
-            — Marcus T., Clifton to Keynsham
-            <br />
-            3-bed house, November 2024
-          </p>
-        </div>
-      </div>
-    </Card>
   );
 }
 
