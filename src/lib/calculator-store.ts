@@ -275,22 +275,12 @@ export const recommendedResources = computed(calculatorStore, (state) => {
       return getResourcesFromCubes(cubes);
     }
 
-    // Home - DEBUG
-    console.log('recommendedResources check:', {
-      propertySize: state.propertySize,
-      sliderPosition: state.sliderPosition,
-      condition: state.propertySize && state.propertySize !== 'furniture'
-    });
-
+    // Home
     if (state.propertySize && state.propertySize !== 'furniture') {
       const cubes = getCubesForProperty(state.propertySize, state.sliderPosition);
-      console.log('Calculated cubes:', cubes);
-      const resources = getResourcesFromCubes(cubes);
-      console.log('Calculated resources:', resources);
-      return resources;
+      return getResourcesFromCubes(cubes);
     }
 
-    console.log('recommendedResources returning null - no conditions met');
     return null;
   } catch (e) {
     console.error('Resource calculation error:', e);
