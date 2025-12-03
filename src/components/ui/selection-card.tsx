@@ -17,10 +17,8 @@ interface SelectionCardProps {
   value: string;
   /** Title displayed below the image */
   title: string;
-  /** Image source (webp with jpeg/svg fallback) */
+  /** Image source - base path without extension (e.g., '/images/calculator/step-01/home-removal') */
   imageSrc?: string;
-  /** Fallback image source */
-  fallbackSrc?: string;
   /** Whether this card is currently selected */
   isSelected?: boolean;
   /** Click handler */
@@ -41,7 +39,6 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
       value,
       title,
       imageSrc,
-      fallbackSrc,
       isSelected = false,
       onSelect,
       className,
@@ -51,15 +48,9 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
     },
     ref
   ) => {
-    const [imgError, setImgError] = React.useState(false);
-
-    const handleImageError = () => {
-      if (fallbackSrc && !imgError) {
-        setImgError(true);
-      }
-    };
-
-    const currentImageSrc = imgError && fallbackSrc ? fallbackSrc : imageSrc;
+    // Derive webp and jpg paths from base imageSrc
+    const webpSrc = imageSrc ? `${imageSrc}.webp` : undefined;
+    const jpgSrc = imageSrc ? `${imageSrc}.jpg` : undefined;
 
     return (
       <div
@@ -117,22 +108,24 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
           <CheckIcon />
         </div>
 
-        {/* Image container - 1:1 aspect ratio */}
-        <div className="relative aspect-square w-full max-w-[220px] mx-auto overflow-hidden rounded-t-lg">
-          {currentImageSrc ? (
-            <img
-              src={currentImageSrc}
-              alt={title}
-              onError={handleImageError}
-              className={cn(
-                'h-full w-full object-contain p-4',
-                'transition-transform duration-300 ease-out',
-                // Image zoom on hover/select
-                (isSelected || !disabled) && 'group-hover:scale-110',
-                isSelected && 'scale-105'
-              )}
-              loading="lazy"
-            />
+        {/* Image container - 1:1 aspect ratio, no padding */}
+        <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+          {imageSrc ? (
+            <picture>
+              {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
+              <img
+                src={jpgSrc}
+                alt={title}
+                className={cn(
+                  'h-full w-full object-cover',
+                  'transition-transform duration-300 ease-out',
+                  // Image zoom on hover/select
+                  (isSelected || !disabled) && 'group-hover:scale-110',
+                  isSelected && 'scale-105'
+                )}
+                loading="lazy"
+              />
+            </picture>
           ) : (
             // Placeholder if no image
             <div className="h-full w-full flex items-center justify-center bg-muted/30">

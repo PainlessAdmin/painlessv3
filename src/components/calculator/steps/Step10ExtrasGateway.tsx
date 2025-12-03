@@ -18,7 +18,7 @@ import { SelectionCardGrid } from '@/components/ui/selection-card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { cn } from '@/lib/utils';
 
-// Gateway options configuration
+// Gateway options configuration (base path without extension)
 const GATEWAY_OPTIONS: Array<{
   value: ExtrasGatewayOption;
   title: string;
@@ -29,25 +29,25 @@ const GATEWAY_OPTIONS: Array<{
     value: 'packing',
     title: 'Professional Packing',
     description: 'Let our experts pack your belongings safely',
-    image: '/images/calculator/extras/packing.svg',
+    image: '/images/calculator/step-10-extras/gateway/packing',
   },
   {
     value: 'assembly',
     title: 'Furniture Assembly',
     description: 'We disassemble and reassemble your furniture',
-    image: '/images/calculator/extras/assembly.svg',
+    image: '/images/calculator/step-10-extras/gateway/assembly',
   },
   {
     value: 'cleaning',
     title: 'Move-Out Cleaning',
     description: 'Professional cleaning for your old property',
-    image: '/images/calculator/extras/cleaning.svg',
+    image: '/images/calculator/step-10-extras/gateway/cleaning',
   },
   {
     value: 'storage',
     title: 'Storage',
     description: 'Secure storage if your new place isn\'t ready',
-    image: '/images/calculator/extras/storage.svg',
+    image: '/images/calculator/step-10-extras/gateway/storage',
   },
 ];
 
@@ -209,23 +209,21 @@ function GatewayCard({
         </svg>
       </div>
 
-      {/* Image container - 1:1 aspect ratio */}
-      <div className="relative aspect-square w-full max-w-[220px] mx-auto overflow-hidden rounded-t-lg">
-        <img
-          src={imageSrc}
-          alt={title}
-          className={cn(
-            'h-full w-full object-contain p-4',
-            'transition-transform duration-300 ease-out',
-            isSelected && 'scale-105'
-          )}
-          loading="lazy"
-          onError={(e) => {
-            // Fallback to placeholder
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
+      {/* Image container - 1:1 aspect ratio, no padding */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-t-lg">
+        <picture>
+          <source srcSet={`${imageSrc}.webp`} type="image/webp" />
+          <img
+            src={`${imageSrc}.jpg`}
+            alt={title}
+            className={cn(
+              'h-full w-full object-cover',
+              'transition-transform duration-300 ease-out',
+              isSelected && 'scale-105'
+            )}
+            loading="lazy"
+          />
+        </picture>
       </div>
 
       {/* Content */}

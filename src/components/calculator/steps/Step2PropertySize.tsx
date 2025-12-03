@@ -54,15 +54,15 @@ const propertyOptions: Array<{
   label: string;
   image: string;
 }> = [
-  { value: 'furniture', label: 'Furniture Only', image: '/images/calculator/furniture-only.svg' },
-  { value: 'studio', label: 'Studio', image: '/images/calculator/studio.svg' },
-  { value: '1bed', label: '1 Bedroom', image: '/images/calculator/1bed.svg' },
-  { value: '2bed', label: '2 Bedrooms', image: '/images/calculator/2bed.svg' },
-  { value: '3bed-small', label: '3 Bed (Small)', image: '/images/calculator/3bed-small.svg' },
-  { value: '3bed-large', label: '3 Bed (Large)', image: '/images/calculator/3bed-large.svg' },
-  { value: '4bed', label: '4 Bedrooms', image: '/images/calculator/4bed.svg' },
-  { value: '5bed', label: '5 Bedrooms', image: '/images/calculator/5bed.svg' },
-  { value: '5bed-plus', label: '5+ Bedrooms', image: '/images/calculator/5bed-plus.svg' },
+  { value: 'furniture', label: 'Furniture Only', image: '/images/calculator/step-02-property-size/furniture-only' },
+  { value: 'studio', label: 'Studio', image: '/images/calculator/step-02-property-size/studio' },
+  { value: '1bed', label: '1 Bedroom', image: '/images/calculator/step-02-property-size/1bed' },
+  { value: '2bed', label: '2 Bedrooms', image: '/images/calculator/step-02-property-size/2bed' },
+  { value: '3bed-small', label: '3 Bed (Small)', image: '/images/calculator/step-02-property-size/3bed-small' },
+  { value: '3bed-large', label: '3 Bed (Large)', image: '/images/calculator/step-02-property-size/3bed-large' },
+  { value: '4bed', label: '4 Bedrooms', image: '/images/calculator/step-02-property-size/4bed' },
+  { value: '5bed', label: '5 Bedrooms', image: '/images/calculator/step-02-property-size/5bed' },
+  { value: '5bed-plus', label: '5+ Bedrooms', image: '/images/calculator/step-02-property-size/5bed-plus' },
 ];
 
 function HomePropertySelection() {
@@ -183,19 +183,19 @@ const officeOptions: Array<{
     value: 'small',
     label: 'Small Office',
     description: '1-5 desks, minimal equipment',
-    image: '/images/calculator/office-small.svg',
+    image: '/images/calculator/step-02-property-size/office-small',
   },
   {
     value: 'medium',
     label: 'Medium Office',
     description: '6-15 desks, standard equipment',
-    image: '/images/calculator/office-medium.svg',
+    image: '/images/calculator/step-02-property-size/office-medium',
   },
   {
     value: 'large',
     label: 'Large Office',
     description: '16+ desks, server room, heavy equipment',
-    image: '/images/calculator/office-large.svg',
+    image: '/images/calculator/step-02-property-size/office-large',
   },
 ];
 

@@ -165,11 +165,14 @@ export function Step7PropertyChain() {
           <div className="text-center space-y-3">
             {/* Image */}
             <div className="flex justify-center">
-              <img
-                src="/images/calculator/chain-yes.svg"
-                alt="Property chain"
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-              />
+              <picture>
+                <source srcSet="/images/calculator/step-07-property-chain/chain-yes.webp" type="image/webp" />
+                <img
+                  src="/images/calculator/step-07-property-chain/chain-yes.jpg"
+                  alt="Property chain"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded"
+                />
+              </picture>
             </div>
 
             {/* Label */}
@@ -213,11 +216,14 @@ export function Step7PropertyChain() {
           <div className="text-center space-y-3">
             {/* Image */}
             <div className="flex justify-center">
-              <img
-                src="/images/calculator/chain-no.svg"
-                alt="Independent move"
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-              />
+              <picture>
+                <source srcSet="/images/calculator/step-07-property-chain/chain-no.webp" type="image/webp" />
+                <img
+                  src="/images/calculator/step-07-property-chain/chain-no.jpg"
+                  alt="Independent move"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded"
+                />
+              </picture>
             </div>
 
             {/* Label */}
