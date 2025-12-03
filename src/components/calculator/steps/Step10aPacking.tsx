@@ -16,26 +16,11 @@ import {
   prevStep,
   type PackingTier,
 } from '@/lib/calculator-store';
-import { CALCULATOR_CONFIG, type PackingSizeCategory } from '@/lib/calculator-config';
+import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
-
-// Get packing size category based on cubes
-function getPackingSizeCategory(cubes: number): PackingSizeCategory {
-  if (cubes <= 500) return 'small';
-  if (cubes <= 1000) return 'medium';
-  if (cubes <= 1750) return 'large';
-  return 'xl';
-}
-
-// Format currency
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',
-    minimumFractionDigits: 0,
-  }).format(price);
-}
+import { cn, formatPriceGBP } from '@/lib/utils';
+import { getPackingSizeCategory } from '@/lib/constants';
+import { CheckIcon } from '@/components/icons/CheckIcon';
 
 export function Step10aPacking() {
   const state = useStore(calculatorStore);
@@ -53,11 +38,10 @@ export function Step10aPacking() {
     setSelectedTier(state.extras.packingTier || null);
   }, [state.extras.packingTier]);
 
-  // Handle continue
+  // Handle continue - only proceed if a tier is selected
   const handleContinue = () => {
-    if (selectedTier) {
-      setPackingTier(selectedTier);
-    }
+    if (!selectedTier) return; // Early return if no selection
+    setPackingTier(selectedTier);
     nextStep();
   };
 
@@ -189,9 +173,7 @@ function PackingTierCard({
           isSelected ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
         )}
       >
-        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
+        <CheckIcon />
       </div>
 
       {/* Content */}
@@ -208,22 +190,14 @@ function PackingTierCard({
 
         {/* Price */}
         <div className="text-center py-3 border-y border-border">
-          <span className="text-3xl font-bold text-primary">{formatPrice(price)}</span>
+          <span className="text-3xl font-bold text-primary">{formatPriceGBP(price)}</span>
         </div>
 
         {/* Includes list */}
         <ul className="space-y-2">
           {includes.map((item, index) => (
             <li key={index} className="flex items-start gap-2 text-sm">
-              <svg
-                className="h-4 w-4 text-primary shrink-0 mt-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckIcon className="h-4 w-4 text-primary shrink-0 mt-0.5" strokeWidth={2} />
               <span className="text-muted-foreground">{item}</span>
             </li>
           ))}

@@ -13,7 +13,7 @@
  * - Track conversion
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import {
   calculatorStore,
@@ -49,13 +49,11 @@ export function Step12Quote() {
   const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Auto-submit quote on mount
-  useEffect(() => {
-    submitQuote();
-  }, []);
+  // Track if we've already submitted to prevent double submission
+  const hasSubmittedRef = useRef(false);
 
   // Submit quote to backend
-  const submitQuote = async () => {
+  const submitQuote = useCallback(async () => {
     if (submissionStatus === 'submitting' || submissionStatus === 'success') return;
     if (!quote) return; // Don't submit if no quote
 
@@ -111,7 +109,15 @@ export function Step12Quote() {
         "There was a problem saving your quote. Don't worry - your quote is still valid!"
       );
     }
-  };
+  }, [submissionStatus, quote, state.contact, state.utmSource, state.utmMedium, state.utmCampaign, state.gclid, state.serviceType]);
+
+  // Auto-submit quote on mount (only once)
+  useEffect(() => {
+    if (!hasSubmittedRef.current && quote) {
+      hasSubmittedRef.current = true;
+      submitQuote();
+    }
+  }, [submitQuote, quote]);
 
   // Handle booking request
   const handleBookNow = () => {

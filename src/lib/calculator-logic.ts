@@ -374,7 +374,8 @@ export function getExtrasCost(extras: QuoteInput['extras'], cubes: number): numb
 
   // Enhanced cleaning with quick/deep options
   if ('cleaningRooms' in extras && extras.cleaningRooms && extras.cleaningRooms > 0) {
-    const roomKey = Math.min(extras.cleaningRooms, 6) as 1 | 2 | 3 | 4 | 5 | 6;
+    // Ensure roomKey is between 1 and 6
+    const roomKey = Math.max(1, Math.min(extras.cleaningRooms, 6)) as 1 | 2 | 3 | 4 | 5 | 6;
     const basePrice = CALCULATOR_CONFIG.cleaning[roomKey].price;
 
     // Apply cleaning type multiplier if available

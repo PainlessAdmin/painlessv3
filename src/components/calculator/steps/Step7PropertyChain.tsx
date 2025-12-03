@@ -268,9 +268,7 @@ export function Step7PropertyChain() {
       {/* Navigation Buttons */}
       <NavigationButtons
         onPrevious={prevStep}
-        onNext={() => {}}
-        canGoNext={false}
-        nextLabel="Continue"
+        showNext={false}
       />
     </div>
   );
