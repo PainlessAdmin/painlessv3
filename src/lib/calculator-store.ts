@@ -45,6 +45,7 @@ export interface AddressData {
   postcode: string;
   lat?: number;
   lng?: number;
+  floorLevel?: number; // -1 (basement) to 10
 }
 
 export interface DistanceData {

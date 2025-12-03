@@ -58,25 +58,25 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
         className={cn(
           // Base styles
           'relative cursor-pointer rounded-xl border-2 bg-card text-card-foreground',
-          'transition-all duration-300 ease-out',
+          'transition-all duration-500 ease-out',
           // Default state
           'border-border shadow-sm',
           // Hover state (not selected)
           !isSelected && !disabled && [
             'hover:-translate-y-1 hover:scale-[1.02]',
-            'hover:border-primary/50 hover:shadow-lg',
+            'hover:border-[#6a9c95]/50 hover:shadow-lg',
           ],
           // Selected state
           isSelected && [
             '-translate-y-1.5 scale-[1.03]',
-            'border-primary bg-primary/5',
-            'shadow-xl shadow-primary/10',
-            'ring-2 ring-primary ring-offset-2 ring-offset-background',
+            'border-[#6a9c95] bg-[#6a9c95]/5',
+            'shadow-xl shadow-[#6a9c95]/10',
+            'ring-2 ring-[#6a9c95] ring-offset-2 ring-offset-background',
           ],
           // Disabled state
           disabled && 'opacity-50 cursor-not-allowed',
           // Focus styles
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6a9c95] focus-visible:ring-offset-2',
           className
         )}
         onClick={disabled ? undefined : onSelect}
@@ -97,9 +97,9 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
           className={cn(
             'absolute -top-2 -right-2 z-10',
             'flex h-6 w-6 items-center justify-center rounded-full',
-            'bg-primary text-primary-foreground text-xs font-bold',
+            'bg-[#6a9c95] text-white text-xs font-bold',
             'shadow-md',
-            'transition-all duration-300',
+            'transition-all duration-500',
             isSelected
               ? 'scale-100 opacity-100 animate-bounce-once'
               : 'scale-0 opacity-0'
@@ -149,13 +149,8 @@ const SelectionCardBase = React.forwardRef<HTMLDivElement, SelectionCardProps>(
         </div>
 
         {/* Title */}
-        <div className="p-3 pt-2 text-center">
-          <h3
-            className={cn(
-              'font-semibold text-sm transition-colors duration-200',
-              isSelected ? 'text-primary' : 'text-foreground'
-            )}
-          >
+        <div className="p-3 pt-2 text-center bg-[#6a9c95] rounded-b-lg">
+          <h3 className="font-semibold text-sm text-white transition-colors duration-200">
             {title}
           </h3>
         </div>

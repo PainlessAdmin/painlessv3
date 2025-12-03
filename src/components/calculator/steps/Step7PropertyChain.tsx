@@ -138,9 +138,6 @@ export function Step7PropertyChain() {
         <h2 className="text-2xl font-semibold text-foreground">
           Are you part of a property chain?
         </h2>
-        <p className="text-muted-foreground mt-2">
-          This affects scheduling and availability
-        </p>
       </div>
 
       {/* Options - 2 cols on mobile */}
