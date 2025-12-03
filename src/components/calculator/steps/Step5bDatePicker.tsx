@@ -79,33 +79,36 @@ export function Step5bDatePicker() {
         )}
       </div>
 
-      {/* Calendar */}
+      {/* Calendar with side info */}
       <Card className="p-4">
-        <div className="flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={(date) => date < minDate || date > maxDate}
-            initialFocus
-            className="rounded-md border"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start">
+          {/* Calendar */}
+          <div className="flex justify-center md:justify-start">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => date < minDate || date > maxDate}
+              initialFocus
+              className="rounded-md border"
+            />
+          </div>
+
+          {/* Selected date display - beside calendar on desktop */}
+          {selectedDate && (
+            <div className="flex flex-col items-center md:items-start justify-center space-y-3 md:min-w-[200px] md:pt-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
+                <span>📅</span>
+                <span className="font-medium">{formattedDate}</span>
+              </div>
+              {/* Non-binding notice */}
+              <p className="text-sm text-muted-foreground text-center md:text-left">
+                Don't worry, this isn't set in stone. It just helps us plan your move better.
+              </p>
+            </div>
+          )}
         </div>
       </Card>
-
-      {/* Selected date display */}
-      {selectedDate && (
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
-            <span>📅</span>
-            <span className="font-medium">{formattedDate}</span>
-          </div>
-          {/* Non-binding notice */}
-          <p className="text-sm text-muted-foreground">
-            Don't worry, this isn't set in stone. It just helps us plan your move better.
-          </p>
-        </div>
-      )}
 
       {/* Weekend note */}
       {selectedDate && (selectedDate.getDay() === 0 || selectedDate.getDay() === 6) && (

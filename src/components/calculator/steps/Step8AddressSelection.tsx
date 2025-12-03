@@ -287,8 +287,8 @@ export function Step8AddressSelection() {
     nextStep();
   };
 
-  // Can continue?
-  const canContinue = fromAddress && toAddress && !isCalculatingRoute;
+  // Can continue? Require both addresses AND calculated distances
+  const canContinue = fromAddress && toAddress && distanceInfo && !isCalculatingRoute;
 
   return (
     <div className="space-y-6">
