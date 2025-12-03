@@ -172,6 +172,9 @@ export function Step12Quote() {
             <li>toAddress: {state.toAddress?.formatted || 'null'}</li>
             <li>distances: {state.distances ? `${state.distances.customerDistance} mi` : 'null'}</li>
             <li>resources: {resources ? `${resources.vans}v/${resources.men}m` : 'null'}</li>
+            <li>complications: {state.complications ? state.complications.join(',') || 'empty' : 'null'}</li>
+            <li>extras: {JSON.stringify(state.extras)}</li>
+            <li>callbackRequired: {callbackRequired.required ? `yes (${callbackRequired.reason})` : 'no'}</li>
           </ul>
         </Card>
 

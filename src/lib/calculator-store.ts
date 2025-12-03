@@ -347,7 +347,7 @@ export const quoteResult = computed(calculatorStore, (state): QuoteResult | null
         over40kg: state.furnitureOnly.over40kg,
         hasSpecialist: state.furnitureOnly.specialistItems.length > 0,
       } : undefined,
-      complications: state.complications,
+      complications: state.complications || [],
       propertyChain: state.propertyChain || false,
       distances: state.distances,
       extras: state.extras,
