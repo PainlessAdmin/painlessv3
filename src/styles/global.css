@@ -6,23 +6,13 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 166 96% 24%;
     --radius: 0.5rem;
   }
 }
@@ -32,6 +22,98 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-base-100 text-base-content;
+  }
+}
+
+/* DaisyUI card with image styling */
+@layer components {
+  /* Selection card with elevated effect when selected */
+  .selection-card {
+    @apply card bg-base-100 border border-base-300 cursor-pointer overflow-hidden;
+    transition: all 0.3s ease-out;
+  }
+
+  .selection-card:hover {
+    @apply shadow-lg;
+    border-color: oklch(var(--p) / 0.5);
+  }
+
+  .selection-card:hover:not(.selection-card-selected) {
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .selection-card-selected {
+    @apply border-primary border-2 shadow-xl;
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 20px 25px -5px rgba(4, 133, 116, 0.15), 0 8px 10px -6px rgba(4, 133, 116, 0.1);
+  }
+
+  .selection-card:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+  }
+
+  /* Card image container with 1:1 aspect ratio */
+  .selection-card-image {
+    @apply aspect-square overflow-hidden;
+  }
+
+  .selection-card-image img {
+    @apply w-full h-full object-cover;
+    transition: transform 0.3s ease-out;
+  }
+
+  .selection-card:hover .selection-card-image img {
+    transform: scale(1.1);
+  }
+
+  .selection-card-selected .selection-card-image img {
+    transform: scale(1.1);
+  }
+
+  /* Check indicator animation */
+  .check-indicator {
+    @apply absolute top-3 right-3 z-10;
+    @apply w-6 h-6 rounded-full bg-primary text-primary-content;
+    @apply flex items-center justify-center;
+    @apply shadow-md;
+    animation: check-bounce 0.3s ease-out;
+  }
+
+  /* Step container styling */
+  .step-container {
+    @apply space-y-6;
+    animation: fade-in 0.3s ease-out;
+  }
+
+  /* Trust badges */
+  .trust-badge {
+    @apply flex items-center gap-1.5 text-sm font-medium;
+    color: #035349;
+  }
+
+  .trust-badge svg {
+    @apply w-4 h-4;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted));
+    border-radius: 20px;
   }
 }

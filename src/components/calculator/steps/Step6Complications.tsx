@@ -7,6 +7,8 @@
  * - Restricted access: ×1.07
  * - Attic items: ×1.07
  * - Plants: +1 van, +1 mover
+ *
+ * Uses DaisyUI cards with 1:1 images and microinteractions
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -18,51 +20,51 @@ import {
   prevStep,
 } from '@/lib/calculator-store';
 import type { Complication } from '@/lib/calculator-config';
+import { SelectionCard, SimpleSelectionCard } from '@/components/ui/selection-card';
 import { Card } from '@/components/ui/card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
 
-// Complication options with details
+// Complication options with images
 const complicationOptions: Array<{
   id: Complication;
   label: string;
   description: string;
-  icon: string;
+  image: string;
   impact: string;
 }> = [
   {
     id: 'largeFragile',
     label: 'Large/fragile',
     description: 'Piano, artwork, antiques',
-    icon: '📦',
+    image: '/images/calculator/step6/large-fragile.svg',
     impact: 'Extra care',
   },
   {
     id: 'stairs',
     label: 'Stairs',
     description: 'No lift access',
-    icon: '🪜',
+    image: '/images/calculator/step6/stairs.svg',
     impact: 'Extra time',
   },
   {
     id: 'restrictedAccess',
     label: 'Access issues',
     description: 'Narrow streets, parking',
-    icon: '🚫',
+    image: '/images/calculator/step6/restricted-access.svg',
     impact: 'Extra planning',
   },
   {
     id: 'attic',
     label: 'Attic items',
     description: 'Items in loft/attic',
-    icon: '🏠',
+    image: '/images/calculator/step6/attic.svg',
     impact: 'Extra time',
   },
   {
     id: 'plants',
     label: 'Plants (20+)',
     description: 'Large plant collection',
-    icon: '🌿',
+    image: '/images/calculator/step6/plants.svg',
     impact: 'Extra van',
   },
 ];
@@ -139,69 +141,61 @@ export function Step6Complications() {
   const impactPreview = getImpactPreview(selected);
 
   return (
-    <div className="space-y-6">
+    <div className="step-container">
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="text-center animate-fade-in">
+        <h2 className="text-2xl font-semibold text-base-content">
           Do any of these apply?
         </h2>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-base-content/60 mt-2">
           Select all that apply
         </p>
       </div>
 
       {/* Complication Options - 2 cols mobile, 3 cols desktop */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
-        {complicationOptions.map((option) => (
-          <ComplicationCard
+        {complicationOptions.map((option, index) => (
+          <div
             key={option.id}
-            option={option}
-            isSelected={selected.includes(option.id)}
-            onToggle={() => handleToggle(option.id)}
-          />
+            className="animate-slide-up"
+            style={{ animationDelay: `${index * 50}ms` }}
+          >
+            <SelectionCard
+              value={option.id}
+              label={option.label}
+              description={option.description}
+              imageSrc={option.image}
+              isSelected={selected.includes(option.id)}
+              onSelect={() => handleToggle(option.id)}
+            />
+            {/* Impact badge below card when selected */}
+            {selected.includes(option.id) && (
+              <div className="flex justify-center mt-1 animate-scale-in">
+                <span className="badge badge-warning badge-sm">{option.impact}</span>
+              </div>
+            )}
+          </div>
         ))}
 
         {/* None of these - Last card */}
-        <Card
-          className={cn(
-            'p-3 cursor-pointer transition-all',
-            'hover:border-primary/50 hover:-translate-y-1',
-            noneSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-          )}
-          onClick={handleNoneToggle}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleNoneToggle();
-            }
-          }}
-        >
-          <div className="flex flex-col items-center text-center space-y-2">
-            <span className="text-3xl">✅</span>
-            <h3 className="font-semibold text-sm text-foreground">
-              None
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              No complications
-            </p>
-            {noneSelected && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                ✓
-              </span>
-            )}
-          </div>
-        </Card>
+        <div className="animate-slide-up" style={{ animationDelay: '250ms' }}>
+          <SimpleSelectionCard
+            label="None"
+            description="No complications"
+            icon={<span>✅</span>}
+            isSelected={noneSelected}
+            onSelect={handleNoneToggle}
+          />
+        </div>
       </div>
 
       {/* Impact Preview */}
       {selected.length > 0 && (
-        <Card className="p-4 bg-muted/50">
-          <h3 className="font-medium text-foreground text-sm mb-2">
+        <Card className="p-4 bg-base-200 animate-scale-in">
+          <h3 className="font-medium text-base-content text-sm mb-2">
             How this affects your quote:
           </h3>
-          <ul className="space-y-1 text-sm text-muted-foreground">
+          <ul className="space-y-1 text-sm text-base-content/70">
             {impactPreview.map((impact, i) => (
               <li key={i} className="flex items-center gap-2">
                 <span className="text-primary">•</span>
@@ -219,72 +213,6 @@ export function Step6Complications() {
         nextLabel="Continue"
       />
     </div>
-  );
-}
-
-// ===================
-// SUB-COMPONENTS
-// ===================
-
-interface ComplicationCardProps {
-  option: {
-    id: Complication;
-    label: string;
-    description: string;
-    icon: string;
-    impact: string;
-  };
-  isSelected: boolean;
-  onToggle: () => void;
-}
-
-function ComplicationCard({ option, isSelected, onToggle }: ComplicationCardProps) {
-  return (
-    <Card
-      className={cn(
-        'p-3 cursor-pointer transition-all',
-        'hover:border-primary/50 hover:-translate-y-1',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-      )}
-      onClick={onToggle}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}
-    >
-      <div className="flex flex-col items-center text-center space-y-2">
-        {/* Icon */}
-        <span className="text-3xl">{option.icon}</span>
-
-        {/* Label */}
-        <h3 className="font-semibold text-sm text-foreground">
-          {option.label}
-        </h3>
-
-        {/* Description */}
-        <p className="text-xs text-muted-foreground line-clamp-2">
-          {option.description}
-        </p>
-
-        {/* Selected indicator */}
-        {isSelected && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-            ✓
-          </span>
-        )}
-
-        {/* Impact badge */}
-        {isSelected && (
-          <span className="inline-flex items-center text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-            {option.impact}
-          </span>
-        )}
-      </div>
-    </Card>
   );
 }
 

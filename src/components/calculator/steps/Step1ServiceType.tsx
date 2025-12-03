@@ -2,6 +2,7 @@
  * STEP 1: SERVICE TYPE SELECTION
  *
  * User selects: Home Removal | Office Removal | Clearance Service
+ * Uses DaisyUI cards with 1:1 images and microinteractions
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -12,9 +13,8 @@ import {
   nextStep,
   type ServiceType
 } from '@/lib/calculator-store';
-import { Card } from '@/components/ui/card';
+import { SelectionCard } from '@/components/ui/selection-card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
 
 // Service options with images and descriptions
 const serviceOptions: Array<{
@@ -27,19 +27,19 @@ const serviceOptions: Array<{
     value: 'home',
     label: 'Home Removal',
     description: 'Moving house? We handle everything from studios to 5+ bed homes.',
-    image: '/images/calculator/home-removal.svg',
+    image: '/images/calculator/step1/home.svg',
   },
   {
     value: 'office',
     label: 'Office Removal',
     description: 'Relocating your business? Minimal downtime, maximum care.',
-    image: '/images/calculator/office-removal.svg',
+    image: '/images/calculator/step1/office.svg',
   },
   {
     value: 'clearance',
     label: 'Clearance Service',
     description: 'House clearance, rubbish removal, or end of tenancy clear-outs.',
-    image: '/images/calculator/clearance.svg',
+    image: '/images/calculator/step1/clearance.svg',
   },
 ];
 
@@ -92,39 +92,56 @@ export function Step1ServiceType() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="step-container">
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="text-center animate-fade-in">
+        <h2 className="text-2xl font-semibold text-base-content">
           What type of service do you need?
         </h2>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-base-content/60 mt-2">
           Select one to get started with your instant quote
         </p>
       </div>
 
       {/* Service Cards - 2 columns on mobile, 3 on desktop */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
-        {serviceOptions.map((option) => (
-          <ServiceCard
+        {serviceOptions.map((option, index) => (
+          <div
             key={option.value}
-            option={option}
-            isSelected={selectedType === option.value}
-            onSelect={() => handleSelect(option.value)}
-          />
+            className="animate-slide-up"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <SelectionCard
+              value={option.value}
+              label={option.label}
+              description={option.description}
+              imageSrc={option.image}
+              isSelected={selectedType === option.value}
+              onSelect={() => handleSelect(option.value)}
+            />
+          </div>
         ))}
       </div>
 
       {/* Trust badges */}
-      <div className="flex flex-wrap justify-center gap-6 pt-2 text-sm font-medium">
-        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
-          <span className="text-base">✓</span> Free quote
+      <div className="flex flex-wrap justify-center gap-6 pt-2 animate-fade-in">
+        <span className="trust-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          Free quote
         </span>
-        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
-          <span className="text-base">✓</span> No obligation
+        <span className="trust-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          No obligation
         </span>
-        <span className="flex items-center gap-1.5" style={{ color: '#035349' }}>
-          <span className="text-base">✓</span> Takes 2 minutes
+        <span className="trust-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          Takes 2 minutes
         </span>
       </div>
 
@@ -135,72 +152,6 @@ export function Step1ServiceType() {
         nextLabel="Continue"
       />
     </div>
-  );
-}
-
-// ===================
-// SUB-COMPONENTS
-// ===================
-
-interface ServiceCardProps {
-  option: {
-    value: ServiceType;
-    label: string;
-    description: string;
-    image: string;
-  };
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-function ServiceCard({ option, isSelected, onSelect }: ServiceCardProps) {
-  return (
-    <Card
-      className={cn(
-        'relative cursor-pointer p-4 transition-all duration-200',
-        'hover:border-primary hover:-translate-y-1 hover:shadow-lg',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary'
-      )}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-pressed={isSelected}
-    >
-      {/* Selected indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-            ✓
-          </span>
-        </div>
-      )}
-
-      {/* Image */}
-      <div className="flex justify-center mb-3">
-        <img
-          src={option.image}
-          alt={option.label}
-          className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-        />
-      </div>
-
-      {/* Label */}
-      <h3 className="font-semibold text-sm sm:text-base text-foreground text-center">
-        {option.label}
-      </h3>
-
-      {/* Description - hidden on mobile */}
-      <p className="text-xs text-muted-foreground mt-1 text-center hidden sm:block">
-        {option.description}
-      </p>
-    </Card>
   );
 }
 

@@ -3,6 +3,7 @@
  * CALCULATOR LAYOUT
  *
  * Main layout wrapper for calculator pages
+ * Uses DaisyUI painless theme
  */
 
 import '@/styles/global.css';
@@ -29,7 +30,7 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="painless">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -46,7 +47,7 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
       />
     )}
   </head>
-  <body class="min-h-screen bg-background antialiased flex flex-col">
+  <body class="min-h-screen bg-base-100 antialiased flex flex-col">
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-6 flex-1">
       <!-- Progress Bar -->
@@ -61,9 +62,9 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
     </main>
 
     <!-- Footer -->
-    <footer class="border-t mt-auto">
+    <footer class="border-t border-base-300 mt-auto">
       <div class="container mx-auto px-4 py-6">
-        <div class="text-center text-sm text-muted-foreground">
+        <div class="text-center text-sm text-base-content/60">
           <p>&copy; 2024 Calculator Boilerplate. All rights reserved.</p>
         </div>
       </div>

@@ -5,7 +5,7 @@
  * - Dynamic steps based on flow (furniture, office, home)
  * - Clickable steps (completed steps only)
  * - Scrollable on mobile with current step centered
- * - Brand color #035349
+ * - Uses DaisyUI theme colors
  */
 
 import * as React from 'react';
@@ -19,8 +19,6 @@ interface ProgressBarReactProps {
   currentStep: number;
   className?: string;
 }
-
-const BRAND_COLOR = '#035349';
 
 // Default steps for SSR (full flow)
 const DEFAULT_STEPS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -89,24 +87,17 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
     <div className={cn('w-full', className)}>
       {/* Progress text */}
       <div className="text-center mb-4">
-        <span
-          className="text-sm font-medium"
-          style={{ color: BRAND_COLOR }}
-        >
-          Step {currentIndex + 1} of {totalSteps} ({progress}%)
+        <span className="text-sm font-medium text-primary">
+          Step {currentIndex + 1} of {totalSteps}
         </span>
       </div>
 
-      {/* Linear progress bar */}
-      <div className="relative h-1.5 bg-gray-200 rounded-full overflow-hidden mb-4">
-        <div
-          className="absolute top-0 left-0 h-full transition-all duration-500 ease-out rounded-full"
-          style={{
-            width: `${progress}%`,
-            backgroundColor: BRAND_COLOR,
-          }}
-        />
-      </div>
+      {/* Linear progress bar - DaisyUI progress */}
+      <progress
+        className="progress progress-primary w-full h-2 mb-4"
+        value={progress}
+        max="100"
+      />
 
       {/* Step indicators - scrollable on mobile */}
       <div
@@ -142,13 +133,10 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
                 <div
                   className={cn(
                     'w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold transition-all duration-200',
-                    isCurrent && 'ring-4 ring-opacity-30 scale-110',
+                    isCompleted && 'bg-primary text-primary-content',
+                    isCurrent && 'bg-primary text-primary-content ring-4 ring-primary/30 scale-110',
+                    isFuture && 'bg-base-300 text-base-content/50',
                   )}
-                  style={{
-                    backgroundColor: isCompleted || isCurrent ? BRAND_COLOR : '#E5E7EB',
-                    color: isCompleted || isCurrent ? 'white' : '#9CA3AF',
-                    ringColor: isCurrent ? BRAND_COLOR : undefined,
-                  }}
                 >
                   {isCompleted ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,12 +151,10 @@ export const ProgressBarReact: React.FC<ProgressBarReactProps> = ({
                 <span
                   className={cn(
                     'text-[10px] md:text-xs mt-1.5 text-center whitespace-nowrap',
-                    isCurrent && 'font-semibold',
-                    isFuture && 'opacity-50'
+                    isCompleted && 'text-primary',
+                    isCurrent && 'text-primary font-semibold',
+                    isFuture && 'text-base-content/50'
                   )}
-                  style={{
-                    color: isCompleted || isCurrent ? BRAND_COLOR : '#6B7280',
-                  }}
                 >
                   {step.title}
                 </span>

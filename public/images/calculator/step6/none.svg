@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#e8f5f3"/>
+  <text x="200" y="180" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#048574">PLACEHOLDER</text>
+  <text x="200" y="220" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" font-weight="600" fill="#035349">None</text>
+  <text x="200" y="260" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#6b7280">Replace with 400x400 webp</text>
+</svg>

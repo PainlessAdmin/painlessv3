@@ -4,6 +4,8 @@
  * Simple yes/no question with auto-next.
  * If yes, shows info page before continuing.
  * Property chain = minimum full day booking.
+ *
+ * Uses DaisyUI cards with 1:1 images and microinteractions
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -14,9 +16,9 @@ import {
   nextStep,
   prevStep,
 } from '@/lib/calculator-store';
+import { SelectionCard } from '@/components/ui/selection-card';
 import { Card } from '@/components/ui/card';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
-import { cn } from '@/lib/utils';
 
 export function Step7PropertyChain() {
   const state = useStore(calculatorStore);
@@ -74,25 +76,25 @@ export function Step7PropertyChain() {
   // Page 2: Chain info
   if (internalPage === 2) {
     return (
-      <div className="space-y-6">
+      <div className="step-container">
         {/* Heading */}
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-foreground">
+        <div className="text-center animate-fade-in">
+          <h2 className="text-2xl font-semibold text-base-content">
             Property chain moves
           </h2>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-base-content/60 mt-2">
             Here's what you need to know
           </p>
         </div>
 
         {/* Info Card */}
-        <Card className="p-6 bg-primary/5 border-primary/20">
+        <Card className="p-6 bg-secondary border-primary/20 animate-scale-in">
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <span className="text-2xl">📅</span>
               <div>
-                <h3 className="font-semibold text-foreground">Full day reservation</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-base-content">Full day reservation</h3>
+                <p className="text-sm text-base-content/60">
                   We'll reserve a full day for your move to ensure we can accommodate any delays in the chain.
                 </p>
               </div>
@@ -101,8 +103,8 @@ export function Step7PropertyChain() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">👥</span>
               <div>
-                <h3 className="font-semibold text-foreground">Experienced team</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-base-content">Experienced team</h3>
+                <p className="text-sm text-base-content/60">
                   Our team is experienced with chain completions and understands the pressures involved.
                 </p>
               </div>
@@ -111,8 +113,8 @@ export function Step7PropertyChain() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">📞</span>
               <div>
-                <h3 className="font-semibold text-foreground">Close communication</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-base-content">Close communication</h3>
+                <p className="text-sm text-base-content/60">
                   We'll stay in close contact throughout the day to coordinate timing with solicitors and estate agents.
                 </p>
               </div>
@@ -132,121 +134,49 @@ export function Step7PropertyChain() {
 
   // Page 1: Question
   return (
-    <div className="space-y-6">
+    <div className="step-container">
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold text-foreground">
+      <div className="text-center animate-fade-in">
+        <h2 className="text-2xl font-semibold text-base-content">
           Are you part of a property chain?
         </h2>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-base-content/60 mt-2">
           This affects scheduling and availability
         </p>
       </div>
 
-      {/* Options - 2 cols on mobile */}
+      {/* Options - 2 cols */}
       <div className="grid gap-4 grid-cols-2">
         {/* Yes */}
-        <Card
-          className={cn(
-            'p-4 cursor-pointer transition-all',
-            'hover:border-primary/50 hover:-translate-y-1',
-            isChain === true && 'border-primary bg-primary/5 ring-2 ring-primary'
-          )}
-          onClick={() => handleSelect(true)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleSelect(true);
-            }
-          }}
-        >
-          <div className="text-center space-y-3">
-            {/* Image */}
-            <div className="flex justify-center">
-              <img
-                src="/images/calculator/chain-yes.svg"
-                alt="Property chain"
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-              />
-            </div>
-
-            {/* Label */}
-            <h3 className="font-semibold text-sm sm:text-base text-foreground">
-              Yes, I'm in a chain
-            </h3>
-
-            {/* Description - hidden on mobile */}
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              Multiple completions on the same day
-            </p>
-
-            {/* Selected indicator */}
-            {isChain === true && (
-              <div className="flex justify-center">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                  ✓
-                </span>
-              </div>
-            )}
-          </div>
-        </Card>
+        <div className="animate-slide-up" style={{ animationDelay: '0ms' }}>
+          <SelectionCard
+            value="yes"
+            label="Yes, I'm in a chain"
+            description="Multiple completions on the same day"
+            imageSrc="/images/calculator/step7/chain-yes.svg"
+            isSelected={isChain === true}
+            onSelect={() => handleSelect(true)}
+          />
+        </div>
 
         {/* No */}
-        <Card
-          className={cn(
-            'p-4 cursor-pointer transition-all',
-            'hover:border-primary/50 hover:-translate-y-1',
-            isChain === false && 'border-primary bg-primary/5 ring-2 ring-primary'
-          )}
-          onClick={() => handleSelect(false)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleSelect(false);
-            }
-          }}
-        >
-          <div className="text-center space-y-3">
-            {/* Image */}
-            <div className="flex justify-center">
-              <img
-                src="/images/calculator/chain-no.svg"
-                alt="Independent move"
-                className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-              />
-            </div>
-
-            {/* Label */}
-            <h3 className="font-semibold text-sm sm:text-base text-foreground">
-              No, independent
-            </h3>
-
-            {/* Description - hidden on mobile */}
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              No other transactions depend on mine
-            </p>
-
-            {/* Selected indicator */}
-            {isChain === false && (
-              <div className="flex justify-center">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
-                  ✓
-                </span>
-              </div>
-            )}
-          </div>
-        </Card>
+        <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <SelectionCard
+            value="no"
+            label="No, independent"
+            description="No other transactions depend on mine"
+            imageSrc="/images/calculator/step7/chain-no.svg"
+            isSelected={isChain === false}
+            onSelect={() => handleSelect(false)}
+          />
+        </div>
       </div>
 
       {/* Not sure helper */}
-      <div className="text-center">
+      <div className="text-center animate-fade-in">
         <button
           type="button"
-          className="text-sm text-muted-foreground hover:text-foreground underline"
+          className="btn btn-ghost btn-sm text-base-content/60"
           onClick={() => setShowExplanation(!showExplanation)}
         >
           What's a property chain?
@@ -255,11 +185,11 @@ export function Step7PropertyChain() {
 
       {/* Explanation */}
       {showExplanation && (
-        <Card className="p-4 bg-muted/50">
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">A property chain</strong> is when multiple house sales depend on each other. For example: you're buying a house from someone who is also buying another house on the same day. All transactions must complete together.
+        <Card className="p-4 bg-base-200 animate-scale-in">
+          <p className="text-sm text-base-content/70">
+            <strong className="text-base-content">A property chain</strong> is when multiple house sales depend on each other. For example: you're buying a house from someone who is also buying another house on the same day. All transactions must complete together.
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-base-content/70 mt-2">
             If any part of the chain is delayed, it affects everyone. That's why we reserve a full day for chain moves - to ensure flexibility if completion times shift.
           </p>
         </Card>

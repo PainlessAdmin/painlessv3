@@ -34,6 +34,7 @@
     "@sentry/astro": "^10.28.0",
     "astro": "^4.15.0",
     "clsx": "^2.1.0",
+    "daisyui": "^5.5.5",
     "drizzle-orm": "^0.44.7",
     "nanostores": "^0.10.0",
     "react": "^18.3.0",
