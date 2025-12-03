@@ -15,7 +15,7 @@ const isDevelopment = import.meta.env.MODE === 'development';
 export const CONFIG = {
   // Site info (runtime-derived)
   site: {
-    name: 'Calculator Boilerplate',
+    name: 'Painless Removals Bristol',
     // URL is derived at runtime from request.url
     url: undefined as string | undefined,
     defaultLocale: 'en' as const,
@@ -23,11 +23,11 @@ export const CONFIG = {
 
   // Calculator settings
   calculator: {
-    currency: 'HUF',
-    phoneNumber: '+36-XX-XXX-XXXX',
+    currency: 'GBP',
+    phoneNumber: '0117 123 4567',
     idleTimeSeconds: 20,
-    emailFrom: 'noreply@your-domain.com',
-    emailSupport: 'support@your-domain.com',
+    emailFrom: 'quotes@painlessremovals.co.uk',
+    emailSupport: 'quotes@painlessremovals.co.uk',
     schemaVersion: 1,
   },
 
