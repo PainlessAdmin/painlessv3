@@ -160,6 +160,21 @@ export function Step12Quote() {
           </Card>
         )}
 
+        {/* Debug info - remove after fixing */}
+        <Card className="p-4 bg-muted/50 text-xs font-mono">
+          <h3 className="font-medium text-foreground mb-2">Debug State:</h3>
+          <ul className="space-y-1 text-muted-foreground">
+            <li>serviceType: {state.serviceType || 'null'}</li>
+            <li>propertySize: {state.propertySize || 'null'}</li>
+            <li>sliderPosition: {state.sliderPosition}</li>
+            <li>furnitureOnly: {state.furnitureOnly ? 'yes' : 'no'}</li>
+            <li>fromAddress: {state.fromAddress?.formatted || 'null'}</li>
+            <li>toAddress: {state.toAddress?.formatted || 'null'}</li>
+            <li>distances: {state.distances ? `${state.distances.customerDistance} mi` : 'null'}</li>
+            <li>resources: {resources ? `${resources.vans}v/${resources.men}m` : 'null'}</li>
+          </ul>
+        </Card>
+
         <Button onClick={prevStep} className="w-full" size="lg">
           ← Go back and fix
         </Button>
