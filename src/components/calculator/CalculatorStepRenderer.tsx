@@ -17,8 +17,7 @@ import { Step4Recommendation } from './steps/Step4Recommendation';
 import { Step5DateSelection } from './steps/Step5DateSelection';
 import { Step6Complications } from './steps/Step6Complications';
 import { Step7PropertyChain } from './steps/Step7PropertyChain';
-import { Step8FromAddress } from './steps/Step8FromAddress';
-import { Step9ToAddress } from './steps/Step9ToAddress';
+import { Step8AddressSelection } from './steps/Step8AddressSelection';
 import { Step10Extras } from './steps/Step10Extras';
 import { Step11Contact } from './steps/Step11Contact';
 import { Step12Quote } from './steps/Step12Quote';
@@ -35,8 +34,8 @@ const stepComponents: Record<string, React.ComponentType> = {
   'step-05': Step5DateSelection,
   'step-06': Step6Complications,
   'step-07': Step7PropertyChain,
-  'step-08': Step8FromAddress,
-  'step-09': Step9ToAddress,
+  'step-08': Step8AddressSelection,
+  'step-09': Step8AddressSelection, // Combined with step-08
   'step-10': Step10Extras,
   'step-11': Step11Contact,
   'step-12': Step12Quote,

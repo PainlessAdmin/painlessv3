@@ -31,6 +31,7 @@ const flexibilityOptions: Array<{
   description: string;
   icon: string;
   showDatePicker: boolean;
+  badge?: string;
 }> = [
   {
     value: 'fixed',
@@ -41,16 +42,17 @@ const flexibilityOptions: Array<{
   },
   {
     value: 'flexible',
-    label: "I have a date in mind, but I'm flexible",
-    description: 'Flexible dates often mean better prices!',
+    label: "I'm flexible with dates",
+    description: 'We can find the best available slot for you',
     icon: '🗓️',
     showDatePicker: true,
+    badge: 'Better prices!',
   },
   {
     value: 'unknown',
-    label: "I don't know the date yet",
-    description: "We'll provide a quote you can use when ready",
-    icon: '❓',
+    label: 'Just browsing for now',
+    description: "Get a quote to plan your budget",
+    icon: '💭',
     showDatePicker: false,
   },
 ];
@@ -159,7 +161,7 @@ export function Step5DateSelection() {
           <Card
             key={option.value}
             className={cn(
-              'p-4 cursor-pointer transition-all',
+              'relative p-4 cursor-pointer transition-all',
               'hover:border-primary/50 hover:-translate-y-1',
               flexibility === option.value && 'border-primary bg-primary/5 ring-2 ring-primary'
             )}
@@ -173,7 +175,14 @@ export function Step5DateSelection() {
               }
             }}
           >
-            <div className="flex flex-col items-center text-center space-y-3">
+            {/* Badge - always visible */}
+            {option.badge && (
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                {option.badge}
+              </div>
+            )}
+
+            <div className="flex flex-col items-center text-center space-y-3 pt-1">
               {/* Icon */}
               <span className="text-4xl">{option.icon}</span>
 
@@ -193,13 +202,6 @@ export function Step5DateSelection() {
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
                     ✓
                   </span>
-                </div>
-              )}
-
-              {/* Flexible date tip */}
-              {option.value === 'flexible' && flexibility === 'flexible' && (
-                <div className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                  Better prices!
                 </div>
               )}
             </div>
@@ -236,11 +238,15 @@ export function Step5DateSelection() {
 
             {/* Selected date display */}
             {selectedDate && (
-              <div className="text-center">
+              <div className="text-center space-y-2">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full">
                   <span>📅</span>
                   <span className="font-medium">{formattedDate}</span>
                 </div>
+                {/* Non-binding notice */}
+                <p className="text-xs text-muted-foreground">
+                  This date is not binding - it just helps us plan and give you an accurate quote.
+                </p>
               </div>
             )}
 

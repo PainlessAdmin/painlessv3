@@ -190,6 +190,7 @@ export const calculatorStore = map<CalculatorState>(initialState);
 
 /**
  * Get the steps that apply to the current flow
+ * Step 9 is now combined with Step 8 (addresses on one page)
  * Furniture/Single item flow skips: Plan (4), Access (6), Chain (7), Extras (10)
  * Office flow skips: Items (3)
  * Studio skips: Items (3)
@@ -199,25 +200,25 @@ export const applicableSteps = computed(calculatorStore, (state): number[] => {
   const isOffice = state.serviceType === 'office';
   const isStudio = state.propertySize === 'studio';
 
-  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-  // Furniture flow: 1, 2, 5, 8, 9, 11, 12 (skip 3, 4, 6, 7, 10)
-  // Office flow: 1, 2, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3, 4)
-  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12 (skip 3)
+  // Full flow: 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12 (step 9 combined with 8)
+  // Furniture flow: 1, 2, 5, 8, 11, 12 (skip 3, 4, 6, 7, 9, 10)
+  // Office flow: 1, 2, 5, 6, 7, 8, 10, 11, 12 (skip 3, 4, 9)
+  // Studio flow: 1, 2, 4, 5, 6, 7, 8, 10, 11, 12 (skip 3, 9)
 
   if (isFurniture) {
-    return [1, 2, 5, 8, 9, 11, 12];
+    return [1, 2, 5, 8, 11, 12];
   }
 
   if (isOffice) {
-    return [1, 2, 5, 6, 7, 8, 9, 10, 11, 12];
+    return [1, 2, 5, 6, 7, 8, 10, 11, 12];
   }
 
   if (isStudio) {
-    return [1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    return [1, 2, 4, 5, 6, 7, 8, 10, 11, 12];
   }
 
   // Full home flow
-  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  return [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12];
 });
 
 /**

@@ -84,30 +84,56 @@ export function Step3BelongingsSlider() {
         </p>
       </div>
 
-      {/* Visual Illustration Card */}
+      {/* Main content - split layout */}
       <Card className="p-6 bg-gradient-to-b from-muted/30 to-muted/10">
-        <div className="text-center space-y-4">
-          {/* Dynamic Illustration */}
-          <div className="h-32 flex items-center justify-center">
-            <IllustrationPlaceholder position={position} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left side - Slider Info */}
+          <div className="space-y-4">
+            {/* Dynamic Illustration */}
+            <div className="h-24 flex items-center justify-center">
+              <IllustrationPlaceholder position={position} />
+            </div>
+
+            {/* Current Label */}
+            <div className="text-center">
+              <span className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-full text-lg">
+                {details.label}
+              </span>
+            </div>
+
+            {/* Description */}
+            <p className="text-center text-muted-foreground">
+              {details.description}
+            </p>
+
+            {/* Estimated Volume */}
+            <p className="text-center text-sm text-muted-foreground">
+              Estimated volume: ~{cubes.toLocaleString()} cu ft
+            </p>
           </div>
 
-          {/* Current Label */}
-          <div>
-            <span className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-full text-lg">
-              {details.label}
-            </span>
-          </div>
-
-          {/* Description */}
-          <p className="text-muted-foreground">
-            {details.description}
-          </p>
-
-          {/* Estimated Volume */}
-          <p className="text-sm text-muted-foreground">
-            Estimated volume: ~{cubes.toLocaleString()} cu ft
-          </p>
+          {/* Right side - Resource Estimate */}
+          {resources && (
+            <div className="flex flex-col items-center justify-center p-4 bg-background/50 rounded-lg border">
+              <p className="text-sm text-muted-foreground mb-4">Based on this, you'll likely need:</p>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🚚</span>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{resources.vans}</p>
+                    <p className="text-sm text-muted-foreground">van{resources.vans > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">👷</span>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{resources.men}</p>
+                    <p className="text-sm text-muted-foreground">mover{resources.men > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -182,32 +208,6 @@ export function Step3BelongingsSlider() {
           ))}
         </div>
       </div>
-
-      {/* Resource Preview */}
-      {resources && (
-        <Card className="p-4 bg-muted/50">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Based on this, you'll likely need:
-            </div>
-            <div className="flex items-center gap-4 text-sm font-medium">
-              <span className="flex items-center gap-1">
-                <span>🚚</span>
-                {resources.vans} van{resources.vans > 1 ? 's' : ''}
-              </span>
-              <span className="flex items-center gap-1">
-                <span>👷</span>
-                {resources.men} mover{resources.men > 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Helper text */}
-      <p className="text-center text-sm text-muted-foreground">
-        Not sure? "Average" works for most homes. You can adjust on the next screen.
-      </p>
 
       {/* Navigation Buttons */}
       <NavigationButtons

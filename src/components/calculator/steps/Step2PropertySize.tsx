@@ -52,17 +52,16 @@ const propertyOptions: Array<{
   value: PropertySize;
   label: string;
   image: string;
-  description?: string;
 }> = [
-  { value: 'furniture', label: 'Furniture Only', image: '/images/calculator/furniture-only.svg', description: 'Just a few items' },
+  { value: 'furniture', label: 'Furniture Only', image: '/images/calculator/furniture-only.svg' },
   { value: 'studio', label: 'Studio', image: '/images/calculator/studio.svg' },
   { value: '1bed', label: '1 Bedroom', image: '/images/calculator/1bed.svg' },
   { value: '2bed', label: '2 Bedrooms', image: '/images/calculator/2bed.svg' },
-  { value: '3bed-small', label: '3 Bed (Small)', image: '/images/calculator/3bed-small.svg', description: 'Typical 3-bed' },
-  { value: '3bed-large', label: '3 Bed (Large)', image: '/images/calculator/3bed-large.svg', description: 'Spacious 3-bed' },
+  { value: '3bed-small', label: '3 Bed (Small)', image: '/images/calculator/3bed-small.svg' },
+  { value: '3bed-large', label: '3 Bed (Large)', image: '/images/calculator/3bed-large.svg' },
   { value: '4bed', label: '4 Bedrooms', image: '/images/calculator/4bed.svg' },
   { value: '5bed', label: '5 Bedrooms', image: '/images/calculator/5bed.svg' },
-  { value: '5bed-plus', label: '5+ Bedrooms', image: '/images/calculator/5bed-plus.svg', description: 'Large estate' },
+  { value: '5bed-plus', label: '5+ Bedrooms', image: '/images/calculator/5bed-plus.svg' },
 ];
 
 function HomePropertySelection() {
@@ -323,7 +322,6 @@ interface PropertyCardProps {
     value: PropertySize;
     label: string;
     image: string;
-    description?: string;
   };
   isSelected: boolean;
   onSelect: () => void;
@@ -375,13 +373,6 @@ function PropertyCard({ option, isSelected, onSelect }: PropertyCardProps) {
         <h3 className="font-medium text-xs sm:text-sm text-foreground">
           {option.label}
         </h3>
-
-        {/* Description (if any) - hidden on mobile */}
-        {option.description && (
-          <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
-            {option.description}
-          </p>
-        )}
       </div>
     </Card>
   );
