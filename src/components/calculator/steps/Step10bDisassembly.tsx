@@ -206,19 +206,19 @@ function DisassemblyCard({
     <div
       className={cn(
         'relative rounded-xl border-2 bg-card overflow-hidden',
-        'transition-all duration-300 ease-out',
+        'transition-all duration-500 ease-out',
         'border-border shadow-sm',
-        !isSelected && 'hover:border-primary/50 hover:shadow-lg',
+        !isSelected && 'hover:border-[#6a9c95]/50 hover:shadow-lg',
         isSelected && [
-          'border-primary bg-primary/5',
-          'shadow-xl shadow-primary/10',
-          'ring-2 ring-primary ring-offset-2 ring-offset-background',
+          'border-[#6a9c95] bg-[#6a9c95]/5',
+          'shadow-xl shadow-[#6a9c95]/10',
+          'ring-2 ring-[#6a9c95] ring-offset-2 ring-offset-background',
         ]
       )}
     >
       {/* Quantity badge overlay */}
       {isSelected && quantity > 0 && (
-        <div className="absolute top-2 left-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold shadow-md">
+        <div className="absolute top-2 left-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-[#6a9c95] text-white font-bold shadow-md">
           {quantity}
         </div>
       )}
@@ -254,12 +254,12 @@ function DisassemblyCard({
         <div className="text-center">
           <h3 className={cn(
             'font-semibold transition-colors',
-            isSelected ? 'text-primary' : 'text-foreground'
+            isSelected ? 'text-[#6a9c95]' : 'text-foreground'
           )}>
             {label}
           </h3>
           <p className="text-xs text-muted-foreground mt-1">{examples}</p>
-          <p className="text-primary font-semibold mt-2">{formatPriceGBP(price)} per item</p>
+          <p className="text-[#6a9c95] font-semibold mt-2">{formatPriceGBP(price)} per item</p>
         </div>
       </div>
 
@@ -275,9 +275,9 @@ function DisassemblyCard({
             disabled={quantity <= 1}
             className={cn(
               'flex h-8 w-8 items-center justify-center rounded-full',
-              'border-2 border-primary text-primary font-bold',
-              'transition-all hover:bg-primary hover:text-primary-foreground',
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-primary'
+              'border-2 border-[#6a9c95] text-[#6a9c95] font-bold',
+              'transition-all hover:bg-[#6a9c95] hover:text-white',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#6a9c95]'
             )}
             aria-label="Decrease quantity"
           >
@@ -292,9 +292,9 @@ function DisassemblyCard({
             disabled={quantity >= 9}
             className={cn(
               'flex h-8 w-8 items-center justify-center rounded-full',
-              'border-2 border-primary text-primary font-bold',
-              'transition-all hover:bg-primary hover:text-primary-foreground',
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-primary'
+              'border-2 border-[#6a9c95] text-[#6a9c95] font-bold',
+              'transition-all hover:bg-[#6a9c95] hover:text-white',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#6a9c95]'
             )}
             aria-label="Increase quantity"
           >

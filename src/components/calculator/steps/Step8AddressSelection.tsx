@@ -27,6 +27,23 @@ import { NavigationButtons } from '@/components/calculator/navigation-buttons';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from '@/components/ui/toast';
+import { Select } from '@/components/ui/select';
+
+// Floor level options
+const FLOOR_LEVELS = [
+  { value: '-1', label: 'Basement (-1)' },
+  { value: '0', label: 'Ground floor (0)' },
+  { value: '1', label: '1st floor' },
+  { value: '2', label: '2nd floor' },
+  { value: '3', label: '3rd floor' },
+  { value: '4', label: '4th floor' },
+  { value: '5', label: '5th floor' },
+  { value: '6', label: '6th floor' },
+  { value: '7', label: '7th floor' },
+  { value: '8', label: '8th floor' },
+  { value: '9', label: '9th floor' },
+  { value: '10', label: '10th floor' },
+];
 
 // Google Maps is loaded globally via script tag
 // Using any types to avoid TS errors for the global Google object
@@ -46,6 +63,12 @@ export function Step8AddressSelection() {
   const [toAddress, setToAddressLocal] = useState<AddressData | null>(state.toAddress);
   const [fromInputValue, setFromInputValue] = useState(state.fromAddress?.formatted || '');
   const [toInputValue, setToInputValue] = useState(state.toAddress?.formatted || '');
+  const [fromFloorLevel, setFromFloorLevel] = useState<string>(
+    state.fromAddress?.floorLevel?.toString() ?? '0'
+  );
+  const [toFloorLevel, setToFloorLevel] = useState<string>(
+    state.toAddress?.floorLevel?.toString() ?? '0'
+  );
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
   const [distanceInfo, setDistanceInfo] = useState<DistanceData | null>(state.distances);
   const [googleLoaded, setGoogleLoaded] = useState(false);
@@ -279,8 +302,15 @@ export function Step8AddressSelection() {
       return;
     }
 
-    setFromAddress(fromAddress);
-    setToAddress(toAddress);
+    // Include floor levels in address data
+    setFromAddress({
+      ...fromAddress,
+      floorLevel: parseInt(fromFloorLevel, 10),
+    });
+    setToAddress({
+      ...toAddress,
+      floorLevel: parseInt(toFloorLevel, 10),
+    });
     if (distanceInfo) {
       setDistances(distanceInfo);
     }
@@ -382,6 +412,24 @@ export function Step8AddressSelection() {
               <span className="truncate">{fromAddress.postcode || 'Address selected'}</span>
             </div>
           )}
+          {/* Floor level dropdown */}
+          <div className="mt-3">
+            <Label htmlFor="from-floor" className="text-sm text-muted-foreground">
+              Which floor?
+            </Label>
+            <Select
+              id="from-floor"
+              value={fromFloorLevel}
+              onChange={(e) => setFromFloorLevel(e.target.value)}
+              className="mt-1"
+            >
+              {FLOOR_LEVELS.map((floor) => (
+                <option key={floor.value} value={floor.value}>
+                  {floor.label}
+                </option>
+              ))}
+            </Select>
+          </div>
         </Card>
 
         {/* To Address */}
@@ -419,6 +467,24 @@ export function Step8AddressSelection() {
               <span className="truncate">{toAddress.postcode || 'Address selected'}</span>
             </div>
           )}
+          {/* Floor level dropdown */}
+          <div className="mt-3">
+            <Label htmlFor="to-floor" className="text-sm text-muted-foreground">
+              Which floor?
+            </Label>
+            <Select
+              id="to-floor"
+              value={toFloorLevel}
+              onChange={(e) => setToFloorLevel(e.target.value)}
+              className="mt-1"
+            >
+              {FLOOR_LEVELS.map((floor) => (
+                <option key={floor.value} value={floor.value}>
+                  {floor.label}
+                </option>
+              ))}
+            </Select>
+          </div>
         </Card>
       </div>
 
