@@ -37,25 +37,21 @@ const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
     <title>{title} | Calculator Boilerplate</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    {/* Google Maps API for address autocomplete */}
+    {/* Google Maps API key for async loading (used by google-maps-loader.ts) */}
     {googleMapsApiKey && (
-      <script
-        async
-        defer
-        src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&loading=async`}
-      />
+      <meta name="google-maps-api-key" content={googleMapsApiKey} />
     )}
   </head>
   <body class="min-h-screen bg-background antialiased flex flex-col">
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-6 flex-1">
-      <!-- Progress Bar -->
+      <!-- Progress Bar - full width on desktop (max-w-4xl) -->
       <div class="max-w-4xl mx-auto mb-6">
         <ProgressBarReact client:load currentStep={currentStep} />
       </div>
 
-      <!-- Calculator Content -->
-      <div class="max-w-4xl mx-auto">
+      <!-- Calculator Content - narrower on desktop (max-w-3xl = 768px), full width on mobile -->
+      <div class="max-w-3xl mx-auto">
         <slot />
       </div>
     </main>

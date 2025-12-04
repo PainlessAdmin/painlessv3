@@ -30,6 +30,29 @@ import { Step2FurnitureOnly } from './Step2FurnitureOnly';
 
 export function Step2PropertySize() {
   const state = useStore(calculatorStore);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Wait for hydration to avoid flash of wrong content
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Show loading state until hydrated to prevent wrong branch flash
+  if (!isHydrated) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="h-8 w-64 mx-auto bg-muted animate-pulse rounded" />
+          <div className="h-5 w-48 mx-auto bg-muted animate-pulse rounded mt-2" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Office branch
   if (state.serviceType === 'office') {
@@ -242,9 +265,6 @@ function OfficeSelection() {
         <h2 className="text-2xl font-semibold text-foreground">
           What size is your office?
         </h2>
-        <p className="text-muted-foreground mt-2">
-          We'll tailor our service to your business needs
-        </p>
       </div>
 
       {/* Office Cards - 2 cols on mobile, 3 on desktop */}

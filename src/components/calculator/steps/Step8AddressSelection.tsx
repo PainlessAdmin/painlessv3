@@ -21,6 +21,7 @@ import {
   type DistanceData,
 } from '@/lib/calculator-store';
 import { CALCULATOR_CONFIG } from '@/lib/calculator-config';
+import { loadGoogleMaps, isGoogleMapsLoaded } from '@/lib/google-maps-loader';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { NavigationButtons } from '@/components/calculator/navigation-buttons';
@@ -81,30 +82,23 @@ export function Step8AddressSelection() {
   const mapInstanceRef = useRef<any>(null);
   const directionsRendererRef = useRef<any>(null);
 
-  // Check if Google Maps is loaded
+  // Load Google Maps (async loaded after step 2)
   useEffect(() => {
-    const checkGoogle = () => {
-      if (typeof google !== 'undefined' && google.maps?.places) {
+    // Check if already loaded
+    if (isGoogleMapsLoaded()) {
+      setGoogleLoaded(true);
+      return;
+    }
+
+    // Load Google Maps and wait for it to be ready
+    loadGoogleMaps()
+      .then(() => {
         setGoogleLoaded(true);
-        return true;
-      }
-      return false;
-    };
-
-    if (checkGoogle()) return;
-
-    const interval = setInterval(() => {
-      if (checkGoogle()) {
-        clearInterval(interval);
-      }
-    }, 100);
-
-    const timeout = setTimeout(() => clearInterval(interval), 5000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
+      })
+      .catch((err) => {
+        console.error('Failed to load Google Maps:', err);
+        toast.error('Failed to load map. Please refresh the page.');
+      });
   }, []);
 
   // Initialize map
