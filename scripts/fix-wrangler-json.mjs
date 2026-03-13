@@ -1,10 +1,8 @@
 /**
  * Post-build script to fix the generated wrangler.json for Cloudflare Pages compatibility.
  *
- * @astrojs/cloudflare v13 generates a Workers-style wrangler.json that has issues with Pages:
- * - SESSION KV binding without an id (auto-provisioning not supported in Pages)
- * - ASSETS binding name is reserved in Pages
- * - Empty triggers object is invalid
+ * @astrojs/cloudflare v13 generates a Workers-style wrangler.json that has fields
+ * incompatible with Pages deployments. This script removes them.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -29,9 +27,29 @@ if (config.assets?.binding === 'ASSETS') {
   delete config.assets;
 }
 
-// Fix empty triggers object
-if (config.triggers && Object.keys(config.triggers).length === 0) {
-  delete config.triggers;
+// Remove fields not supported by Pages
+const unsupportedPageFields = [
+  'main',
+  'rules',
+  'no_bundle',
+  'triggers',
+  'definedEnvironments',
+  'secrets_store_secrets',
+  'unsafe_hello_world',
+  'worker_loaders',
+  'ratelimits',
+  'vpc_services',
+  'python_modules',
+];
+
+for (const field of unsupportedPageFields) {
+  delete config[field];
+}
+
+// Clean up dev fields not supported by Pages
+if (config.dev) {
+  delete config.dev.enable_containers;
+  delete config.dev.generate_types;
 }
 
 writeFileSync(wranglerJsonPath, JSON.stringify(config));
