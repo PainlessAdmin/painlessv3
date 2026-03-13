@@ -1,7 +1,7 @@
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 
 import sentry from '@sentry/astro';
@@ -10,12 +10,12 @@ export default defineConfig({
   site: 'https://your-domain.com',
   output: 'server',
   adapter: cloudflare({
-    mode: 'directory',
-    functionPerRoute: false,
+    platformProxy: {
+      enabled: true,
+    },
   }),
   integrations: [
     react(),
-    tailwind({ applyBaseStyles: false }),
     sitemap(),
     sentry({
       dsn: 'https://683044f4edd65407160fd61683caa1b7@o4510464560988160.ingest.de.sentry.io/4510464568787024',
@@ -33,6 +33,7 @@ export default defineConfig({
     }),
   ],
   vite: {
+    plugins: [tailwindcss()],
     ssr: {
       noExternal: ['nanostores', '@libsql/client', 'resend'],
     },
