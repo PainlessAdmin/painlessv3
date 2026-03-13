@@ -10,6 +10,7 @@ export default defineConfig({
   site: 'https://your-domain.com',
   output: 'server',
   adapter: cloudflare({
+    imageService: 'passthrough',
     platformProxy: {
       enabled: true,
     },
