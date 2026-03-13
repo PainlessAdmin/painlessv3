@@ -46,7 +46,7 @@ export function formatPriceGBP(amount: number): string {
 export function formatDate(date: Date | number | string): string {
   const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date;
 
-  return new Intl.DateTimeFormat('hu-HU', {
+  return new Intl.DateTimeFormat('en-GB', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

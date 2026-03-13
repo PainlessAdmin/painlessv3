@@ -10,11 +10,11 @@ import { getCORSHeaders } from '@/lib/utils/cors';
 import { createErrorResponse, generateErrorId } from '@/lib/utils/error';
 import { logger } from '@/lib/utils/logger';
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 export const prerender = false;
 
 export const GET: APIRoute = async (context) => {
-  const runtime = context.locals.runtime as any;
   const errorId = generateErrorId();
   const origin = context.request.headers.get('Origin');
   const corsHeaders = getCORSHeaders(origin);
@@ -58,10 +58,19 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
+    // Check database credentials
+    const dbUrl = env.TURSO_DATABASE_URL;
+    const dbToken = env.TURSO_AUTH_TOKEN;
+
+    if (!dbUrl || !dbToken) {
+      logger.error('API', 'Database credentials not configured', { errorId });
+      return createErrorResponse('Database not configured', errorId, 500);
+    }
+
     // Create DB client
     const db = createDbClient({
-      TURSO_DATABASE_URL: runtime.env.TURSO_DATABASE_URL,
-      TURSO_AUTH_TOKEN: runtime.env.TURSO_AUTH_TOKEN,
+      TURSO_DATABASE_URL: dbUrl,
+      TURSO_AUTH_TOKEN: dbToken,
     });
 
     // Get quote

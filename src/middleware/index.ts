@@ -14,6 +14,7 @@ import { bootApp } from '@/lib/boot';
 import { initSentry, captureException } from '@/lib/features/monitoring/toucan';
 import { CONFIG } from '@/lib/config';
 import { logger } from '@/lib/utils/logger';
+import { env } from 'cloudflare:workers';
 
 // Track if boot already ran
 let _booted = false;
@@ -23,15 +24,11 @@ let _booted = false;
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const { request, locals, url } = context;
-  const runtime = locals.runtime as any;
-
-  // Dynamic site URL is available via url.origin
-  // Note: CONFIG.site.url is read-only, use url.origin in runtime
 
   // Boot app once (first request)
-  if (!_booted && runtime?.env) {
+  if (!_booted) {
     try {
-      await bootApp(runtime.env);
+      await bootApp(env);
       _booted = true;
       logger.info('Middleware', 'Application booted successfully');
     } catch (error) {
@@ -40,9 +37,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Initialize Sentry for this request
-  if (CONFIG.features.sentry && runtime?.env) {
+  if (CONFIG.features.sentry) {
     try {
-      const sentry = initSentry(request, runtime.env, context);
+      const sentry = initSentry(request, env, context);
       if (sentry) {
         locals.sentry = sentry;
       }

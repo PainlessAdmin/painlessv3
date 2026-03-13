@@ -9,6 +9,18 @@ import type { Quote } from '@/lib/core/db/schema';
 import { formatPrice } from '@/lib/utils';
 
 /**
+ * Escape HTML special characters to prevent XSS in email templates
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Generate quote confirmation email
  */
 export function generateQuoteConfirmationEmail(quote: Quote, siteUrl: string): string {
@@ -38,7 +50,7 @@ export function generateQuoteConfirmationEmail(quote: Quote, siteUrl: string): s
   </div>
   
   <div class="content">
-    <p>Hello ${quote.name || 'there'},</p>
+    <p>Hello ${escapeHtml(quote.name || 'there')},</p>
     
     <p>Thank you for requesting a quote. Here's a summary of your request:</p>
     
@@ -46,7 +58,7 @@ export function generateQuoteConfirmationEmail(quote: Quote, siteUrl: string): s
     
     <div class="breakdown">
       <h3>Price Breakdown:</h3>
-      ${generateBreakdownItems(quote.breakdown || {})}
+      ${generateBreakdownItems(quote.breakdown || {}, quote.currency)}
     </div>
     
     <p>Our team will review your request and get back to you within 24 hours.</p>
@@ -62,7 +74,7 @@ export function generateQuoteConfirmationEmail(quote: Quote, siteUrl: string): s
   
   <div class="footer">
     <p>Quote ID: #${quote.id}</p>
-    <p>&copy; 2024 Calculator Boilerplate. All rights reserved.</p>
+    <p>&copy; ${new Date().getFullYear()} Painless Removals. All rights reserved.</p>
   </div>
 </body>
 </html>
@@ -74,13 +86,13 @@ export function generateQuoteConfirmationEmail(quote: Quote, siteUrl: string): s
 /**
  * Generate breakdown items HTML
  */
-function generateBreakdownItems(breakdown: Record<string, number>): string {
+function generateBreakdownItems(breakdown: Record<string, number>, currency: string = 'GBP'): string {
   const items = Object.entries(breakdown).map(([key, value]) => {
-    const label = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+    const label = escapeHtml(key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '));
     return `
       <div class="breakdown-item">
         <span>${label}</span>
-        <span>${formatPrice(value, 'HUF')}</span>
+        <span>${formatPrice(value, currency)}</span>
       </div>
     `;
   });
@@ -106,15 +118,15 @@ export function generateAdminNotificationEmail(quote: Quote, siteUrl: string): s
   <table style="width: 100%; border-collapse: collapse;">
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Name:</strong></td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${quote.name || 'N/A'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${escapeHtml(quote.name || 'N/A')}</td>
     </tr>
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Email:</strong></td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${quote.email || 'N/A'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${escapeHtml(quote.email || 'N/A')}</td>
     </tr>
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Phone:</strong></td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${quote.phone || 'N/A'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${escapeHtml(quote.phone || 'N/A')}</td>
     </tr>
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Total Price:</strong></td>
@@ -126,12 +138,12 @@ export function generateAdminNotificationEmail(quote: Quote, siteUrl: string): s
     </tr>
     <tr>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;"><strong>Country:</strong></td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${quote.country || 'N/A'}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${escapeHtml(quote.country || 'N/A')}</td>
     </tr>
   </table>
   
   <h3>Calculator Data:</h3>
-  <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto;">${JSON.stringify(quote.calculatorData, null, 2)}</pre>
+  <pre style="background: #f5f5f5; padding: 15px; border-radius: 4px; overflow: auto;">${escapeHtml(JSON.stringify(quote.calculatorData, null, 2))}</pre>
   
   <p>
     <a href="${siteUrl}/admin/quotes?id=${quote.id}" style="display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View in Admin Panel</a>

@@ -31,21 +31,14 @@ import { createErrorResponse, formatError, generateErrorId } from '@/lib/utils/e
 import { generateFingerprint } from '@/lib/utils/fingerprint';
 import { logger } from '@/lib/utils/logger';
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 export const POST: APIRoute = async (context) => {
-  const runtime = context.locals.runtime as any;
   const errorId = generateErrorId();
   const origin = context.request.headers.get('Origin');
   const corsHeaders = getCORSHeaders(origin);
 
   logger.info('API', 'Save quote request received');
-
-  // 1. Check runtime environment is available
-  const env = runtime?.env || import.meta.env;
-  if (!env) {
-    logger.error('API', 'Runtime environment not available', { errorId });
-    return createErrorResponse('Server configuration error', errorId, 500);
-  }
 
   // 2. Payload size check
   const payloadOk = await checkPayloadSize(context);
