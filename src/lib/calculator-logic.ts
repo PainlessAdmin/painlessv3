@@ -70,6 +70,9 @@ export interface QuoteInput {
     }>;
   };
 
+  // Key Wait Waiver (optional)
+  keyWaitWaiver?: boolean;
+
   // Manual override (optional)
   manualOverride?: {
     men: number;
@@ -104,6 +107,7 @@ export interface QuoteResult {
     moversCost: number;
     mileageCost: number;
     accommodationCost: number;
+    keyWaitWaiverCost: number;
     extrasCost: number;
     complicationMultiplier: number;
     subtotal: number;
@@ -347,9 +351,9 @@ export function applyComplications(
  * Get packing size category based on cubes
  */
 function getPackingSizeCategory(cubes: number): 'small' | 'medium' | 'large' | 'xl' {
-  if (cubes <= 500) return 'small';
-  if (cubes <= 1000) return 'medium';
-  if (cubes <= 1750) return 'large';
+  if (cubes <= 750) return 'small';
+  if (cubes <= 1350) return 'medium';
+  if (cubes <= 2000) return 'large';
   return 'xl';
 }
 
@@ -388,15 +392,13 @@ export function getExtrasCost(extras: QuoteInput['extras'], cubes: number): numb
   if ('storageSize' in extras && extras.storageSize && 'storageWeeks' in extras && extras.storageWeeks) {
     const sizeConfig = CALCULATOR_CONFIG.storageSizes[extras.storageSize as keyof typeof CALCULATOR_CONFIG.storageSizes];
     if (sizeConfig) {
-      const weeklyRate = sizeConfig.price;
+      const monthlyRate = sizeConfig.price;
       const weeks = extras.storageWeeks as number;
+      const months = Math.ceil(weeks / 4.33);
 
-      // Apply 50% discount for first 2 months (8 weeks)
-      const discountedWeeks = Math.min(weeks, 8);
-      const fullPriceWeeks = Math.max(0, weeks - 8);
-      const discountedCost = discountedWeeks * weeklyRate * 0.5;
-      const fullPriceCost = fullPriceWeeks * weeklyRate;
-      total += discountedCost + fullPriceCost;
+      // First month included with move (free), charge remaining months
+      const chargeableMonths = Math.max(0, months - 1);
+      total += chargeableMonths * monthlyRate;
     }
   }
   // Legacy storage support (monthly rate only)
@@ -543,6 +545,11 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   // Accommodation cost
   const accommodationCost = getAccommodationCost(resources.men, input.distances.driveTimeHours);
 
+  // Key Wait Waiver cost
+  const keyWaitWaiverCost = input.keyWaitWaiver
+    ? resources.men * CALCULATOR_CONFIG.keyWaitWaiver.ratePerMover
+    : 0;
+
   // Extras cost
   const extrasCost = getExtrasCost(input.extras, cubes);
 
@@ -550,8 +557,11 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   // 6. SUBTOTAL + COMPLICATIONS
   // ===================
 
-  let subtotal = vansCost + moversCost + mileageCost + accommodationCost + extrasCost;
-  subtotal *= complicationMultiplier;
+  // Complication multiplier applies to base costs only (vans, movers, mileage, accommodation, key wait waiver)
+  // Extras (packing, cleaning, storage, assembly) are added AFTER the multiplier
+  let baseCosts = vansCost + moversCost + mileageCost + accommodationCost + keyWaitWaiverCost;
+  baseCosts *= complicationMultiplier;
+  let subtotal = baseCosts + extrasCost;
 
   // ===================
   // 7. APPLY MARGIN
@@ -589,10 +599,106 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
       moversCost,
       mileageCost,
       accommodationCost,
+      keyWaitWaiverCost,
       extrasCost,
       complicationMultiplier,
       subtotal,
       margin: totalPrice - subtotal,
+    },
+  };
+}
+
+// ===================
+// HOUSE CLEARANCE
+// ===================
+
+export type DisposalItemType = keyof typeof CALCULATOR_CONFIG.houseClearance.disposal;
+export type AccessDifficulty = keyof typeof CALCULATOR_CONFIG.houseClearance.accessDifficulties;
+
+export interface HouseClearanceInput {
+  // Disposal items with quantities
+  disposalItems: Array<{
+    type: DisposalItemType;
+    quantity: number;
+  }>;
+
+  // Access difficulties (additive percentages)
+  accessDifficulties: AccessDifficulty[];
+
+  // Distance (for mileage)
+  distances: {
+    depotToFrom: number;
+    fromToTo: number;
+    toToDepot: number;
+    driveTimeHours: number;
+  };
+
+  // Crew and duration
+  men: number;
+  vans: number;
+  isFullDay: boolean; // true = full day, false = half day
+  days: number; // number of days (1 for half/full day, 2+ for multi-day)
+}
+
+export interface HouseClearanceResult {
+  totalPrice: number;
+  breakdown: {
+    disposalCost: number;
+    labourCost: number;
+    mileageCost: number;
+    accessDifficultyPercentage: number;
+    subtotal: number;
+  };
+}
+
+/**
+ * Calculate house clearance quote
+ * Uses fixed disposal prices + standard labour rates + mileage + access difficulty surcharges
+ */
+export function calculateHouseClearance(input: HouseClearanceInput): HouseClearanceResult {
+  // 1. Calculate disposal fees
+  let disposalCost = 0;
+  for (const item of input.disposalItems) {
+    const config = CALCULATOR_CONFIG.houseClearance.disposal[item.type];
+    disposalCost += config.price * item.quantity;
+  }
+
+  // 2. Calculate labour (standard mover + van rates)
+  const moverDayRate = getMoverDayCost(input.men);
+  const vanRate = input.isFullDay ? CALCULATOR_CONFIG.vanRates.fullDay : CALCULATOR_CONFIG.vanRates.halfDay;
+
+  const moversCost = input.isFullDay
+    ? moverDayRate * input.days
+    : moverDayRate * 0.5;
+  const vansCost = input.vans * vanRate * (input.isFullDay ? input.days : 1);
+  const labourCost = moversCost + vansCost;
+
+  // 3. Calculate mileage
+  const totalMiles = input.distances.depotToFrom + input.distances.fromToTo + input.distances.toToDepot;
+  const mileageCost = getMileageCost(totalMiles);
+
+  // 4. Calculate access difficulty surcharge (additive percentages)
+  let accessDifficultyPercentage = 0;
+  for (const difficulty of input.accessDifficulties) {
+    accessDifficultyPercentage += CALCULATOR_CONFIG.houseClearance.accessDifficulties[difficulty].percentage;
+  }
+
+  // 5. Sum and apply access difficulty surcharge
+  let subtotal = disposalCost + labourCost + mileageCost;
+  subtotal *= (1 + accessDifficultyPercentage);
+
+  // 6. Apply margin and round
+  const withMargin = applyMargin(subtotal);
+  const totalPrice = roundPrice(withMargin);
+
+  return {
+    totalPrice,
+    breakdown: {
+      disposalCost,
+      labourCost,
+      mileageCost,
+      accessDifficultyPercentage,
+      subtotal,
     },
   };
 }

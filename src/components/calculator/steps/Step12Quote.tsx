@@ -324,6 +324,14 @@ export function Step12Quote() {
               />
             )}
 
+            {/* Key Wait Waiver */}
+            {quote.breakdown.keyWaitWaiverCost > 0 && (
+              <BreakdownLine
+                label="Key Wait Waiver"
+                value={quote.breakdown.keyWaitWaiverCost}
+              />
+            )}
+
             {/* Complications */}
             {quote.breakdown.complicationMultiplier > 1 && (
               <BreakdownLine

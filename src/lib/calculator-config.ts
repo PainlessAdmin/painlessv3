@@ -432,6 +432,36 @@ export const CALCULATOR_CONFIG = {
   } as Record<number, string>,
 
   // ===================
+  // HOUSE CLEARANCE
+  // ===================
+  houseClearance: {
+    disposal: {
+      gardenWaste: { price: 40, label: 'Garden waste (per ton bag)' },
+      mixedWaste: { price: 60, label: 'Mixed non-recyclables (per ton bag)' },
+      mattress: { price: 40, label: 'Mattress' },
+      washingMachine: { price: 40, label: 'Washing machine' },
+      sofa: { price: 80, label: 'Sofa' },
+      bedSet: { price: 80, label: 'Bed + mattress set' },
+      fridge: { price: 110, label: 'Fridge' },
+      largeAppliance: { price: 110, label: 'Large appliance' },
+      fullRoom: { price: 400, label: 'Full room clearance' },
+    },
+    accessDifficulties: {
+      restrictedParking: { percentage: 0.20, label: 'Restricted parking' },
+      upperFloorNoLift: { percentage: 0.30, label: 'Upper floor, no lift' },
+      narrowDoors: { percentage: 0.10, label: 'Narrow doors' },
+      atticOrBasement: { percentage: 0.30, label: 'Attic or basement' },
+    },
+  },
+
+  // ===================
+  // KEY WAIT WAIVER
+  // ===================
+  keyWaitWaiver: {
+    ratePerMover: 40, // £40 per mover
+  },
+
+  // ===================
   // VALIDATION
   // ===================
   validation: {
@@ -463,3 +493,5 @@ export type StorageSize = keyof typeof CALCULATOR_CONFIG.storage;
 export type StorageSizeKey = keyof typeof CALCULATOR_CONFIG.storageSizes;
 export type AssemblyComplexity = keyof typeof CALCULATOR_CONFIG.assembly;
 export type Complication = keyof typeof CALCULATOR_CONFIG.complications;
+export type DisposalItemType = keyof typeof CALCULATOR_CONFIG.houseClearance.disposal;
+export type AccessDifficulty = keyof typeof CALCULATOR_CONFIG.houseClearance.accessDifficulties;
