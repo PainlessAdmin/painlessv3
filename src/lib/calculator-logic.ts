@@ -521,7 +521,10 @@ export function calculateQuote(input: QuoteInput): QuoteResult {
   // ===================
 
   const totalMiles = input.distances.depotToFrom + input.distances.fromToTo + input.distances.toToDepot;
-  const totalJobTime = resources.loadTime + input.distances.driveTimeHours;
+  const unloadTime = resources.loadTime * 0.65;
+  const rawJobTime = resources.loadTime + input.distances.driveTimeHours + unloadTime;
+  const pauseTime = rawJobTime > 6 ? 1 : 0;
+  const totalJobTime = rawJobTime + pauseTime;
 
   const duration = getServiceDuration(totalJobTime, input.propertyChain);
 
