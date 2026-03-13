@@ -21,9 +21,8 @@ const {
 } = Astro.props;
 
 // Google Maps API key for address autocomplete
-// Try Cloudflare runtime env first (SSR), then fallback to build-time env
-const runtime = Astro.locals?.runtime;
-const googleMapsApiKey = runtime?.env?.GOOGLE_MAPS_API_KEY
+import { env } from 'cloudflare:workers';
+const googleMapsApiKey = env.GOOGLE_MAPS_API_KEY
   || import.meta.env.GOOGLE_MAPS_API_KEY
   || '';
 ---
