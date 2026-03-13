@@ -10,6 +10,7 @@ import { generateRateLimitKey } from '@/lib/utils/fingerprint';
 import { kvGet, kvPut, safeKV } from '@/lib/utils/kv';
 import { logger } from '@/lib/utils/logger';
 import type { APIContext } from 'astro';
+import { env as cfEnv } from 'cloudflare:workers';
 
 /**
  * Check rate limit
@@ -19,10 +20,9 @@ export async function checkRateLimit(context: APIContext): Promise<boolean> {
     return true; // Feature disabled
   }
 
-  const { locals, request } = context;
-  const runtime = locals.runtime as any;
+  const { request } = context;
 
-  const kv = safeKV(runtime?.env, 'RATE_LIMITER');
+  const kv = safeKV(cfEnv, 'RATE_LIMITER');
   if (!kv) {
     logger.warn('RateLimit', 'KV not configured, allowing request');
     return true;
@@ -94,10 +94,9 @@ export async function checkRateLimit(context: APIContext): Promise<boolean> {
  * Get remaining requests
  */
 export async function getRemainingRequests(context: APIContext): Promise<number> {
-  const { locals, request } = context;
-  const runtime = locals.runtime as any;
+  const { request } = context;
 
-  const kv = safeKV(runtime?.env, 'RATE_LIMITER');
+  const kv = safeKV(cfEnv, 'RATE_LIMITER');
   if (!kv) return CONFIG.security.rateLimitRequests;
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';

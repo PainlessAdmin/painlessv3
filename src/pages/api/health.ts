@@ -8,17 +8,16 @@
 import { CONFIG } from '@/lib/config';
 import { logger } from '@/lib/utils/logger';
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const GET: APIRoute = async (context) => {
-  const runtime = context.locals.runtime as any;
-
+export const GET: APIRoute = async () => {
   logger.debug('API', 'Health check requested');
 
   const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: '2.0.0',
-    environment: runtime?.env?.ENVIRONMENT || 'unknown',
+    environment: env.ENVIRONMENT || 'unknown',
     features: {
       analytics: CONFIG.features.analytics,
       auth: CONFIG.features.auth,
@@ -27,9 +26,9 @@ export const GET: APIRoute = async (context) => {
       monitoring: CONFIG.features.sentry,
     },
     checks: {
-      database: !!runtime?.env?.TURSO_DATABASE_URL,
-      email: !!runtime?.env?.RESEND_API_KEY,
-      kv: !!runtime?.env?.RATE_LIMITER,
+      database: !!env.TURSO_DATABASE_URL,
+      email: !!env.RESEND_API_KEY,
+      kv: !!env.RATE_LIMITER,
     },
   };
 
