@@ -58,10 +58,19 @@ export const GET: APIRoute = async (context) => {
       );
     }
 
+    // Check database credentials
+    const dbUrl = env.TURSO_DATABASE_URL;
+    const dbToken = env.TURSO_AUTH_TOKEN;
+
+    if (!dbUrl || !dbToken) {
+      logger.error('API', 'Database credentials not configured', { errorId });
+      return createErrorResponse('Database not configured', errorId, 500);
+    }
+
     // Create DB client
     const db = createDbClient({
-      TURSO_DATABASE_URL: env.TURSO_DATABASE_URL,
-      TURSO_AUTH_TOKEN: env.TURSO_AUTH_TOKEN,
+      TURSO_DATABASE_URL: dbUrl,
+      TURSO_AUTH_TOKEN: dbToken,
     });
 
     // Get quote
